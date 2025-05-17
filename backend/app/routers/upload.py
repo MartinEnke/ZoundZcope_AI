@@ -32,7 +32,9 @@ def upload_audio(
 
     analysis = analyze_audio(file_location)
 
-    track_name = track_name or file.filename.rsplit(".", 1)[0]
+    track_name = track_name.strip() if track_name else None
+    if not track_name or track_name.lower() == "string":
+        track_name = os.path.splitext(file.filename)[0]
 
     track = Track(
         session_id=session_id,

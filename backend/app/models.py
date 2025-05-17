@@ -43,6 +43,7 @@ class AnalysisResult(Base):
     rms_db = Column(Float)
     lufs = Column(Float)
     dynamic_range = Column(Float)
+    stereo_width_ratio = Column(Float)
     stereo_width = Column(String)
     key = Column(String)
     tempo = Column(Float)
