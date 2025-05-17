@@ -4,6 +4,36 @@ import json
 import pyloudnorm as pyln
 import math
 
+
+def detect_key(y, sr):
+    chroma = librosa.feature.chroma_cqt(y=y, sr=sr)
+    chroma_mean = np.mean(chroma, axis=1)
+
+    # Define major and minor key profiles (Krumhansl-Schmuckler)
+    major_profile = np.array([6.35, 2.23, 3.48, 2.33, 4.38, 4.09,
+                              2.52, 5.19, 2.39, 3.66, 2.29, 2.88])
+    minor_profile = np.array([6.33, 2.68, 3.52, 5.38, 2.60, 3.53,
+                              2.54, 4.75, 3.98, 2.69, 3.34, 3.17])
+
+    # Compare to all 12 pitch classes
+    best_corr = -1
+    best_key = ""
+    note_names = ['C', 'C#', 'D', 'D#', 'E', 'F',
+                  'F#', 'G', 'G#', 'A', 'A#', 'B']
+    for i in range(12):
+        corr_major = np.corrcoef(np.roll(major_profile, i), chroma_mean)[0, 1]
+        corr_minor = np.corrcoef(np.roll(minor_profile, i), chroma_mean)[0, 1]
+
+        if corr_major > best_corr:
+            best_corr = corr_major
+            best_key = f"{note_names[i]} Major"
+        if corr_minor > best_corr:
+            best_corr = corr_minor
+            best_key = f"{note_names[i]} minor"
+
+    return best_key
+
+
 def analyze_audio(file_path):
     y, sr = librosa.load(file_path, mono=False)
     print(f"y shape: {y.shape}, ndim: {y.ndim}")
@@ -22,6 +52,9 @@ def analyze_audio(file_path):
     # Compute tempo
     tempo_arr, _ = librosa.beat.beat_track(y=y_mono, sr=sr)
     tempo = float(tempo_arr)
+
+    # key detection
+    key = detect_key(y_mono, sr)
 
     # lufs
     meter = pyln.Meter(sr) # sample rate
@@ -55,12 +88,13 @@ def analyze_audio(file_path):
         else:
             stereo_width_label = "too wide"
 
+
     # Placeholder for later features
     return {
         "peak_db": round(peak_db, 2),
         "rms_db": round(rms_db, 2),
         "tempo": round(tempo, 2),
-        "key": "A minor",
+        "key": key,
         "lufs": round(loudness, 2),
         "dynamic_range": round(dynamic_range, 2),
         "stereo_width_ratio": round(width_ratio, 3),
@@ -69,3 +103,5 @@ def analyze_audio(file_path):
         "masking_detected": False, # placeholder
         "issues": json.dumps(["issues"]) # json can take more than one issue
     }
+
+
