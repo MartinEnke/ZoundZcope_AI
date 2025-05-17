@@ -18,7 +18,7 @@ def get_db():
     finally:
         db.close()
 
-
+@router.post("/")
 def upload_audio(
     file: UploadFile = File(...),
     session_id: int = Form(...),
