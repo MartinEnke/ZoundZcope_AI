@@ -1,10 +1,10 @@
-# 6. app/routers/upload.py
 from fastapi import APIRouter, UploadFile, File, Form, Depends
 from sqlalchemy.orm import Session
 import shutil, os
 from app.database import SessionLocal
 from app.models import Track, AnalysisResult, Session as UserSession
 from app.audio_analysis import analyze_audio
+from typing import Optional
 
 router = APIRouter()
 
@@ -22,7 +22,8 @@ def get_db():
 def upload_audio(
     file: UploadFile = File(...),
     session_id: int = Form(...),
-    track_name: str = Form(...),
+    track_name: Optional[str] = Form(None),
+    type: str = Form(...),
     db: Session = Depends(get_db)
 ):
     file_location = f"{UPLOAD_FOLDER}/{file.filename}"
@@ -31,11 +32,13 @@ def upload_audio(
 
     analysis = analyze_audio(file_location)
 
+    track_name = track_name or file.filename.rsplit(".", 1)[0]
+
     track = Track(
         session_id=session_id,
         track_name=track_name,
         file_path=file_location,
-        type="mix"
+        type=type
     )
     db.add(track)
     db.commit()
