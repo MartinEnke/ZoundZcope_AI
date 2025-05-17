@@ -1,0 +1,138 @@
+
+*** CONFIGURATION OF PATHS ***
+
+Press Shift twice (⇧⇧) to open the Search Everywhere box
+
+Type: Edit Configurations
+
+Click the result: Run > Edit Configurations…
+→ That will open the correct Run/Debug Configuration window
+
+Click the + in the top-left corner of that window
+
+Choose → Python
+(Python, Bash, Compound, Docker, etc.)
+
+Fill out the fields like:
+
+Field	             What to put
+Name	             ZoundZcope AI
+Script path	         Click the folder icon and choose main.py from your backend/ folder
+Working directory    Click the folder icon and choose the backend/ folder itself
+Python interpreter   Select your virtual environment (venv or conda, if not set already)
+
+Hit OK and press the ▶️ play button.
+
+✅ Script: main.py — correct
+✅ Working dir: /backend — correct
+✅ Environment var (optional): fine
+✅ Python interpreter: ✅ already set correctly (shows at the top)
+
+➕ Bonus Tip
+If you ever want to change the interpreter,
+just click the gear icon next to the Python path and choose from:
+System Python
+Any virtualenv
+Create a new one
+
+
+
+*** MULTIPART ***
+
+pip install python-multipart
+-- necessary step for the /upload route to work properly.
+
+It’s a small Python library that enables FastAPI to handle file uploads
+sent via multipart/form-data, which is the encoding format used
+when forms send files (like WAVs or images) from your frontend or tools like Postman.
+
+@router.post("/")
+def upload_audio(
+    file: UploadFile = File(...),
+    session_id: int = Form(...),
+    track_name: str = Form(...),
+    ...
+)
+
+You're accepting:
+A file (via UploadFile)
+Some form fields (like track_name, session_id)
+These together require multipart form handling.
+FastAPI uses Starlette under the hood, and Starlette needs python-multipart
+to parse those kinds of requests.
+
+✅ In Short:
+Item	            Purpose
+python-multipart	Enables FastAPI to parse file upload forms
+Required for	    UploadFile, Form(...), File(...)
+Not needed for	    JSON-only APIs (e.g., application/json)
+
+
+
+*** UVICORN ***
+🧠 Why Pros Use uvicorn main:app --reload
+Reason	                      Benefit
+✅ Separation of concerns	  Keeps main.py clean — just defines the app, doesn't launch it
+🚀 Production-ready	          run main.py in production — deploy with uvicorn or gunicorn -k uvicorn.workers.UvicornWorker
+♻️ Hot reload support	      The --reload flag gives fast reloads during dev — no need to restart
+🧪 Better for testing	      Re-using the app object is easier when it's not tied to launch logic
+⚙️ Works with ASGI servers	  uvicorn is a fully ASGI-compatible server — crucial for FastAPI apps
+
+🆚 Comparison
+Approach	                Used by…	                        Typical in…
+uvicorn.run() in main.py	Beginners, small scripts	        Quick demos or when using PyCharm without config
+uvicorn main:app --reload	Professionals, production setups	Real apps, clean architecture, Docker deployments
+
+
+Professional appearance
+Cleaner and more scalable code
+Easier deployment later
+
+➡️ Switch to using  from your run config and remove uvicorn.run() from main.py completely.
+
+
+
+*** SETUP UVICORN ***
+
+pip install uvicorn
+pip install fastapi uvicorn
+
+Update Your Run Configuration in PyCharm
+
+Go to Run → Edit Configurations...
+
+Click the + in the top left
+
+Choose Python
+
+Then fill out the fields like this:
+
+Field	                     Value
+Name	                     ZoundZscope_AI (uvicorn)
+Module name (not script!)    uvicorn
+Parameters	                 main:app --reload
+Working directory	         Set this to your backend/ folder
+Python interpreter	         Use your virtual environment (already selected for you)
+
+for example:
+[Python interpreter]: /your/venv/bin/python
+Module name: uvicorn
+Parameters: main:app --reload
+Working directory: /Users/martinenke/ZoundZscope_AI/backend
+
+Hit Apply, then OK
+
+Run It 🎉
+In the top-right dropdown, select ZoundZscope (uvicorn)
+
+Click ▶️
+Open your browser and go to http://127.0.0.1:8000
+Or test via http://127.0.0.1:8000/docs to access Swagger UI
+
+
+--->
+✅ clean, professional FastAPI project setup
+✅ A working Run Configuration using uvicorn
+✅ Proper dependency management
+✅ Swagger UI live at localhost:8000/docs
+✅ Ready to build and test your upload + GPT routes like a pro
