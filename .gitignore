@@ -1,0 +1,36 @@
+git add backend/main.py
+git add backend/app/audio_analysis.py
+git add backend/app/gpt_utils.py
+git add backend/app/routers/upload.py
+git add backend/app/routers/chat.py
+git add backend/app/database.py
+git add backend/app/models.py
+git add .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+*.env
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# IDEs
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads or temp
+uploads/
+*.wav
+
+# Frontend node stuff (if used)
+dist/
+node_modules/
