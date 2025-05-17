@@ -88,6 +88,27 @@ def analyze_audio(file_path):
         else:
             stereo_width_label = "too wide"
 
+    # Compute Short-Time Fourier Transform (power spectrogram)
+    S = np.abs(librosa.stft(y_mono)) ** 2
+    freqs = librosa.fft_frequencies(sr=sr)
+
+    # Mask to keep only low frequencies (e.g., under 150 Hz)
+    low_freq_mask = freqs <= 150
+    low_energy = S[low_freq_mask, :]
+
+    # Compute energy
+    low_end_energy = np.sum(low_energy)
+    total_energy = np.sum(S)
+    normalized_low_end = low_end_energy / (total_energy + 1e-9)
+
+    if normalized_low_end < 0.1:
+        bass_profile = "light"
+    elif normalized_low_end < 0.3:
+        bass_profile = "balanced"
+    else:
+        bass_profile = "bass heavy"
+
+    print(f"Low-End Raw: {low_end_energy:.3f} | Total: {total_energy:.3f} | Ratio: {normalized_low_end:.3f}")
 
     # Placeholder for later features
     return {
@@ -99,7 +120,8 @@ def analyze_audio(file_path):
         "dynamic_range": round(dynamic_range, 2),
         "stereo_width_ratio": round(width_ratio, 3),
         "stereo_width": stereo_width_label,
-        "low_end_energy": 0.8,    # semi-placeholder
+        "low_end_energy_ratio": round(normalized_low_end, 3),
+        "bass_profile": bass_profile,
         "masking_detected": False, # placeholder
         "issues": json.dumps(["issues"]) # json can take more than one issue
     }

@@ -47,7 +47,8 @@ class AnalysisResult(Base):
     stereo_width = Column(String)
     key = Column(String)
     tempo = Column(Float)
-    low_end_energy = Column(Float)
+    low_end_energy_ratio = Column(Float)
+    bass_profile = Column(String)
     masking_detected = Column(Boolean)
     issues = Column(Text) # Store as JSON string (e.g. '["clipping", "bass masking"]')
 
