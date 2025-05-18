@@ -24,6 +24,7 @@ def upload_audio(
     session_id: int = Form(...),
     track_name: Optional[str] = Form(None),
     type: str = Form(...),
+    genre: str = Form(...),
     db: Session = Depends(get_db)
 ):
     file_location = f"{UPLOAD_FOLDER}/{file.filename}"

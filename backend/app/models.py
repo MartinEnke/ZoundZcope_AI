@@ -49,8 +49,8 @@ class AnalysisResult(Base):
     tempo = Column(Float)
     low_end_energy_ratio = Column(Float)
     bass_profile = Column(String)
-    masking_detected = Column(Boolean)
-    issues = Column(Text) # Store as JSON string (e.g. '["clipping", "bass masking"]')
+    band_energies = Column(String)  # (JSON string like '{"low": 10.1, ...}')
+    issues = Column(Text) # JSON string (e.g. '["clipping", "bass masking"]')
 
     track = relationship("Track", back_populates="analysis")
 

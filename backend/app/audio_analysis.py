@@ -110,7 +110,23 @@ def analyze_audio(file_path):
 
     print(f"Low-End Raw: {low_end_energy:.3f} | Total: {total_energy:.3f} | Ratio: {normalized_low_end:.3f}")
 
-    # Placeholder for later features
+    # ========== Basic Masking Detection ==========
+    # Define frequency bands
+    bands = {
+        "sub": (20, 60),
+        "low": (60, 250),
+        "mid": (250, 2000),
+        "high": (2000, 6000),
+        "air": (6000, 16000)
+    }
+
+    band_energies = {}
+    for band, (low, high) in bands.items():
+        mask = (freqs >= low) & (freqs < high)
+        band_energy = np.mean(S[mask])
+        band_energies[band] = band_energy
+
+
     return {
         "peak_db": round(peak_db, 2),
         "rms_db": round(rms_db, 2),
@@ -122,7 +138,7 @@ def analyze_audio(file_path):
         "stereo_width": stereo_width_label,
         "low_end_energy_ratio": round(normalized_low_end, 3),
         "bass_profile": bass_profile,
-        "masking_detected": False, # placeholder
+        "band_energies": json.dumps({k: round(float(v), 2) for k, v in band_energies.items()}),
         "issues": json.dumps(["issues"]) # json can take more than one issue
     }
 
