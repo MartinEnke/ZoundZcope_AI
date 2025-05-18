@@ -51,4 +51,9 @@ def upload_audio(
     db.add(result)
     db.commit()
 
-    return {"message": "File uploaded and analyzed successfully", "track_id": track.id}
+    return {
+        "track_name": track_name,
+        "genre": genre,
+        "analysis": analysis,
+        "feedback": "Feedback not yet generated – coming soon!"
+    }
