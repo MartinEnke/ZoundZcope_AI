@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from app.routers import upload, chat, sessions, tracks
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
+from dotenv import load_dotenv
+load_dotenv()
 
 
 Base.metadata.create_all(bind=engine)

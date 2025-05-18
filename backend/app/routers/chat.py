@@ -37,6 +37,7 @@ def get_feedback(
         "tempo": track.analysis.tempo,
         "low_end_energy_ratio": track.analysis.low_end_energy_ratio,
         "bass_profile": track.analysis.bass_profile,
+        "band_energies": json.loads(track.analysis.band_energies),
         "issues": json.loads(track.analysis.issues),
     }
 
