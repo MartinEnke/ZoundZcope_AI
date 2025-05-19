@@ -127,15 +127,15 @@ def analyze_audio(file_path):
         band_energies[band] = band_energy
 
     return {
-        "peak_db": float(round(peak_db, 2)),
-        "rms_db": float(round(rms_db, 2)),
-        "tempo": float(round(tempo, 2)),
+        "peak_db": f"{peak_db:.2f}",
+        "rms_db": f"{rms_db:.2f}",
+        "tempo": f"{tempo:.2f}",
         "key": key,
-        "lufs": float(round(loudness, 2)),
-        "dynamic_range": float(round(dynamic_range, 2)),
-        "stereo_width_ratio": float(round(width_ratio, 3)),
+        "lufs": f"{loudness:.2f}",
+        "dynamic_range": f"{dynamic_range:.2f}",
+        "stereo_width_ratio": f"{width_ratio:.2f}",
         "stereo_width": stereo_width_label,
-        "low_end_energy_ratio": float(round(normalized_low_end, 3)),
+        "low_end_energy_ratio": f"{normalized_low_end:.2f}",
         "bass_profile": bass_profile,
         "band_energies": json.dumps({k: round(float(v), 2) for k, v in band_energies.items()}),
         "issues": json.dumps(["issues"])

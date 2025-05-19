@@ -76,6 +76,27 @@
     margin-left: 0;
       margin-top: 6px;
     }
+
+    @keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+.fade-in-delay {
+  animation: fadeInUp 1.5s ease-out 0.3s forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
   </style>
 </head>
 <body class="text-white">
@@ -143,7 +164,8 @@
     </div>
 
     <!-- RIGHT COLUMN: Feedback -->
-    <section id="feedback" class="hidden lg:w-1/2 mt-6 lg:mt-0 bg-black/10 p-6 rounded-lg shadow-inner space-y-4">
+    <section id="feedback" class="hidden lg:w-1/2 lg:max-w-[48%] mt-6 lg:mt-0 bg-black/10 p-6 rounded-lg shadow-inner space-y-4">
+
   <h2 class="text-2xl font-bold text-white mb-4">AI Feedback</h2>
   <div id="gptResponse" class="text-base leading-relaxed text-white/90 space-y-3"></div>
 </section>
