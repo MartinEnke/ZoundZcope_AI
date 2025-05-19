@@ -7,14 +7,13 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
     body {
-      background: #0b0d13; /* Deep blue-black background */
+      background: #0b0d13;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    /* Custom glassy input style */
     .milky-input,
     select.milky-input {
-      background-color: rgba(255, 255, 255, 0.08);
+      background-color: rgba(0, 0, 0, 0.05);
       backdrop-filter: blur(6px);
       color: white;
       padding: 0.5rem;
@@ -23,6 +22,12 @@
       outline: none;
       box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
       width: 100%;
+      transition: background-color 0.2s ease, backdrop-filter 0.2s ease;
+    }
+
+    .milky-input:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
     }
 
     select.milky-input {
@@ -31,140 +36,120 @@
       background-repeat: no-repeat;
       background-position: right 0.5rem center;
       background-size: 1rem;
-      padding-right: 2rem; /* space for the arrow */
+      padding-right: 2rem;
     }
 
     select option {
-  background-color: rgba(15, 15, 20, 0.95);
-  color: white;
-}
+      background-color: rgba(15, 15, 20, 0.95);
+      color: white;
+    }
 
-select:focus option:checked {
-  background-color: rgba(255, 255, 255, 0.1);
-}
+    select:focus option:checked {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
     input.milky-input:-webkit-autofill {
       box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.05) inset !important;
       -webkit-text-fill-color: white !important;
       caret-color: white;
-      transition: background-color 9999s ease-in-out 0s; /* delay the white flash */
+      transition: background-color 9999s ease-in-out 0s;
     }
-    .milky-input,
-select.milky-input {
-  background-color: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(6px);
-  color: white;
-  padding: 0.5rem;
-  border-radius: 0.375rem;
-  border: none;
-  outline: none;
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
-  width: 100%;
-  transition: background-color 0.2s ease, backdrop-filter 0.2s ease;
-}
 
-.milky-input:hover {
-  background-color: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(8px);
-}
+    main {
+      padding-left: 16px; /* Ensures the body content doesn't drift too far from the left */
+      padding-right: 16px; /* Ensures content has consistent margins */
+    }
+
+    section {
+      margin-top: 0; /* Remove any unexpected top margin */
+      margin-bottom: 1.5rem; /* Ensure sections have consistent spacing */
+    }
+
+    #feedback,
+    #results {
+      margin-left: 0; /* Ensure these sections align with the left side */
+      margin-right: 0; /* Ensure they align with the right side */
+      width: 100%; /* Make sure they take up full width of the column */
+    }
+
+    #results {
+    margin-left: 0;
+      margin-top: 6px;
+    }
   </style>
 </head>
 <body class="text-white">
-
-<!-- Background logo -->
 <div class="fixed inset-0 z-0 opacity-10 bg-no-repeat bg-center pointer-events-none"
-     style="background-image: url('/static/logo.png'); background-size: 1800px; background-position: center -450px;">
-</div>
-
-<!-- Header -->
-<header
-  class="fixed inset-x-0 top-0 z-50
-         bg-black bg-opacity-75
-         backdrop-filter backdrop-blur-sm
-         border-b-2 border-white border-opacity-80
-         shadow-md flex items-center justify-between p-4"
->
+     style="background-image: url('/static/logo.png'); background-size: 1800px; background-position: center -450px;"></div>
+<header class="fixed inset-x-0 top-0 z-50 bg-black bg-opacity-75 backdrop-filter backdrop-blur-sm border-b-2 border-white border-opacity-80 shadow-md flex items-center justify-between p-4">
   <div class="flex items-center">
     <img src="/static/Logo.png" alt="Logo" class="h-10 w-10 mr-3">
     <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
   </div>
 </header>
-
-<!-- Main content -->
 <main class="relative z-10 pt-24 max-w-6xl mx-auto px-4">
-  <!-- Responsive wrapper -->
-  <div class="flex flex-col lg:flex-row lg:space-x-6">
-    <!-- Upload section (left on large screens) -->
-    <section class="lg:w-1/2 mb-6 lg:mb-0 bg-white/10 p-6 rounded-lg shadow-inner">
-      <h2 class="text-lg font-semibold mb-4">Upload Your Track</h2>
-      <form id="uploadForm" class="flex flex-col space-y-4" enctype="multipart/form-data">
-        <label for="file-upload"
-  class="milky-input flex items-center justify-between cursor-pointer transition
-         hover:bg-white/20 hover:backdrop-blur-lg py-2">
-  <span id="file-name" class="text-white/90 text-base">Choose a file</span>
-  <input
-    id="file-upload"
-    name="file"
-    type="file"
-    accept="audio/*"
-    class="hidden"
-    required
-  />
-</label>
+  <div class="flex flex-col lg:flex-row lg:items-start lg:space-x-8">
 
+    <!-- LEFT COLUMN: Input + Results -->
+    <div class="lg:w-1/2 flex flex-col space-y-6">
+      <section class="bg-black/10 p-6 rounded-lg shadow-inner">
+        <h2 class="text-lg font-semibold mb-4">Upload Your Track</h2>
+        <form id="uploadForm" class="flex flex-col space-y-4" enctype="multipart/form-data">
+        <label for="file-upload" class="milky-input flex items-center justify-between cursor-pointer transition hover:bg-white/20 hover:backdrop-blur-lg py-2">
+          <span id="file-name" class="text-white/90 text-base">Choose a file</span>
+          <input id="file-upload" name="file" type="file" accept="audio/*" class="hidden" required />
+        </label>
         <div class="relative">
-  <input
-    type="text"
-    name="track_name"
-    id="track_name"
-    class="milky-input peer placeholder-transparent"
-    placeholder="Track Name"
-
-  />
-  <label for="track_name"
-    class="absolute left-2 top-2 text-white text-base transition-all
-           peer-placeholder-shown:top-2
-           peer-placeholder-shown:text-white/70
-           peer-placeholder-shown:text-base
-           peer-focus:top-[-0.6rem]
-           peer-focus:text-sm peer-focus:text-white">
-    Track Name <span class="text-white/60 italic text-sm">(leave blank to use file name)</span>
-  </label>
-</div>
-
+          <input type="text" name="track_name" id="track_name" class="milky-input peer placeholder-transparent" placeholder="Track Name" />
+          <label for="track_name" class="absolute left-2 top-2 text-white text-base transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-white/70 peer-placeholder-shown:text-base peer-focus:top-[-0.6rem] peer-focus:text-sm peer-focus:text-white">
+            Track Name <span class="text-white/60 italic text-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(leave blank to use file name)</span>
+          </label>
+        </div>
         <input type="hidden" name="session_id" id="session_id">
-
-        <select name="type" class="milky-input" required>
-          <option value="">Select Type</option>
-          <option value="mixdown">Mixdown</option>
-          <option value="master">Master</option>
-        </select>
-
-        <select name="genre" class="milky-input" required>
-          <option value="">Select Genre</option>
-          <option value="electronic">Electronic</option>
-          <option value="hiphop">Hip Hop</option>
-          <option value="rock">Rock</option>
-          <option value="ambient">Ambient</option>
-        </select>
-
+        <div class="relative">
+          <input type="hidden" name="type" id="type-input" />
+          <button type="button" id="type-button" class="milky-input flex justify-between items-center cursor-pointer peer w-full px-4 py-2 text-left transition hover:bg-white/20">
+            <span id="type-selected" class="text-white/80">Select Type</span>
+            <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <ul id="type-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden" style="background-color: rgba(255, 255, 255, 0.08); backdrop-filter: blur(6px);">
+            <li data-value="mixdown" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Mixdown</li>
+            <li data-value="master" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Master</li>
+          </ul>
+        </div>
+        <div class="relative">
+          <input type="hidden" name="genre" id="genre-input" />
+          <button type="button" id="genre-button" class="milky-input flex justify-between items-center cursor-pointer peer w-full px-4 py-2 text-left transition hover:bg-white/20">
+            <span id="genre-selected" class="text-white/80">Select Genre</span>
+            <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <ul id="genre-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden" style="background-color: rgba(255, 255, 255, 0.08); backdrop-filter: blur(6px);">
+            <li data-value="electronic" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Electronic</li>
+            <li data-value="hiphop" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Hip Hop</li>
+            <li data-value="rock" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Rock</li>
+            <li data-value="ambient" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Ambient</li>
+            <li data-value="classic" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Classic</li>
+            <li data-value="punk" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Punk</li>
+          </ul>
+        </div>
         <button type="submit" class="bg-gradient-to-r from-pink-500 to-blue-500 text-white py-2 px-4 rounded shadow hover:opacity-90">Analyze</button>
       </form>
-    </section>
+      </section>
 
-    <!-- Results section (right on large screens) -->
-    <section id="results" class="hidden lg:w-1/2 bg-white/5 p-6 rounded-lg shadow-inner">
-      <h2 class="text-lg font-semibold mb-4">Analysis Results</h2>
-      <div id="analysisOutput" class="space-y-2 text-sm"></div>
-    </section>
+      <section id="results" class="hidden bg-black/10 p-6 rounded-lg shadow-inner">
+        <h2 class="text-lg font-semibold mb-4">Analysis Results</h2>
+        <div id="analysisOutput" class="space-y-2 text-sm"></div>
+      </section>
+    </div>
+
+    <!-- RIGHT COLUMN: Feedback -->
+    <section id="feedback" class="hidden lg:w-1/2 mt-6 lg:mt-0 bg-black/10 p-6 rounded-lg shadow-inner space-y-4">
+  <h2 class="text-2xl font-bold text-white mb-4">AI Feedback</h2>
+  <div id="gptResponse" class="text-base leading-relaxed text-white/90 space-y-3"></div>
+</section>
+
   </div>
-
-  <!-- Feedback section (always below) -->
-  <section id="feedback" class="hidden mt-6 bg-white/10 p-6 rounded-lg shadow-inner">
-    <h2 class="text-lg font-semibold mb-4">AI Feedback</h2>
-    <div id="gptResponse" class="text-sm space-y-2"></div>
-  </section>
 </main>
-
 <script src="/static/app.js"></script>
 </body>
 </html>

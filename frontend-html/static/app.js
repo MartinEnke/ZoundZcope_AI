@@ -7,6 +7,7 @@ function generateSessionId() {
   });
 }
 
+
 const sessionId = generateSessionId();
 document.getElementById("session_id").value = sessionId;
 
@@ -58,13 +59,20 @@ form.addEventListener("submit", async (e) => {
 
         const output = document.getElementById("analysisOutput");
         output.innerHTML = `
-          <p><strong>Track Name:</strong> ${result.track_name}</p>
-          <p><strong>LUFS:</strong> ${result.analysis.lufs}</p>
-          <p><strong>Key:</strong> ${result.analysis.key}</p>
-          <p><strong>Stereo Width:</strong> ${result.analysis.stereo_width}</p>
-          <p><strong>Dynamic Range:</strong> ${result.analysis.dynamic_range}</p>
-          <p><strong>Genre:</strong> ${result.genre}</p>
-        `;
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+    <p><strong>Tempo:</strong> ${result.analysis.tempo} BPM</p>
+    <p><strong>Key:</strong> ${result.analysis.key}</p>
+    <p><strong>Peak db:</strong> ${result.analysis.peak_db}</p>
+    <p><strong>RMS db:</strong> ${result.analysis.rms_db}</p>
+    <p><strong>LUFS:</strong> ${result.analysis.lufs}</p>
+    <p><strong>Dynamic Range:</strong> ${result.analysis.dynamic_range}</p>
+    <p><strong>Stereo Width Ratio:</strong> ${result.analysis.stereo_width_ratio}</p>
+    <p><strong>Stereo Width:</strong> ${result.analysis.stereo_width}</p>
+    <p><strong>Low End Energy Ratio:</strong> ${result.analysis.low_end_energy_ratio}</p>
+    <p><strong>Bass Profile:</strong> ${result.analysis.bass_profile}</p>
+    <div class="md:col-span-2"><strong>Band Energies:</strong><pre class="whitespace-pre-wrap">${JSON.stringify(result.analysis.band_energies, null, 2)}</pre></div>
+  </div>
+`;
 
         const feedbackSection = document.getElementById("gptResponse");
         const trackType = result.type?.toLowerCase();
@@ -98,4 +106,70 @@ form.addEventListener("submit", async (e) => {
     console.error("Fetch error:", err);
     alert("An error occurred during upload.");
   }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const button = document.getElementById("type-button");
+  const options = document.getElementById("type-options");
+  const hiddenInput = document.getElementById("type-input");
+  const selectedText = document.getElementById("type-selected");
+
+  button.addEventListener("click", () => {
+    options.classList.toggle("hidden");
+  });
+
+  document.querySelectorAll("#type-options li").forEach((item) => {
+    item.addEventListener("click", () => {
+  const value = item.getAttribute("data-value");
+  const label = item.textContent;
+
+  selectedText.textContent = label;
+  hiddenInput.value = value;
+  options.classList.add("hidden");
+
+  // 💜 Add purple highlight to the main field
+  button.classList.add("selected-field");
+});
+  });
+
+  // Close dropdown if clicked outside
+  document.addEventListener("click", (e) => {
+    if (!button.contains(e.target) && !options.contains(e.target)) {
+      options.classList.add("hidden");
+    }
+  });
+});
+
+// Genre dropdown behavior
+document.addEventListener("DOMContentLoaded", () => {
+  const genreButton = document.getElementById("genre-button");
+  const genreOptions = document.getElementById("genre-options");
+  const genreInput = document.getElementById("genre-input");
+  const genreSelected = document.getElementById("genre-selected");
+
+  genreButton.addEventListener("click", () => {
+    genreOptions.classList.toggle("hidden");
+  });
+
+  document.querySelectorAll("#genre-options li").forEach((item) => {
+    item.addEventListener("click", () => {
+  const value = item.getAttribute("data-value");
+  const label = item.textContent;
+
+  genreSelected.textContent = label;
+  genreInput.value = value;
+  genreOptions.classList.add("hidden");
+
+  // 💜 Add purple highlight to the main field
+  genreButton.classList.add("selected-field");
+});
+
+  });
+
+  // Close if clicked outside
+  document.addEventListener("click", (e) => {
+    if (!genreButton.contains(e.target) && !genreOptions.contains(e.target)) {
+      genreOptions.classList.add("hidden");
+    }
+  });
 });
