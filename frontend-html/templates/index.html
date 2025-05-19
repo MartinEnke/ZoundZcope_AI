@@ -10,16 +10,73 @@
       background: #0b0d13; /* Deep blue-black background */
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+
+    /* Custom glassy input style */
+    .milky-input,
+    select.milky-input {
+      background-color: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(6px);
+      color: white;
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      border: none;
+      outline: none;
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
+      width: 100%;
+    }
+
+    select.milky-input {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg fill='white' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 12l-5-5h10l-5 5z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+      background-size: 1rem;
+      padding-right: 2rem; /* space for the arrow */
+    }
+
+    select option {
+  background-color: rgba(15, 15, 20, 0.95);
+  color: white;
+}
+
+select:focus option:checked {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+    input.milky-input:-webkit-autofill {
+      box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.05) inset !important;
+      -webkit-text-fill-color: white !important;
+      caret-color: white;
+      transition: background-color 9999s ease-in-out 0s; /* delay the white flash */
+    }
+    .milky-input,
+select.milky-input {
+  background-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  border: none;
+  outline: none;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
+  width: 100%;
+  transition: background-color 0.2s ease, backdrop-filter 0.2s ease;
+}
+
+.milky-input:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+}
   </style>
 </head>
 <body class="text-white">
+
 <!-- Background logo -->
 <div class="fixed inset-0 z-0 opacity-10 bg-no-repeat bg-center pointer-events-none"
-     style="background-image: url('/static/logo.png'); background-size: 1800px;background-position: center -450px;">
+     style="background-image: url('/static/logo.png'); background-size: 1800px; background-position: center -450px;">
 </div>
 
-  <!-- Header -->
-  <header
+<!-- Header -->
+<header
   class="fixed inset-x-0 top-0 z-50
          bg-black bg-opacity-75
          backdrop-filter backdrop-blur-sm
@@ -32,30 +89,64 @@
   </div>
 </header>
 
-
-  <!-- Main content -->
-  <main class="relative z-10 pt-24 max-w-6xl mx-auto px-4">
+<!-- Main content -->
+<main class="relative z-10 pt-24 max-w-6xl mx-auto px-4">
   <!-- Responsive wrapper -->
   <div class="flex flex-col lg:flex-row lg:space-x-6">
     <!-- Upload section (left on large screens) -->
-    <section class="lg:w-1/2 mb-6 lg:mb-0 bg-white/5 p-6 rounded-lg shadow-inner">
+    <section class="lg:w-1/2 mb-6 lg:mb-0 bg-white/10 p-6 rounded-lg shadow-inner">
       <h2 class="text-lg font-semibold mb-4">Upload Your Track</h2>
       <form id="uploadForm" class="flex flex-col space-y-4" enctype="multipart/form-data">
-        <input type="file" name="file" accept="audio/*" class="bg-white/10 text-white p-2 rounded" required>
-        <input type="text" name="track_name" placeholder="Track Name" class="bg-white text-black p-2 rounded" required>
+        <label for="file-upload"
+  class="milky-input flex items-center justify-between cursor-pointer transition
+         hover:bg-white/20 hover:backdrop-blur-lg py-2">
+  <span id="file-name" class="text-white/90 text-base">Choose a file</span>
+  <input
+    id="file-upload"
+    name="file"
+    type="file"
+    accept="audio/*"
+    class="hidden"
+    required
+  />
+</label>
+
+        <div class="relative">
+  <input
+    type="text"
+    name="track_name"
+    id="track_name"
+    class="milky-input peer placeholder-transparent"
+    placeholder="Track Name"
+
+  />
+  <label for="track_name"
+    class="absolute left-2 top-2 text-white text-base transition-all
+           peer-placeholder-shown:top-2
+           peer-placeholder-shown:text-white/70
+           peer-placeholder-shown:text-base
+           peer-focus:top-[-0.6rem]
+           peer-focus:text-sm peer-focus:text-white">
+    Track Name <span class="text-white/60 italic text-sm">(leave blank to use file name)</span>
+  </label>
+</div>
+
         <input type="hidden" name="session_id" id="session_id">
-        <select name="type" class="bg-white text-black p-2 rounded" required>
+
+        <select name="type" class="milky-input" required>
           <option value="">Select Type</option>
           <option value="mixdown">Mixdown</option>
           <option value="master">Master</option>
         </select>
-        <select name="genre" class="bg-white/10 text-black p-2 rounded" required>
+
+        <select name="genre" class="milky-input" required>
           <option value="">Select Genre</option>
           <option value="electronic">Electronic</option>
           <option value="hiphop">Hip Hop</option>
           <option value="rock">Rock</option>
           <option value="ambient">Ambient</option>
         </select>
+
         <button type="submit" class="bg-gradient-to-r from-pink-500 to-blue-500 text-white py-2 px-4 rounded shadow hover:opacity-90">Analyze</button>
       </form>
     </section>

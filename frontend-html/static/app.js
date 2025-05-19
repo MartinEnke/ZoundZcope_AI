@@ -10,11 +10,31 @@ function generateSessionId() {
 const sessionId = generateSessionId();
 document.getElementById("session_id").value = sessionId;
 
+// ✅ Attach file input change listener immediately
+const fileInput = document.getElementById('file-upload');
+const fileNameSpan = document.getElementById('file-name');
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length > 0) {
+    fileNameSpan.textContent = fileInput.files[0].name;
+  } else {
+    fileNameSpan.textContent = 'Click to upload your track';
+  }
+});
+
+// ✅ Submit handler
 const form = document.getElementById("uploadForm");
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const formData = new FormData(form);
+
+  // Clean up track_name if empty or placeholder
+  const trackName = formData.get("track_name");
+  if (!trackName || trackName.trim() === "" || trackName.trim().toLowerCase() === "string") {
+    formData.set("track_name", "string");
+  }
+
   console.log("Sending to /upload/ with FormData:");
   for (let [key, value] of formData.entries()) {
     console.log(`${key}:`, value);
@@ -33,11 +53,9 @@ form.addEventListener("submit", async (e) => {
       const result = JSON.parse(raw);
 
       if (response.ok) {
-        // Show sections
         document.getElementById("results").classList.remove("hidden");
         document.getElementById("feedback").classList.remove("hidden");
 
-        // Analysis Results
         const output = document.getElementById("analysisOutput");
         output.innerHTML = `
           <p><strong>Track Name:</strong> ${result.track_name}</p>
@@ -48,7 +66,6 @@ form.addEventListener("submit", async (e) => {
           <p><strong>Genre:</strong> ${result.genre}</p>
         `;
 
-        // AI Feedback
         const feedbackSection = document.getElementById("gptResponse");
         const trackType = result.type?.toLowerCase();
 
@@ -56,24 +73,14 @@ form.addEventListener("submit", async (e) => {
           feedbackSection.innerHTML = `
             <p class="text-pink-400 font-semibold">Mixdown Suggestions:</p>
             <ul class="list-disc list-inside mt-2 text-white/80">
-              ${result.feedback
-                .split("\n")
-                .map(line => line.trim())
-                .filter(line => line)
-                .map(line => `<li>${line}</li>`)
-                .join("")}
+              ${result.feedback.split("\n").map(line => line.trim()).filter(Boolean).map(line => `<li>${line}</li>`).join("")}
             </ul>
           `;
         } else if (trackType === "master") {
           feedbackSection.innerHTML = `
             <p class="text-blue-400 font-semibold">Mastering Advice:</p>
             <ul class="list-disc list-inside mt-2 text-white/80">
-              ${result.feedback
-                .split("\n")
-                .map(line => line.trim())
-                .filter(line => line)
-                .map(line => `<li>${line}</li>`)
-                .join("")}
+              ${result.feedback.split("\n").map(line => line.trim()).filter(Boolean).map(line => `<li>${line}</li>`).join("")}
             </ul>
           `;
         } else {

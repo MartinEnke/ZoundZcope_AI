@@ -25,7 +25,7 @@ def get_db():
 def upload_audio(
     file: UploadFile = File(...),
     session_id: str = Form(...),
-    track_name: Optional[str] = Form(None),
+    track_name: Optional[str] = Form(default=None, description="Leave blank to use filename"),
     type: str = Form(...),
     genre: str = Form(...),
 ):
