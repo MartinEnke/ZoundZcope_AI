@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ZoundZcope AI</title>
-  <script defer src="app.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
     body {
@@ -14,62 +13,67 @@
   </style>
 </head>
 <body class="text-white">
+<!-- Background logo -->
+<div class="fixed inset-0 z-0 opacity-10 bg-no-repeat bg-center pointer-events-none"
+     style="background-image: url('/static/logo.png'); background-size: 1800px;background-position: center -450px;">
+</div>
+
   <!-- Header -->
-  <header class="fixed top-0 left-0 w-full bg-opacity-20 backdrop-blur border-b border-white/10 flex items-center justify-between p-4 z-50">
-    <div class="flex items-center">
-      <img src="static/Logo.png" alt="ZoundZcope Logo" class="h-10 w-10 mr-3">
-      <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
-    </div>
-  </header>
+  <header
+  class="fixed inset-x-0 top-0 z-50
+         bg-black bg-opacity-75
+         backdrop-filter backdrop-blur-sm
+         border-b-2 border-white border-opacity-80
+         shadow-md flex items-center justify-between p-4"
+>
+  <div class="flex items-center">
+    <img src="/static/Logo.png" alt="Logo" class="h-10 w-10 mr-3">
+    <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
+  </div>
+</header>
+
 
   <!-- Main content -->
-  <main class="pt-24 max-w-4xl mx-auto px-4">
-    <!-- Upload section -->
-    <section class="mb-8 bg-white/5 p-6 rounded-lg shadow-inner">
+  <main class="relative z-10 pt-24 max-w-6xl mx-auto px-4">
+  <!-- Responsive wrapper -->
+  <div class="flex flex-col lg:flex-row lg:space-x-6">
+    <!-- Upload section (left on large screens) -->
+    <section class="lg:w-1/2 mb-6 lg:mb-0 bg-white/5 p-6 rounded-lg shadow-inner">
       <h2 class="text-lg font-semibold mb-4">Upload Your Track</h2>
       <form id="uploadForm" class="flex flex-col space-y-4" enctype="multipart/form-data">
-  <!-- Track File -->
-  <input type="file" name="file" accept="audio/*" class="bg-white/10 text-white p-2 rounded" required>
-
-  <!-- Track Name -->
-  <input type="text" name="track_name" placeholder="Track Name" class="bg-white/10 text-white p-2 rounded" required>
-
-  <!-- Session ID (auto-generated, optional for user) -->
-  <input type="hidden" name="session_id" id="session_id">
-
-  <!-- Type -->
-  <select name="type" class="bg-white/10 text-white p-2 rounded" required>
-    <option value="">Select Type</option>
-    <option value="mixdown">Mixdown</option>
-    <option value="master">Master</option>
-  </select>
-
-  <!-- Genre -->
-  <select name="genre" class="bg-white/10 text-white p-2 rounded" required>
-    <option value="">Select Genre</option>
-    <option value="electronic">Electronic</option>
-    <option value="hiphop">Hip Hop</option>
-    <option value="rock">Rock</option>
-    <option value="ambient">Ambient</option>
-  </select>
-
-  <button type="submit" class="bg-gradient-to-r from-pink-500 to-blue-500 text-white py-2 px-4 rounded shadow hover:opacity-90">Analyze</button>
-</form>
-
+        <input type="file" name="file" accept="audio/*" class="bg-white/10 text-white p-2 rounded" required>
+        <input type="text" name="track_name" placeholder="Track Name" class="bg-white text-black p-2 rounded" required>
+        <input type="hidden" name="session_id" id="session_id">
+        <select name="type" class="bg-white text-black p-2 rounded" required>
+          <option value="">Select Type</option>
+          <option value="mixdown">Mixdown</option>
+          <option value="master">Master</option>
+        </select>
+        <select name="genre" class="bg-white/10 text-black p-2 rounded" required>
+          <option value="">Select Genre</option>
+          <option value="electronic">Electronic</option>
+          <option value="hiphop">Hip Hop</option>
+          <option value="rock">Rock</option>
+          <option value="ambient">Ambient</option>
+        </select>
+        <button type="submit" class="bg-gradient-to-r from-pink-500 to-blue-500 text-white py-2 px-4 rounded shadow hover:opacity-90">Analyze</button>
+      </form>
     </section>
 
-    <!-- Results section -->
-    <section id="results" class="hidden bg-white/5 p-6 rounded-lg shadow-inner mb-8">
+    <!-- Results section (right on large screens) -->
+    <section id="results" class="hidden lg:w-1/2 bg-white/5 p-6 rounded-lg shadow-inner">
       <h2 class="text-lg font-semibold mb-4">Analysis Results</h2>
       <div id="analysisOutput" class="space-y-2 text-sm"></div>
     </section>
+  </div>
 
-    <!-- GPT Feedback section -->
-    <section id="feedback" class="hidden bg-white/5 p-6 rounded-lg shadow-inner">
-      <h2 class="text-lg font-semibold mb-4">AI Feedback</h2>
-      <p id="gptResponse" class="text-sm italic text-white/80"></p>
-    </section>
-  </main>
+  <!-- Feedback section (always below) -->
+  <section id="feedback" class="hidden mt-6 bg-white/10 p-6 rounded-lg shadow-inner">
+    <h2 class="text-lg font-semibold mb-4">AI Feedback</h2>
+    <div id="gptResponse" class="text-sm space-y-2"></div>
+  </section>
+</main>
+
 <script src="/static/app.js"></script>
 </body>
 </html>

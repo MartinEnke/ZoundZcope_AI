@@ -11,11 +11,18 @@ client = OpenAI(
 
 #openai.api_key = os.getenv("OPENAI_API_KEY")
 
-def generate_feedback_prompt(genre: str, analysis_data: dict) -> str:
-    return f"""
-    You are a professional mixing and mastering engineer with deep knowledge of {genre} music.
+def generate_feedback_prompt(genre: str, type: str, analysis_data: dict) -> str:
+    role_context = {
+        "mixdown": f"You are a professional **mixing engineer** with deep knowledge of {genre} music. You're helping improve a mix before mastering.",
+        "master": f"You are a professional **mastering engineer** with deep knowledge of {genre} music. You're making the track commercially ready."
+    }
 
-    Here is an audio track's analysis:
+    context = role_context.get(type.lower(), f"You are an audio engineer specializing in {genre} music.")
+
+    return f"""
+    {context}
+
+    This is an analysis of the track's {type} version:
     - Peak: {analysis_data['peak_db']} dB
     - RMS: {analysis_data['rms_db']} dB
     - LUFS: {analysis_data['lufs']}
@@ -28,12 +35,14 @@ def generate_feedback_prompt(genre: str, analysis_data: dict) -> str:
 
     🎯 Your task:
     Return **exactly 2–3 bullet points**, each one should:
-    - Name 1 issue clearly
-    - Give a **concrete, genre-relevant** improvement tip
-    - Keep each bullet max 2–3 sentences
+    - Identify 1 issue clearly
+    - Give a **concrete, genre-aware** improvement tip
+    - Keep each bullet to 2–3 sentences
 
-    🎵 Only return the list of bullet points.
+    🎵 Only return the list of bullet points, using one line per bullet.
     """
+
+
 # Please respond with a list of issues and improvement tips.
 # def generate_feedback_response(prompt: str) -> str:
 #     response = openai.ChatCompletion.create(

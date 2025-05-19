@@ -15,6 +15,10 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const formData = new FormData(form);
+  console.log("Sending to /upload/ with FormData:");
+  for (let [key, value] of formData.entries()) {
+    console.log(`${key}:`, value);
+  }
 
   try {
     const response = await fetch("/upload/", {
@@ -22,32 +26,69 @@ form.addEventListener("submit", async (e) => {
       body: formData,
     });
 
-    const result = await response.json();
+    const raw = await response.text();
+    console.log("Raw response text:", raw);
 
-    if (response.ok) {
-      // Show analysis section
-      document.getElementById("results").classList.remove("hidden");
-      document.getElementById("feedback").classList.remove("hidden");
+    try {
+      const result = JSON.parse(raw);
 
-      // Display analysis results
-      const output = document.getElementById("analysisOutput");
-      output.innerHTML = `
-        <p><strong>Track Name:</strong> ${result.track_name}</p>
-        <p><strong>LUFS:</strong> ${result.analysis.lufs}</p>
-        <p><strong>Key:</strong> ${result.analysis.key}</p>
-        <p><strong>Stereo Width:</strong> ${result.analysis.stereo_width}</p>
-        <p><strong>Dynamic Range:</strong> ${result.analysis.dynamic_range}</p>
-        <p><strong>Genre:</strong> ${result.genre}</p>
-      `;
+      if (response.ok) {
+        // Show sections
+        document.getElementById("results").classList.remove("hidden");
+        document.getElementById("feedback").classList.remove("hidden");
 
-      // GPT Feedback
-      const feedback = document.getElementById("gptResponse");
-      feedback.textContent = result.feedback || "No feedback received.";
-    } else {
-      alert("Upload failed: " + (result.detail || "Unknown error"));
+        // Analysis Results
+        const output = document.getElementById("analysisOutput");
+        output.innerHTML = `
+          <p><strong>Track Name:</strong> ${result.track_name}</p>
+          <p><strong>LUFS:</strong> ${result.analysis.lufs}</p>
+          <p><strong>Key:</strong> ${result.analysis.key}</p>
+          <p><strong>Stereo Width:</strong> ${result.analysis.stereo_width}</p>
+          <p><strong>Dynamic Range:</strong> ${result.analysis.dynamic_range}</p>
+          <p><strong>Genre:</strong> ${result.genre}</p>
+        `;
+
+        // AI Feedback
+        const feedbackSection = document.getElementById("gptResponse");
+        const trackType = result.type?.toLowerCase();
+
+        if (trackType === "mixdown") {
+          feedbackSection.innerHTML = `
+            <p class="text-pink-400 font-semibold">Mixdown Suggestions:</p>
+            <ul class="list-disc list-inside mt-2 text-white/80">
+              ${result.feedback
+                .split("\n")
+                .map(line => line.trim())
+                .filter(line => line)
+                .map(line => `<li>${line}</li>`)
+                .join("")}
+            </ul>
+          `;
+        } else if (trackType === "master") {
+          feedbackSection.innerHTML = `
+            <p class="text-blue-400 font-semibold">Mastering Advice:</p>
+            <ul class="list-disc list-inside mt-2 text-white/80">
+              ${result.feedback
+                .split("\n")
+                .map(line => line.trim())
+                .filter(line => line)
+                .map(line => `<li>${line}</li>`)
+                .join("")}
+            </ul>
+          `;
+        } else {
+          feedbackSection.textContent = result.feedback || "No feedback received.";
+        }
+      } else {
+        console.error("Upload failed response:", result);
+        alert("Upload failed: " + JSON.stringify(result));
+      }
+    } catch (parseError) {
+      console.error("Failed to parse JSON response:", parseError);
+      alert("Upload failed: Response was not valid JSON.");
     }
   } catch (err) {
-    console.error(err);
+    console.error("Fetch error:", err);
     alert("An error occurred during upload.");
   }
 });

@@ -2,9 +2,11 @@ from fastapi import APIRouter, UploadFile, File, Form, Depends
 from sqlalchemy.orm import Session
 import shutil, os
 from app.database import SessionLocal
-from app.models import Track, AnalysisResult, Session as UserSession
+from app.models import Track, AnalysisResult, ChatMessage, Session as UserSession
 from app.audio_analysis import analyze_audio
 from typing import Optional
+from fastapi.responses import JSONResponse
+from app.gpt_utils import generate_feedback_prompt, generate_feedback_response
 
 router = APIRouter()
 
@@ -18,42 +20,74 @@ def get_db():
     finally:
         db.close()
 
+
 @router.post("/")
 def upload_audio(
     file: UploadFile = File(...),
-    session_id: int = Form(...),
+    session_id: str = Form(...),
     track_name: Optional[str] = Form(None),
     type: str = Form(...),
     genre: str = Form(...),
-    db: Session = Depends(get_db)
 ):
-    file_location = f"{UPLOAD_FOLDER}/{file.filename}"
-    with open(file_location, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    try:
+        print("Incoming upload:", {
+            "session_id": session_id,
+            "track_name": track_name,
+            "type": type,
+            "genre": genre
+        })
 
-    analysis = analyze_audio(file_location)
+        file_location = f"{UPLOAD_FOLDER}/{file.filename}"
+        with open(file_location, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
-    track_name = track_name.strip() if track_name else None
-    if not track_name or track_name.lower() == "string":
-        track_name = os.path.splitext(file.filename)[0]
+        # Do audio analysis BEFORE opening DB session
+        analysis = analyze_audio(file_location)
 
-    track = Track(
-        session_id=session_id,
-        track_name=track_name,
-        file_path=file_location,
-        type=type
-    )
-    db.add(track)
-    db.commit()
-    db.refresh(track)
+        from app.database import SessionLocal
+        db = SessionLocal()
 
-    result = AnalysisResult(track_id=track.id, **analysis)
-    db.add(result)
-    db.commit()
+        track_name = track_name.strip() if track_name else None
+        if not track_name or track_name.lower() == "string":
+            track_name = os.path.splitext(file.filename)[0]
 
-    return {
-        "track_name": track_name,
-        "genre": genre,
-        "analysis": analysis,
-        "feedback": "Feedback not yet generated – coming soon!"
-    }
+        track = Track(
+            session_id=session_id,
+            track_name=track_name,
+            file_path=file_location,
+            type=type
+        )
+        db.add(track)
+        db.commit()
+        db.refresh(track)
+
+        result = AnalysisResult(track_id=track.id, **analysis)
+        db.add(result)
+        db.commit()
+        db.close()
+
+        # Generate GPT feedback
+        prompt = generate_feedback_prompt(genre, type, analysis)
+        feedback = generate_feedback_response(prompt)
+
+        # Optionally save it to ChatMessage
+        chat = ChatMessage(
+            session_id=session_id,
+            sender="assistant",
+            message=feedback
+        )
+        db.add(chat)
+        db.commit()
+
+        return {
+            "track_name": track_name,
+            "genre": genre,
+            "type": type,
+            "analysis": analysis,
+            "feedback": feedback
+        }
+
+
+    except Exception as e:
+        print("UPLOAD ERROR:", e)
+        return JSONResponse(status_code=500, content={"detail": str(e)})
