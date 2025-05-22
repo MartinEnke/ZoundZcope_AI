@@ -41,11 +41,17 @@ def upload_audio(
         with open(file_location, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        # Do audio analysis BEFORE opening DB session
+        # Analyze audio BEFORE DB
         analysis = analyze_audio(file_location)
 
-        from app.database import SessionLocal
         db = SessionLocal()
+
+        # ✅ Make sure the session exists or create one
+        existing_session = db.query(UserSession).filter(UserSession.id == session_id).first()
+        if not existing_session:
+            new_session = UserSession(id=session_id, user_id=1, session_name="Untitled Session")
+            db.add(new_session)
+            db.commit()
 
         track_name = track_name.strip() if track_name else None
         if not track_name or track_name.lower() == "string":
@@ -64,13 +70,12 @@ def upload_audio(
         result = AnalysisResult(track_id=track.id, **analysis)
         db.add(result)
         db.commit()
-        db.close()
 
-        # Generate GPT feedback
+        # ✅ Generate GPT feedback
         prompt = generate_feedback_prompt(genre, type, analysis)
         feedback = generate_feedback_response(prompt)
 
-        # Optionally save it to ChatMessage
+        # ✅ Save feedback in chat
         chat = ChatMessage(
             session_id=session_id,
             sender="assistant",
@@ -79,6 +84,8 @@ def upload_audio(
         db.add(chat)
         db.commit()
 
+        db.close()
+
         return {
             "track_name": track_name,
             "genre": genre,
@@ -86,7 +93,6 @@ def upload_audio(
             "analysis": analysis,
             "feedback": feedback
         }
-
 
     except Exception as e:
         print("UPLOAD ERROR:", e)

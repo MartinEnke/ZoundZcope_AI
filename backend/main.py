@@ -5,6 +5,7 @@ from app.database import Base, engine
 from dotenv import load_dotenv
 load_dotenv()
 
+
 #/================/#
 # import for frontend html
 from fastapi.staticfiles import StaticFiles
@@ -38,9 +39,9 @@ app.add_middleware(
 
 app.include_router(upload.router, prefix="/upload", tags=["Upload"])
 app.include_router(chat.router, prefix="/chat", tags=["Chat"])
-app.include_router(sessions.router, prefix="/sessions", tags=["Sessions"])
+app.include_router(sessions.router)
 app.include_router(tracks.router, prefix="/tracks", tags=["Tracks"])
-
+print("Connected to DB at:", engine.url)
 
 
 @app.get("/", response_class=HTMLResponse)

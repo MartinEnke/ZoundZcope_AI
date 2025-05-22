@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
+import uuid
 
 class User(Base):
     __tablename__ = 'users'
@@ -14,7 +15,7 @@ class User(Base):
 
 class Session(Base):
     __tablename__ = 'sessions'
-    id = Column(Integer, primary_key=True)
+    id = Column(String, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'))
     session_name = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -25,8 +26,8 @@ class Session(Base):
 
 class Track(Base):
     __tablename__ = 'tracks'
-    id = Column(Integer, primary_key=True)
-    session_id = Column(Integer, ForeignKey('sessions.id'))
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    session_id = Column(String, ForeignKey('sessions.id'))
     track_name = Column(String)
     file_path = Column(String)
     type = Column(String)
@@ -38,7 +39,7 @@ class Track(Base):
 class AnalysisResult(Base):
     __tablename__ = 'analysis_results'
     id = Column(Integer, primary_key=True)
-    track_id = Column(Integer, ForeignKey('tracks.id'))
+    track_id = Column(String, ForeignKey('tracks.id'))
     peak_db = Column(Float)
     rms_db = Column(Float)
     lufs = Column(Float)
@@ -57,7 +58,7 @@ class AnalysisResult(Base):
 class ChatMessage(Base):
     __tablename__ = 'chat_history'
     id = Column(Integer, primary_key=True)
-    session_id = Column(Integer, ForeignKey('sessions.id'))
+    session_id = Column(String, ForeignKey('sessions.id'))
     sender = Column(String)
     message = Column(Text)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
