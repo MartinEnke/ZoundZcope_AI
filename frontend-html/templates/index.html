@@ -107,6 +107,8 @@
     <img src="/static/Logo.png" alt="Logo" class="h-10 w-10 mr-3">
     <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
   </div>
+  <div id="session-track-section" class="space-y-4 mb-6">
+</div>
 </header>
 <main class="relative z-10 pt-24 max-w-6xl mx-auto px-4">
   <div class="flex flex-col lg:flex-row lg:items-start lg:space-x-8">
@@ -124,6 +126,12 @@
           <input type="text" name="track_name" id="track_name" class="milky-input peer placeholder-transparent" placeholder="Track Name" />
           <label for="track_name" class="absolute left-2 top-2 text-white text-base transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-white/70 peer-placeholder-shown:text-base peer-focus:top-[-0.6rem] peer-focus:text-sm peer-focus:text-white">
             Track Name <span class="text-white/60 italic text-sm">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(leave blank to use file name)</span>
+          </label>
+        </div>
+          <div class="relative">
+          <input type="text" id="session_name" class="milky-input peer placeholder-transparent" placeholder="Session Name (e.g., My Album)" />
+          <label for="session_name" class="absolute left-2 top-2 text-white text-base transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-white/70 peer-placeholder-shown:text-base peer-focus:top-[-0.6rem] peer-focus:text-sm peer-focus:text-white">
+            Session Name
           </label>
         </div>
         <input type="hidden" name="session_id" id="session_id">
@@ -157,11 +165,98 @@
       </form>
       </section>
 
+      <div id="sessionTrackSelector" class="mt-4 hidden">
+        <label for="session-tracks" class="block mb-1 text-white/70 text-sm">Your Session Tracks</label>
+        <select id="session-tracks" class="milky-input">
+          <option value="">Loading...</option>
+        </select>
+      </div>
+
       <section id="results" class="hidden bg-black/10 p-6 rounded-lg shadow-inner">
         <h2 class="text-lg font-semibold mb-4">Analysis Results</h2>
         <div id="analysisOutput" class="space-y-2 text-sm"></div>
       </section>
     </div>
+<!-- HTML for session and track selection UI -->
+<div id="session-track-section" class="space-y-4 mb-6">
+  <!-- Session Dropdown -->
+  <div>
+    <label for="session-select" class="block text-sm font-medium text-white/80">Select Session</label>
+    <select id="session-select" class="milky-input mt-1 w-full">
+      <option value="">-- Choose a session --</option>
+    </select>
+    <button id="create-session-btn" class="mt-2 px-3 py-1 bg-blue-600 text-white rounded">+ New Session</button>
+  </div>
+
+  <!-- Track Dropdown -->
+  <div>
+    <label for="track-select" class="block text-sm font-medium text-white/80">Select Track</label>
+    <select id="track-select" class="milky-input mt-1 w-full" disabled>
+      <option value="">-- Select a session first --</option>
+    </select>
+  </div>
+</div>
+
+<script>
+  const sessionDropdown = document.getElementById("session-select");
+  const trackDropdown = document.getElementById("track-select");
+  const createSessionBtn = document.getElementById("create-session-btn");
+
+  async function fetchSessions() {
+    const res = await fetch("/sessions");
+    const sessions = await res.json();
+    sessionDropdown.innerHTML = '<option value="">-- Choose a session --</option>';
+    sessions.forEach(session => {
+      const opt = document.createElement("option");
+      opt.value = session.id;
+      opt.textContent = session.session_name;
+      sessionDropdown.appendChild(opt);
+    });
+  }
+
+  async function fetchTracksForSession(sessionId) {
+    const res = await fetch(`/sessions/${sessionId}/tracks`);
+    const tracks = await res.json();
+    trackDropdown.innerHTML = '<option value="">-- Choose a track --</option>';
+    tracks.forEach(track => {
+      const opt = document.createElement("option");
+      opt.value = track.id;
+      opt.textContent = track.track_name;
+      trackDropdown.appendChild(opt);
+    });
+    trackDropdown.disabled = false;
+  }
+
+  sessionDropdown.addEventListener("change", (e) => {
+    const sessionId = e.target.value;
+    if (sessionId) {
+      fetchTracksForSession(sessionId);
+    } else {
+      trackDropdown.innerHTML = '<option value="">-- Select a session first --</option>';
+      trackDropdown.disabled = true;
+    }
+  });
+
+  createSessionBtn.addEventListener("click", async () => {
+    const sessionName = prompt("Enter new session name:");
+    if (!sessionName) return;
+    const userId = 1;
+    const res = await fetch("/sessions/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_name: sessionName, user_id: userId })
+    });
+    const newSession = await res.json();
+    await fetchSessions();
+    sessionDropdown.value = newSession.id;
+    fetchTracksForSession(newSession.id);
+  });
+
+  // Initial load
+  fetchSessions();
+</script>
+
+
 
     <!-- RIGHT COLUMN: Feedback -->
     <section id="feedback" class="hidden lg:w-1/2 lg:max-w-[48%] mt-6 lg:mt-0 bg-black/10 p-6 rounded-lg shadow-inner space-y-4">
@@ -169,6 +264,8 @@
   <h2 class="text-2xl font-bold text-white mb-4">AI Feedback</h2>
   <div id="gptResponse" class="text-base leading-relaxed text-white/90 space-y-3"></div>
 </section>
+
+
 
   </div>
 </main>

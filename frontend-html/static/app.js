@@ -1,14 +1,4 @@
-// Generate UUID for session
-function generateSessionId() {
-  return 'xxxxxxxxyxxx'.replace(/[xy]/g, function (c) {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
 
-const sessionId = generateSessionId();
-document.getElementById("session_id").value = sessionId;
 
 function typeText(targetElement, text, speed = 10) {
   return new Promise((resolve) => {
@@ -37,11 +27,33 @@ fileInput.addEventListener('change', () => {
     : 'Click to upload your track';
 });
 
+// ✅ Upload form with backend session creation
 const form = document.getElementById("uploadForm");
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const formData = new FormData(form);
 
+  const formData = new FormData(form);
+  const sessionName = document.getElementById("session_name").value.trim();
+
+  if (!sessionName) {
+    alert("Please enter a session name.");
+    return;
+  }
+
+  // ✅ Create the session in backend and get real session_id
+  const sessionResult = await createSessionInBackend(sessionName);
+  if (!sessionResult || !sessionResult.id) {
+    console.warn("⚠️ sessionResult:", sessionResult);
+    alert("Session creation failed.");
+    return;
+  }
+
+  const sessionId = sessionResult.id;
+  formData.set("session_id", sessionId);
+
+
+
+  // ✅ Fix empty or placeholder track name
   const trackName = formData.get("track_name");
   if (!trackName || trackName.trim() === "" || trackName.trim().toLowerCase() === "string") {
     formData.set("track_name", "string");
@@ -57,6 +69,8 @@ form.addEventListener("submit", async (e) => {
     const result = JSON.parse(raw);
 
     if (response.ok) {
+      await loadSessionTracks(sessionId); // ✅ refresh dropdown
+
       const resultsEl = document.getElementById("results");
       const feedbackEl = document.getElementById("feedback");
       const feedbackBox = document.getElementById("gptResponse");
@@ -70,28 +84,28 @@ form.addEventListener("submit", async (e) => {
       const output = document.getElementById("analysisOutput");
       const a = result.analysis;
 
-function r(v) {
-  return Number(v).toFixed(2);
-}
+      function r(v) {
+        return Number(v).toFixed(2);
+      }
 
-output.innerHTML = `
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-    <p><strong>Tempo:</strong> ${a.tempo} BPM</p>
-    <p><strong>Key:</strong> ${a.key}</p>
-    <p><strong>Peak db:</strong> ${r(a.peak_db)}</p>
-    <p><strong>RMS db:</strong> ${r(a.rms_db)}</p>
-    <p><strong>LUFS:</strong> ${r(a.lufs)}</p>
-    <p><strong>Dynamic Range:</strong> ${r(a.dynamic_range)}</p>
-    <p><strong>Stereo Width Ratio:</strong> ${r(a.stereo_width_ratio)}</p>
-    <p><strong>Stereo Width:</strong> ${a.stereo_width}</p>
-    <p><strong>Low End Energy Ratio:</strong> ${r(a.low_end_energy_ratio)}</p>
-    <p><strong>Bass Profile:</strong> ${a.bass_profile}</p>
-    <div class="md:col-span-2">
-      <strong>Band Energies:</strong>
-      <pre class="whitespace-pre-wrap">${JSON.stringify(a.band_energies, null, 2)}</pre>
-    </div>
-  </div>
-`;
+      output.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <p><strong>Tempo:</strong> ${a.tempo} BPM</p>
+          <p><strong>Key:</strong> ${a.key}</p>
+          <p><strong>Peak db:</strong> ${r(a.peak_db)}</p>
+          <p><strong>RMS db:</strong> ${r(a.rms_db)}</p>
+          <p><strong>LUFS:</strong> ${r(a.lufs)}</p>
+          <p><strong>Dynamic Range:</strong> ${r(a.dynamic_range)}</p>
+          <p><strong>Stereo Width Ratio:</strong> ${r(a.stereo_width_ratio)}</p>
+          <p><strong>Stereo Width:</strong> ${a.stereo_width}</p>
+          <p><strong>Low End Energy Ratio:</strong> ${r(a.low_end_energy_ratio)}</p>
+          <p><strong>Bass Profile:</strong> ${a.bass_profile}</p>
+          <div class="md:col-span-2">
+            <strong>Band Energies:</strong>
+            <pre class="whitespace-pre-wrap">${JSON.stringify(a.band_energies, null, 2)}</pre>
+          </div>
+        </div>
+      `;
 
       feedbackBox.innerHTML = "";
       feedbackBox.classList.add("pulsing-feedback");
@@ -127,6 +141,36 @@ output.innerHTML = `
     alert("An error occurred during upload.");
   }
 });
+
+// ✅ Inline async function to create session in backend
+async function createSessionInBackend(sessionName) {
+  const userId = 1;
+  try {
+    const response = await fetch("/sessions/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_name: sessionName, user_id: userId }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error("Session creation failed with:", error);
+      return null;
+    }
+
+    const result = await response.json();
+    console.log("✅ Created session:", result);
+    return result; // ✅ returns full object
+  } catch (err) {
+    console.error("❌ Session creation fetch failed", err);
+    return null;
+  }
+}
+
+
+
+
+
 
 document.addEventListener("DOMContentLoaded", () => {
   const button = document.getElementById("type-button");
@@ -185,3 +229,117 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+
+// load and display all tracks in the current session
+// Fetch and populate session track names in dropdown, and display their analysis + feedback on selection
+async function loadSessionTracks(sessionId) {
+  try {
+    const response = await fetch(`/sessions/${sessionId}/tracks`);
+
+    // ✅ Debug output to inspect raw response
+    const rawText = await response.clone().text();
+    console.log("Session tracks response:", rawText);
+
+    const tracks = JSON.parse(rawText);
+
+    const dropdownContainer = document.getElementById("sessionTrackSelector");
+    const dropdown = document.getElementById("session-tracks");
+    const resultsEl = document.getElementById("results");
+    const feedbackEl = document.getElementById("feedback");
+    const feedbackBox = document.getElementById("gptResponse");
+    const output = document.getElementById("analysisOutput");
+
+    dropdown.innerHTML = "";
+
+    if (tracks.length === 0) {
+      dropdown.innerHTML = `<option value="">No tracks yet</option>`;
+    } else {
+      dropdown.innerHTML = `<option value="">Select a track...</option>`;
+      tracks.forEach((track) => {
+        const option = document.createElement("option");
+        option.value = track.id;
+        option.textContent = track.track_name || "Unnamed Track";
+        option.dataset.track = JSON.stringify(track);
+        dropdown.appendChild(option);
+      });
+    }
+
+    dropdownContainer.classList.remove("hidden");
+
+    // ✅ Prevent multiple duplicate listeners
+    if (!dropdown.dataset.listenerAttached) {
+      dropdown.addEventListener("change", (e) => {
+        const selectedOption = e.target.selectedOptions[0];
+        const track = JSON.parse(selectedOption.dataset.track || null);
+        if (!track) return;
+
+        resultsEl.classList.remove("hidden");
+        feedbackEl.classList.remove("hidden");
+        feedbackEl.classList.add("fade-in-up");
+
+        const a = track.analysis;
+        if (!a) return;
+
+        function r(v) {
+          return Number(v).toFixed(2);
+        }
+
+        output.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            <p><strong>Tempo:</strong> ${a.tempo} BPM</p>
+            <p><strong>Key:</strong> ${a.key}</p>
+            <p><strong>Peak db:</strong> ${r(a.peak_db)}</p>
+            <p><strong>RMS db:</strong> ${r(a.rms_db)}</p>
+            <p><strong>LUFS:</strong> ${r(a.lufs)}</p>
+            <p><strong>Dynamic Range:</strong> ${r(a.dynamic_range)}</p>
+            <p><strong>Stereo Width Ratio:</strong> ${r(a.stereo_width_ratio)}</p>
+            <p><strong>Stereo Width:</strong> ${a.stereo_width}</p>
+            <p><strong>Low End Energy Ratio:</strong> ${r(a.low_end_energy_ratio)}</p>
+            <p><strong>Bass Profile:</strong> ${a.bass_profile}</p>
+            <div class="md:col-span-2">
+              <strong>Band Energies:</strong>
+              <pre class="whitespace-pre-wrap">${JSON.stringify(a.band_energies, null, 2)}</pre>
+            </div>
+          </div>
+        `;
+
+        // ✅ Feedback fallback to handle undefined/null
+        feedbackBox.innerHTML = "";
+        const subheading = document.createElement("p");
+        subheading.className = track.type === "mixdown"
+          ? "text-pink-400 text-lg font-semibold"
+          : "text-blue-400 text-lg font-semibold";
+        subheading.textContent = track.type === "mixdown"
+          ? "Mixdown Suggestions:" : "Mastering Advice:";
+        feedbackBox.appendChild(subheading);
+
+        const ul = document.createElement("ul");
+        ul.className = "list-disc list-inside mt-2 text-white/90 space-y-1";
+        feedbackBox.appendChild(ul);
+
+        const lines = (track.feedback || "").split("\n").map(l => l.trim()).filter(Boolean);
+        if (lines.length > 0) {
+          for (const line of lines) {
+            const li = document.createElement("li");
+            li.textContent = line;
+            ul.appendChild(li);
+          }
+        } else {
+          ul.innerHTML = "<li>No feedback available.</li>";
+        }
+      });
+
+      // ✅ Flag so we don't attach more than once
+      dropdown.dataset.listenerAttached = "true";
+    }
+
+  } catch (error) {
+    console.error("Error loading session tracks:", error);
+  }
+}
+
+
+// Only call this once a session was created
+// This is now done dynamically after upload
+
