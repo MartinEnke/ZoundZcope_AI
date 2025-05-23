@@ -111,6 +111,7 @@ form.addEventListener("submit", async (e) => {
       `;
 
       feedbackBox.innerHTML = "";
+
       feedbackBox.classList.add("pulsing-feedback");
 
       const trackType = result.type?.toLowerCase();
@@ -127,12 +128,20 @@ form.addEventListener("submit", async (e) => {
       ul.className = "list-disc list-inside mt-2 text-white/90 space-y-1";
       feedbackBox.appendChild(ul);
 
-      const lines = result.feedback.split("\n").map(line => line.trim()).filter(Boolean);
-      for (const line of lines) {
+      const lines = result.feedback
+        .split("\n")
+        .map(line => line.replace(/^[-•\s]+/, "").trim()) // remove leading dash, bullet, or whitespace
+        .filter(Boolean);
+
+      for (const [index, line] of lines.entries()) {
         const li = document.createElement("li");
+        li.style.display = "list-item"; // Ensure proper layout context
+        if (index > 0) li.style.marginTop = "0.75rem"; // Add space before 2nd item
+
         ul.appendChild(li);
         await typeText(li, line, 10);
       }
+
 
       feedbackBox.classList.remove("pulsing-feedback");
     } else {
@@ -321,7 +330,16 @@ async function loadSessionTracks(sessionId) {
   `;
 
   // Feedback display
-  feedbackBox.innerHTML = "";
+  // ⬇️ Optional divider before feedback history
+const divider = document.createElement("hr");
+divider.className = "my-6 border-t border-white/20";
+feedbackBox.appendChild(divider);
+
+// ⬇️ Feedback History heading
+const historyHeading = document.createElement("h2");
+historyHeading.textContent = "Feedback History";
+historyHeading.className = "text-xl font-bold text-white mb-2";
+feedbackBox.appendChild(historyHeading);
   const subheading = document.createElement("p");
   subheading.className = track.type === "mixdown"
     ? "text-pink-400 text-lg font-semibold"
@@ -443,23 +461,49 @@ document.addEventListener("DOMContentLoaded", () => {
         feedbackBox.innerHTML = "<p>No feedback yet for this track.</p>";
       } else {
         messages.forEach(msg => {
-          const trackName = track?.track_name || "Unnamed Track";
-          const type = track?.type
-            ? track.type.charAt(0).toUpperCase() + track.type.slice(1)
-            : "Unknown";
-          const profile = msg.feedback_profile
-            ? msg.feedback_profile.replace(/[_-]/g, " ").replace(/\b\w/g, l => l.toUpperCase())
-            : "Default";
+  const trackName = track?.track_name || "Unnamed Track";
+  const type = track?.type
+    ? track.type.charAt(0).toUpperCase() + track.type.slice(1)
+    : "Unknown";
+  const profile = msg.feedback_profile
+    ? msg.feedback_profile.replace(/[_-]/g, " ").replace(/\b\w/g, l => l.toUpperCase())
+    : "Default";
 
-          const msgEl = document.createElement("div");
-          msgEl.className = msg.sender === "assistant" ? "text-blue-400 mb-1" : "text-white";
+  const msgEl = document.createElement("div");
+  msgEl.className = "mb-4";
 
-          msgEl.innerHTML = `
-            <p class="font-semibold">Track: ${trackName} | Type: ${type} | Profile: ${profile}</p>
-            <p>${msg.message}</p>
-          `;
-          feedbackBox.appendChild(msgEl);
-        });
+  // 🎨 Colored track info heading
+  const heading = document.createElement("p");
+  heading.className = `font-semibold ${
+    type.toLowerCase() === "mixdown"
+      ? "text-pink-400"
+      : type.toLowerCase() === "master"
+      ? "text-blue-400"
+      : "text-white"
+  }`;
+  heading.textContent = `Track: ${trackName} | Type: ${type} | Profile: ${profile}`;
+  msgEl.appendChild(heading);
+
+  // 💬 Feedback content in white bullets
+  const ul = document.createElement("ul");
+  ul.className = "list-disc list-inside text-white/90 text-base space-y-2 mt-2";
+
+  const lines = msg.message
+    .split("\n")
+    .map(line => line.replace(/^[-•\s]+/, "").trim())
+    .filter(Boolean);
+
+  lines.forEach(line => {
+    const li = document.createElement("li");
+    li.textContent = line;
+    ul.appendChild(li);
+  });
+
+  msgEl.appendChild(ul);
+  feedbackBox.appendChild(msgEl);
+});
+
+
       }
 
       document.getElementById("feedback").classList.remove("hidden");
