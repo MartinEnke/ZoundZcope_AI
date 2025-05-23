@@ -357,28 +357,45 @@ async function fetchSessions() {
   });
 }
 
-// ✅ Load track dropdown when session changes
-document.getElementById("session-select").addEventListener("change", async (e) => {
-  const sessionId = e.target.value;
-  const trackDropdown = document.getElementById("track-select");
-  if (!sessionId) {
-    trackDropdown.innerHTML = '<option value="">-- Select a session first --</option>';
-    trackDropdown.disabled = true;
-    return;
-  }
-  const res = await fetch(`/sessions/${sessionId}/tracks`);
-  const tracks = await res.json();
-  trackDropdown.innerHTML = '<option value="">Choose Track</option>';
-  tracks.forEach(track => {
-    const opt = document.createElement("option");
-    opt.value = track.id;
-    opt.textContent = track.track_name;
-    trackDropdown.appendChild(opt);
-  });
-  trackDropdown.disabled = false;
-});
-
-// ✅ Trigger fetching sessions when page loads
 document.addEventListener("DOMContentLoaded", () => {
   fetchSessions();
+
+  document.getElementById("session-select").addEventListener("change", async (e) => {
+    const sessionId = e.target.value;
+    const trackDropdown = document.getElementById("track-select");
+
+    // Reset track dropdown
+    trackDropdown.innerHTML = '<option value="">-- Select a session first --</option>';
+    trackDropdown.disabled = true;
+
+    if (!sessionId) return;
+
+    try {
+      const res = await fetch(`/sessions/${sessionId}/tracks`);
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("❌ Failed to fetch tracks:", errorText);
+        return;
+      }
+
+      const tracks = await res.json();
+      if (!Array.isArray(tracks)) {
+        console.error("❌ Expected array of tracks, got:", tracks);
+        return;
+      }
+
+      trackDropdown.innerHTML = '<option value="">Choose Track</option>';
+      tracks.forEach(track => {
+        const opt = document.createElement("option");
+        opt.value = track.id;
+        opt.textContent = track.track_name || "Untitled Track";
+        trackDropdown.appendChild(opt);
+      });
+
+      trackDropdown.disabled = false;
+    } catch (err) {
+      console.error("❌ Error during fetchTracksForSession:", err);
+    }
+  });
 });
+

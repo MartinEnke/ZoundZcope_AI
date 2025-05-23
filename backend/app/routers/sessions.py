@@ -43,8 +43,9 @@ def list_sessions(db: Session = Depends(get_db)):
     sessions = db.query(UserSession).all()
     return [{"id": s.id, "session_name": s.session_name} for s in sessions]
 
+
 @router.get("/{id}")
-def get_session(id: int, db: Session = Depends(get_db)):
+def get_session(id: str, db: Session = Depends(get_db)):
     session = db.query(UserSession).filter(UserSession.id == id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -61,15 +62,17 @@ def get_tracks_for_session(
     sort_order: str = Query(default="desc", enum=["asc", "desc"]),
     db: Session = Depends(get_db)
 ):
+    print("Fetching tracks for session ID:", id)
     session = db.query(UserSession).filter(UserSession.id == id).first()
     if not session:
+        print("⚠️ No session found!")
         raise HTTPException(status_code=404, detail="Session not found")
 
     # ✅ FIX: Use correct ID for feedback query
     feedback_lookup = {
         msg.track_id: msg.message
         for msg in db.query(ChatMessage)
-        .filter(ChatMessage.session_id == id, ChatMessage.sender == "assistant")
+        .filter(ChatMessage.session_id == id, ChatMessage.sender == "assistant", ChatMessage.track_id != None)
         .order_by(ChatMessage.timestamp.desc())
         .all()
     }
@@ -131,7 +134,7 @@ def get_tracks_for_session(
 
 
 @router.put("/{id}")
-def update_session_name(id: int, new_name: str, db: Session = Depends(get_db)):
+def update_session_name(id: str, new_name: str, db: Session = Depends(get_db)):
     session = db.query(UserSession).filter(UserSession.id == id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -141,7 +144,7 @@ def update_session_name(id: int, new_name: str, db: Session = Depends(get_db)):
 
 # DELETE /sessions/{id}
 @router.delete("/{id}")
-def delete_session(id: int, db: Session = Depends(get_db)):
+def delete_session(id: str, db: Session = Depends(get_db)):
     session = db.query(UserSession).filter(UserSession.id == id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
