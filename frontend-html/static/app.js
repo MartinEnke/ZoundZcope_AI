@@ -259,13 +259,14 @@ async function loadSessionTracks(sessionId) {
       dropdown.innerHTML = `<option value="">No tracks yet</option>`;
     } else {
       dropdown.innerHTML = `<option value="">Select a track...</option>`;
-      tracks.forEach((track) => {
-        const option = document.createElement("option");
-        option.value = track.id;
-        option.textContent = track.track_name || "Unnamed Track";
-        option.dataset.track = JSON.stringify(track);
-        dropdown.appendChild(option);
+      tracks.forEach(track => {
+        const opt = document.createElement("option");
+        opt.value = track.id;
+        opt.textContent = track.track_name || "Unnamed Track";
+        opt.dataset.track = JSON.stringify(track); // ✅ required for chat display
+        trackDropdown.appendChild(opt);
       });
+
     }
 
     dropdownContainer.classList.remove("hidden");
@@ -273,66 +274,78 @@ async function loadSessionTracks(sessionId) {
     // ✅ Prevent multiple duplicate listeners
     if (!dropdown.dataset.listenerAttached) {
       dropdown.addEventListener("change", (e) => {
-        const selectedOption = e.target.selectedOptions[0];
-        const track = JSON.parse(selectedOption.dataset.track || null);
-        currentSelectedTrack = track;
-        if (!track) return;
+  const selectedOption = e.target.selectedOptions[0];
 
-        resultsEl.classList.remove("hidden");
-        feedbackEl.classList.remove("hidden");
-        feedbackEl.classList.add("fade-in-up");
+  if (!selectedOption || !selectedOption.dataset.track) {
+    console.warn("⚠️ Missing dataset.track on selected option");
+    return;
+  }
 
-        const a = track.analysis;
-        if (!a) return;
+  try {
+    const parsedTrack = JSON.parse(selectedOption.dataset.track);
+    currentSelectedTrack = parsedTrack;
+  } catch (error) {
+    console.error("❌ Failed to parse dataset.track:", error);
+    return;
+  }
 
-        function r(v) {
-          return Number(v).toFixed(2);
-        }
+  const track = currentSelectedTrack;
+  if (!track || !track.analysis) return;
 
-        output.innerHTML = `
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-            <p><strong>Tempo:</strong> ${a.tempo} BPM</p>
-            <p><strong>Key:</strong> ${a.key}</p>
-            <p><strong>Peak db:</strong> ${r(a.peak_db)}</p>
-            <p><strong>RMS db:</strong> ${r(a.rms_db)}</p>
-            <p><strong>LUFS:</strong> ${r(a.lufs)}</p>
-            <p><strong>Dynamic Range:</strong> ${r(a.dynamic_range)}</p>
-            <p><strong>Stereo Width Ratio:</strong> ${r(a.stereo_width_ratio)}</p>
-            <p><strong>Stereo Width:</strong> ${a.stereo_width}</p>
-            <p><strong>Low End Energy Ratio:</strong> ${r(a.low_end_energy_ratio)}</p>
-            <p><strong>Bass Profile:</strong> ${a.bass_profile}</p>
-            <div class="md:col-span-2">
-              <strong>Band Energies:</strong>
-              <pre class="whitespace-pre-wrap">${JSON.stringify(a.band_energies, null, 2)}</pre>
-            </div>
-          </div>
-        `;
+  resultsEl.classList.remove("hidden");
+  feedbackEl.classList.remove("hidden");
+  feedbackEl.classList.add("fade-in-up");
 
-        // ✅ Feedback fallback to handle undefined/null
-        feedbackBox.innerHTML = "";
-        const subheading = document.createElement("p");
-        subheading.className = track.type === "mixdown"
-          ? "text-pink-400 text-lg font-semibold"
-          : "text-blue-400 text-lg font-semibold";
-        subheading.textContent = track.type === "mixdown"
-          ? "Mixdown Suggestions:" : "Mastering Advice:";
-        feedbackBox.appendChild(subheading);
+  const a = track.analysis;
+  function r(v) {
+    return Number(v).toFixed(2);
+  }
 
-        const ul = document.createElement("ul");
-        ul.className = "list-disc list-inside mt-2 text-white/90 space-y-1";
-        feedbackBox.appendChild(ul);
+  output.innerHTML = `
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+      <p><strong>Tempo:</strong> ${a.tempo} BPM</p>
+      <p><strong>Key:</strong> ${a.key}</p>
+      <p><strong>Peak db:</strong> ${r(a.peak_db)}</p>
+      <p><strong>RMS db:</strong> ${r(a.rms_db)}</p>
+      <p><strong>LUFS:</strong> ${r(a.lufs)}</p>
+      <p><strong>Dynamic Range:</strong> ${r(a.dynamic_range)}</p>
+      <p><strong>Stereo Width Ratio:</strong> ${r(a.stereo_width_ratio)}</p>
+      <p><strong>Stereo Width:</strong> ${a.stereo_width}</p>
+      <p><strong>Low End Energy Ratio:</strong> ${r(a.low_end_energy_ratio)}</p>
+      <p><strong>Bass Profile:</strong> ${a.bass_profile}</p>
+      <div class="md:col-span-2">
+        <strong>Band Energies:</strong>
+        <pre class="whitespace-pre-wrap">${JSON.stringify(a.band_energies, null, 2)}</pre>
+      </div>
+    </div>
+  `;
 
-        const lines = (track.feedback || "").split("\n").map(l => l.trim()).filter(Boolean);
-        if (lines.length > 0) {
-          for (const line of lines) {
-            const li = document.createElement("li");
-            li.textContent = line;
-            ul.appendChild(li);
-          }
-        } else {
-          ul.innerHTML = "<li>No feedback available.</li>";
-        }
-      });
+  // Feedback display
+  feedbackBox.innerHTML = "";
+  const subheading = document.createElement("p");
+  subheading.className = track.type === "mixdown"
+    ? "text-pink-400 text-lg font-semibold"
+    : "text-blue-400 text-lg font-semibold";
+  subheading.textContent = track.type === "mixdown"
+    ? "Mixdown Suggestions:" : "Mastering Advice:";
+  feedbackBox.appendChild(subheading);
+
+  const ul = document.createElement("ul");
+  ul.className = "list-disc list-inside mt-2 text-white/90 space-y-1";
+  feedbackBox.appendChild(ul);
+
+  const lines = (track.feedback || "").split("\n").map(l => l.trim()).filter(Boolean);
+  if (lines.length > 0) {
+    for (const line of lines) {
+      const li = document.createElement("li");
+      li.textContent = line;
+      ul.appendChild(li);
+    }
+  } else {
+    ul.innerHTML = "<li>No feedback available.</li>";
+  }
+});
+
 
       // ✅ Flag so we don't attach more than once
       dropdown.dataset.listenerAttached = "true";
@@ -404,71 +417,60 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-
-
-document.getElementById("track-select").addEventListener("change", async (e) => {
-  const trackId = e.target.value;
-  if (!trackId) return;
-
-  try {
-    const res = await fetch(`/tracks/${trackId}/messages`);
-    const messages = await res.json();
-
-    const feedbackBox = document.getElementById("gptResponse");
-    feedbackBox.innerHTML = ""; // Clear previous
-
-    if (messages.length === 0) {
-      feedbackBox.innerHTML = "<p>No feedback yet for this track.</p>";
-    } else {
-      messages.forEach(msg => {
-        const trackName = currentSelectedTrack?.track_name || "Unnamed Track";
-        const type = currentSelectedTrack?.type
-          ? currentSelectedTrack.type.charAt(0).toUpperCase() + currentSelectedTrack.type.slice(1)
-          : "Unknown";
-        const profile = msg.feedback_profile
-          ? msg.feedback_profile.replace(/[_-]/g, " ").replace(/\b\w/g, l => l.toUpperCase())
-          : "Default";
-
-        const msgEl = document.createElement("div");
-        msgEl.className = msg.sender === "assistant" ? "text-blue-400 mb-1" : "text-white";
-
-        msgEl.innerHTML = `
-          <p class="font-semibold">Track: ${trackName} | Type: ${type} | Profile: ${profile}</p>
-          <p>${msg.message}</p>
-        `;
-        feedbackBox.appendChild(msgEl);
-      });
-    }
-
-    document.getElementById("feedback").classList.remove("hidden");
-  } catch (err) {
-    console.error("Failed to fetch chat messages:", err);
+  const trackSelect = document.getElementById("track-select");
+  if (!trackSelect) {
+    console.warn("⚠️ track-select element not found");
+    return;
   }
-});
 
-});
+  trackSelect.addEventListener("change", async (e) => {
+    const trackId = e.target.value;
+    if (!trackId) return;
 
-document.addEventListener("DOMContentLoaded", () => {
+    try {
+      const trackRes = await fetch(`/tracks/${trackId}`);
+      if (!trackRes.ok) throw new Error("Failed to fetch track data");
+      const track = await trackRes.json();
+
+      const msgRes = await fetch(`/tracks/${trackId}/messages`);
+      if (!msgRes.ok) throw new Error("Failed to fetch messages");
+      const messages = await msgRes.json();
+
+      const feedbackBox = document.getElementById("gptResponse");
+      feedbackBox.innerHTML = "";
+
+      if (messages.length === 0) {
+        feedbackBox.innerHTML = "<p>No feedback yet for this track.</p>";
+      } else {
+        messages.forEach(msg => {
+          const trackName = track?.track_name || "Unnamed Track";
+          const type = track?.type
+            ? track.type.charAt(0).toUpperCase() + track.type.slice(1)
+            : "Unknown";
+          const profile = msg.feedback_profile
+            ? msg.feedback_profile.replace(/[_-]/g, " ").replace(/\b\w/g, l => l.toUpperCase())
+            : "Default";
+
+          const msgEl = document.createElement("div");
+          msgEl.className = msg.sender === "assistant" ? "text-blue-400 mb-1" : "text-white";
+
+          msgEl.innerHTML = `
+            <p class="font-semibold">Track: ${trackName} | Type: ${type} | Profile: ${profile}</p>
+            <p>${msg.message}</p>
+          `;
+          feedbackBox.appendChild(msgEl);
+        });
+      }
+
+      document.getElementById("feedback").classList.remove("hidden");
+    } catch (err) {
+      console.error("❌ Error displaying chat feedback:", err);
+    }
+  });
+
+  // ✅ This stays inside the DOMContentLoaded block
   const profileButton = document.getElementById("profile-button");
   const profileOptions = document.getElementById("profile-options");
-  const profileInput = document.getElementById("profile-input");
-  const profileSelected = document.getElementById("profile-selected");
-
-  profileButton.addEventListener("click", () => {
-    profileOptions.classList.toggle("hidden");
-  });
-
-  document.querySelectorAll("#profile-options li").forEach((item) => {
-    item.addEventListener("click", () => {
-      const value = item.getAttribute("data-value");
-      const label = item.textContent;
-
-      profileSelected.textContent = label;
-      profileInput.value = value;
-      profileOptions.classList.add("hidden");
-      profileButton.classList.add("selected-field");
-    });
-  });
 
   document.addEventListener("click", (e) => {
     if (!profileButton.contains(e.target) && !profileOptions.contains(e.target)) {
@@ -476,4 +478,3 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-
