@@ -84,8 +84,8 @@ def upload_audio(
             track_id=track.id,
             sender="assistant",
             message=feedback,
-            feedback_profile=feedback_profile,
-            type = type.lower()
+            feedback_profile=feedback_profile
+
         )
         db.add(chat)
         db.commit()

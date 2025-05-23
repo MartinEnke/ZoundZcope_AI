@@ -64,6 +64,5 @@ class ChatMessage(Base):
     message = Column(Text)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
     feedback_profile = Column(String, nullable=True)
-    type = Column(String, nullable=True)
 
     session = relationship("Session", back_populates="chats")

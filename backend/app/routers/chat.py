@@ -75,7 +75,7 @@ def get_messages_for_track(track_id: str, db: Session = Depends(get_db)):
             "sender": msg.sender,
             "message": msg.message,
             "feedback_profile": msg.feedback_profile,
-            "type": msg.type,
+            "type": track.type,
             "track_name": track.track_name  # Include name from joined track
         }
         for msg in messages

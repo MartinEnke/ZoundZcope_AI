@@ -1,4 +1,4 @@
-
+let currentSelectedTrack = null;
 
 function typeText(targetElement, text, speed = 10) {
   return new Promise((resolve) => {
@@ -275,6 +275,7 @@ async function loadSessionTracks(sessionId) {
       dropdown.addEventListener("change", (e) => {
         const selectedOption = e.target.selectedOptions[0];
         const track = JSON.parse(selectedOption.dataset.track || null);
+        currentSelectedTrack = track;
         if (!track) return;
 
         resultsEl.classList.remove("hidden");
@@ -403,36 +404,48 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("track-select").addEventListener("change", async (e) => {
-    const trackId = e.target.value;
-    if (!trackId) return;
 
-    try {
-      const res = await fetch(`/tracks/${trackId}/messages`);
-      const messages = await res.json();
 
-      const feedbackBox = document.getElementById("gptResponse");
-      feedbackBox.innerHTML = ""; // Clear previous
+document.getElementById("track-select").addEventListener("change", async (e) => {
+  const trackId = e.target.value;
+  if (!trackId) return;
 
-      if (messages.length === 0) {
-        feedbackBox.innerHTML = "<p>No feedback yet for this track.</p>";
-      } else {
-        messages.forEach(msg => {
-          const msgEl = document.createElement("div");
-          msgEl.className = msg.sender === "assistant" ? "text-blue-400" : "text-white";
-          msgEl.innerHTML = `
-            <p><strong>${msg.track_name} – ${msg.type || "unknown"} – ${msg.feedback_profile || "default"}</strong></p>
-            <p>${msg.message}</p>
-          `;
-          feedbackBox.appendChild(msgEl);
-        });
-      }
+  try {
+    const res = await fetch(`/tracks/${trackId}/messages`);
+    const messages = await res.json();
 
-      document.getElementById("feedback").classList.remove("hidden");
-    } catch (err) {
-      console.error("Failed to fetch chat messages:", err);
+    const feedbackBox = document.getElementById("gptResponse");
+    feedbackBox.innerHTML = ""; // Clear previous
+
+    if (messages.length === 0) {
+      feedbackBox.innerHTML = "<p>No feedback yet for this track.</p>";
+    } else {
+      messages.forEach(msg => {
+        const trackName = currentSelectedTrack?.track_name || "Unnamed Track";
+        const type = currentSelectedTrack?.type
+          ? currentSelectedTrack.type.charAt(0).toUpperCase() + currentSelectedTrack.type.slice(1)
+          : "Unknown";
+        const profile = msg.feedback_profile
+          ? msg.feedback_profile.replace(/[_-]/g, " ").replace(/\b\w/g, l => l.toUpperCase())
+          : "Default";
+
+        const msgEl = document.createElement("div");
+        msgEl.className = msg.sender === "assistant" ? "text-blue-400 mb-1" : "text-white";
+
+        msgEl.innerHTML = `
+          <p class="font-semibold">Track: ${trackName} | Type: ${type} | Profile: ${profile}</p>
+          <p>${msg.message}</p>
+        `;
+        feedbackBox.appendChild(msgEl);
+      });
     }
-  });
+
+    document.getElementById("feedback").classList.remove("hidden");
+  } catch (err) {
+    console.error("Failed to fetch chat messages:", err);
+  }
+});
+
 });
 
 document.addEventListener("DOMContentLoaded", () => {
