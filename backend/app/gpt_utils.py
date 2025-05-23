@@ -11,16 +11,25 @@ client = OpenAI(
 
 #openai.api_key = os.getenv("OPENAI_API_KEY")
 
-def generate_feedback_prompt(genre: str, type: str, analysis_data: dict) -> str:
+def generate_feedback_prompt(genre: str, type: str, analysis_data: dict, feedback_profile: str) -> str:
     role_context = {
-        "mixdown": f"You are a professional **mixing engineer** with deep knowledge of {genre} music. You're helping improve a mix before mastering.",
-        "master": f"You are a professional **mastering engineer** with deep knowledge of {genre} music. You're making the track commercially ready."
+        "mixdown": f"You are a professional **mixing engineer** with deep knowledge of {genre} music.",
+        "master": f"You are a professional **mastering engineer** with deep knowledge of {genre} music.",
     }
 
-    context = role_context.get(type.lower(), f"You are an audio engineer specializing in {genre} music.")
+    profile_guidance = {
+        "simple": "Use beginner-friendly language. Avoid technical jargon. Give practical advice like 'try boosting bass by 3dB'.",
+        "detailed": "Use moderately technical language. Assume some production experience. Include brief explanations like 'try gentle saturation to add presence'.",
+        "pro": "Use professional-level language. Assume expert knowledge. Provide detailed, technical tips using terms like multiband compression, stereo field manipulation, and transient shaping."
+    }
+
+    context = role_context.get(type.lower(), f"You are an audio engineer for {genre} music.")
+    skill_hint = profile_guidance.get(feedback_profile.lower(), "")
 
     return f"""
     {context}
+
+    {skill_hint}
 
     This is an analysis of the track's {type} version:
     - Peak: {analysis_data['peak_db']} dB
@@ -33,34 +42,16 @@ def generate_feedback_prompt(genre: str, type: str, analysis_data: dict) -> str:
     - Bass profile: {analysis_data['bass_profile']}
     - Band energies: {json.dumps(analysis_data['band_energies'], indent=2)}
 
-    🎯 Your task:
+    Your task:
     Return **exactly 2–3 bullet points**, each one should:
     - Identify 1 issue clearly
     - Give a **concrete, genre-aware** improvement tip
     - Keep each bullet to 2–3 sentences
 
-    🎵 Only return the list of bullet points, using one line per bullet.
+    Only return the bullet points in a clean, readable format.
     """
 
 
-# Please respond with a list of issues and improvement tips.
-# def generate_feedback_response(prompt: str) -> str:
-#     response = openai.ChatCompletion.create(
-#         model="gpt-4o",
-#         messages=[{"role": "user", "content": prompt}]
-#     )
-#     return response.choices[0].message["content"]
-
-'''FAKE RESPONSE FOR TESTING'''
-# def generate_feedback_response(prompt: str) -> str:
-#     print("Mock prompt sent to GPT:\n", prompt)  # For debugging
-#     return """\
-# Sure! Here are 2–3 mixing suggestions based on your track:
-#
-# - The bass profile is slightly heavy. Consider using a high-pass filter to clean sub-bass rumble.
-# - The stereo width is 'wide'. Check for mono compatibility.
-# - LUFS is within range, but a slight gain staging tweak may help with headroom.
-# """
 def generate_feedback_response(prompt: str) -> str:
     print("🔍 Prompt being sent to GPT:\n", prompt)
     response = client.chat.completions.create(

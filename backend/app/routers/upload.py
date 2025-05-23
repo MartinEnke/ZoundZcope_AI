@@ -28,13 +28,15 @@ def upload_audio(
     track_name: Optional[str] = Form(default=None, description="Leave blank to use filename"),
     type: str = Form(...),
     genre: str = Form(...),
+    feedback_profile: str = Form(...),
 ):
     try:
         print("Incoming upload:", {
             "session_id": session_id,
             "track_name": track_name,
             "type": type,
-            "genre": genre
+            "genre": genre,
+            "feedback_profile": feedback_profile
         })
 
         file_location = f"{UPLOAD_FOLDER}/{file.filename}"
@@ -61,7 +63,7 @@ def upload_audio(
             session_id=session_id,
             track_name=track_name,
             file_path=file_location,
-            type=type
+            type = type.lower()
         )
         db.add(track)
         db.commit()
@@ -72,14 +74,18 @@ def upload_audio(
         db.commit()
 
         # ✅ Generate GPT feedback
-        prompt = generate_feedback_prompt(genre, type, analysis)
+        prompt = generate_feedback_prompt(genre, type, analysis, feedback_profile)
+
         feedback = generate_feedback_response(prompt)
 
         # ✅ Save feedback in chat
         chat = ChatMessage(
             session_id=session_id,
+            track_id=track.id,
             sender="assistant",
-            message=feedback
+            message=feedback,
+            feedback_profile=feedback_profile,
+            type = type.lower()
         )
         db.add(chat)
         db.commit()

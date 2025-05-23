@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Form, Depends
+from fastapi import APIRouter, Form, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import Track, AnalysisResult, ChatMessage
@@ -55,3 +55,28 @@ def get_feedback(
     db.commit()
 
     return {"feedback": response}
+
+
+@router.get("/tracks/{track_id}/messages")
+def get_messages_for_track(track_id: str, db: Session = Depends(get_db)):
+    track = db.query(Track).filter_by(id=track_id).first()
+    if not track:
+        raise HTTPException(status_code=404, detail="Track not found")
+
+    messages = (
+        db.query(ChatMessage)
+        .filter(ChatMessage.track_id == track_id)
+        .order_by(ChatMessage.timestamp.asc())
+        .all()
+    )
+
+    return [
+        {
+            "sender": msg.sender,
+            "message": msg.message,
+            "feedback_profile": msg.feedback_profile,
+            "type": msg.type,
+            "track_name": track.track_name  # Include name from joined track
+        }
+        for msg in messages
+    ]

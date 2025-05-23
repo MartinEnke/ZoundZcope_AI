@@ -199,7 +199,7 @@
           </ul>
         </div>
           <div class="relative">
-          <input type="hidden" name="type" id="profile-input" />
+          <input type="hidden" name="feedback_profile" id="profile-input" />
           <button type="button" id="profile-button" class="milky-input flex justify-between items-center cursor-pointer peer w-full px-4 py-2 text-left transition hover:bg-white/20">
             <span id="profile-selected" class="text-white/80">Feedback Profile</span>
             <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
@@ -213,13 +213,6 @@
         <button type="submit" class="bg-gradient-to-r from-pink-500 to-blue-500 text-white py-2 px-4 rounded shadow hover:opacity-90">Analyze</button>
       </form>
       </section>
-
-      <div id="sessionTrackSelector" class="mt-4 hidden">
-        <label for="session-tracks" class="block mb-1 text-white/70 text-sm">Your Session Tracks</label>
-        <select id="session-tracks" class="milky-input">
-          <option value="">Loading...</option>
-        </select>
-      </div>
 
       <section id="results" class="hidden bg-black/10 p-6 rounded-lg shadow-inner">
         <h2 class="text-lg font-semibold mb-4">Analysis Results</h2>

@@ -51,6 +51,9 @@ form.addEventListener("submit", async (e) => {
   const sessionId = sessionResult.id;
   formData.set("session_id", sessionId);
 
+  const feedbackProfile = document.getElementById("profile-input").value;
+  formData.set("feedback_profile", feedbackProfile);
+
 
 
   // ✅ Fix empty or placeholder track name
@@ -395,6 +398,68 @@ document.addEventListener("DOMContentLoaded", () => {
       trackDropdown.disabled = false;
     } catch (err) {
       console.error("❌ Error during fetchTracksForSession:", err);
+    }
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("track-select").addEventListener("change", async (e) => {
+    const trackId = e.target.value;
+    if (!trackId) return;
+
+    try {
+      const res = await fetch(`/tracks/${trackId}/messages`);
+      const messages = await res.json();
+
+      const feedbackBox = document.getElementById("gptResponse");
+      feedbackBox.innerHTML = ""; // Clear previous
+
+      if (messages.length === 0) {
+        feedbackBox.innerHTML = "<p>No feedback yet for this track.</p>";
+      } else {
+        messages.forEach(msg => {
+          const msgEl = document.createElement("div");
+          msgEl.className = msg.sender === "assistant" ? "text-blue-400" : "text-white";
+          msgEl.innerHTML = `
+            <p><strong>${msg.track_name} – ${msg.type || "unknown"} – ${msg.feedback_profile || "default"}</strong></p>
+            <p>${msg.message}</p>
+          `;
+          feedbackBox.appendChild(msgEl);
+        });
+      }
+
+      document.getElementById("feedback").classList.remove("hidden");
+    } catch (err) {
+      console.error("Failed to fetch chat messages:", err);
+    }
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const profileButton = document.getElementById("profile-button");
+  const profileOptions = document.getElementById("profile-options");
+  const profileInput = document.getElementById("profile-input");
+  const profileSelected = document.getElementById("profile-selected");
+
+  profileButton.addEventListener("click", () => {
+    profileOptions.classList.toggle("hidden");
+  });
+
+  document.querySelectorAll("#profile-options li").forEach((item) => {
+    item.addEventListener("click", () => {
+      const value = item.getAttribute("data-value");
+      const label = item.textContent;
+
+      profileSelected.textContent = label;
+      profileInput.value = value;
+      profileOptions.classList.add("hidden");
+      profileButton.classList.add("selected-field");
+    });
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!profileButton.contains(e.target) && !profileOptions.contains(e.target)) {
+      profileOptions.classList.add("hidden");
     }
   });
 });

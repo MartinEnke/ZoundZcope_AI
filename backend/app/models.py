@@ -59,9 +59,11 @@ class ChatMessage(Base):
     __tablename__ = 'chat_history'
     id = Column(Integer, primary_key=True)
     session_id = Column(String, ForeignKey('sessions.id'))
-    track_id = Column(String, ForeignKey('tracks.id'))  # ✅ Add this line
+    track_id = Column(String, ForeignKey('tracks.id'))
     sender = Column(String)
     message = Column(Text)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    feedback_profile = Column(String, nullable=True)
+    type = Column(String, nullable=True)
 
     session = relationship("Session", back_populates="chats")
