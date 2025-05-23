@@ -478,3 +478,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+// ✅ Add this separately — do not replace your existing trackSelect block!
+document.addEventListener("DOMContentLoaded", () => {
+  const profileButton = document.getElementById("profile-button");
+  const profileOptions = document.getElementById("profile-options");
+  const profileInput = document.getElementById("profile-input");
+  const profileSelected = document.getElementById("profile-selected");
+
+  profileButton.addEventListener("click", () => {
+    profileOptions.classList.toggle("hidden");
+  });
+
+  document.querySelectorAll("#profile-options li").forEach((item) => {
+    item.addEventListener("click", () => {
+      const value = item.getAttribute("data-value");
+      const label = item.textContent;
+
+      profileSelected.textContent = label;
+      profileInput.value = value;
+      profileOptions.classList.add("hidden");
+      profileButton.classList.add("selected-field");
+    });
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!profileButton.contains(e.target) && !profileOptions.contains(e.target)) {
+      profileOptions.classList.add("hidden");
+    }
+  });
+});
