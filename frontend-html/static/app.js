@@ -343,3 +343,42 @@ async function loadSessionTracks(sessionId) {
 // Only call this once a session was created
 // This is now done dynamically after upload
 
+// ✅ Fetch and populate session dropdown
+async function fetchSessions() {
+  const res = await fetch("/sessions");
+  const sessions = await res.json();
+  const sessionDropdown = document.getElementById("session-select");
+  sessionDropdown.innerHTML = '<option value="">Choose Session</option>';
+  sessions.forEach(session => {
+    const opt = document.createElement("option");
+    opt.value = session.id;
+    opt.textContent = session.session_name;
+    sessionDropdown.appendChild(opt);
+  });
+}
+
+// ✅ Load track dropdown when session changes
+document.getElementById("session-select").addEventListener("change", async (e) => {
+  const sessionId = e.target.value;
+  const trackDropdown = document.getElementById("track-select");
+  if (!sessionId) {
+    trackDropdown.innerHTML = '<option value="">-- Select a session first --</option>';
+    trackDropdown.disabled = true;
+    return;
+  }
+  const res = await fetch(`/sessions/${sessionId}/tracks`);
+  const tracks = await res.json();
+  trackDropdown.innerHTML = '<option value="">Choose Track</option>';
+  tracks.forEach(track => {
+    const opt = document.createElement("option");
+    opt.value = track.id;
+    opt.textContent = track.track_name;
+    trackDropdown.appendChild(opt);
+  });
+  trackDropdown.disabled = false;
+});
+
+// ✅ Trigger fetching sessions when page loads
+document.addEventListener("DOMContentLoaded", () => {
+  fetchSessions();
+});

@@ -37,10 +37,11 @@ def create_or_get_session(
 
 
 
-# # GET /sessions → list all sessions
-# @router.get("/")
-# def list_sessions(db: Session = Depends(get_db)):
-#     return db.query(UserSession).all()
+# GET /sessions → list all sessions
+@router.get("/")
+def list_sessions(db: Session = Depends(get_db)):
+    sessions = db.query(UserSession).all()
+    return [{"id": s.id, "session_name": s.session_name} for s in sessions]
 
 @router.get("/{id}")
 def get_session(id: int, db: Session = Depends(get_db)):
