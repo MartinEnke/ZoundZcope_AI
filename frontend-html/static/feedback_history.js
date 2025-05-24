@@ -332,7 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================================
-// 🔧 Manage Sessions & Tracks Logic
+// 🔧 Manage Sessions & Tracks Logic (with live UI updates)
 // ==========================================================
 
 async function loadManageSection() {
@@ -346,6 +346,7 @@ async function loadManageSection() {
     for (const session of sessions) {
       const sessionDiv = document.createElement("div");
       sessionDiv.className = "border-b border-white/20 pb-4";
+      sessionDiv.setAttribute("data-session-wrapper", session.id); // ✅ for live delete
 
       const sessionHeader = document.createElement("div");
       sessionHeader.className = "flex items-center justify-between mb-2";
@@ -375,25 +376,20 @@ async function loadManageSection() {
       sessionControls.className = "flex gap-2";
 
       const renameBtn = document.createElement("button");
-renameBtn.textContent = "Edit";
-renameBtn.className =
-  "px-3 py-1 text-sm rounded-full text-white bg-white/10 border border-white/20 " +
-  "hover:border-blue-400 hover:bg-blue-400/10 hover:text-white transition-all duration-200";
-renameBtn.addEventListener("click", () => {
-  const input = prompt("Rename session:", session.session_name);
-  if (input) renameSession(session.id, input);
-});
-
+      renameBtn.textContent = "Edit";
+      renameBtn.className =
+        "px-3 py-1 text-sm rounded-full text-white bg-white/10 border border-white/20 " +
+        "hover:border-blue-400 hover:bg-blue-400/10 hover:text-white transition-all duration-200";
+      renameBtn.addEventListener("click", () => {
+        const input = prompt("Rename session:", session.session_name);
+        if (input) renameSession(session.id, input);
+      });
 
       const deleteBtn = document.createElement("button");
-deleteBtn.textContent = "−";
-deleteBtn.className =
-  "w-8 h-8 flex items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
-  "hover:border-red-400 hover:bg-red-400/10 hover:text-white transition-all duration-200";
-deleteBtn.addEventListener("click", () => {
-  if (confirm("Delete session and all tracks?")) deleteSession(session.id);
-});
-
+      deleteBtn.textContent = "−";
+      deleteBtn.className =
+        "w-8 h-8 flex items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
+        "hover:border-red-400 hover:bg-red-400/10 hover:text-white transition-all duration-200";
       deleteBtn.addEventListener("click", () => {
         if (confirm("Delete session and all tracks?")) deleteSession(session.id);
       });
@@ -411,6 +407,7 @@ deleteBtn.addEventListener("click", () => {
       for (const track of tracks) {
         const trackItem = document.createElement("li");
         trackItem.className = "flex items-center justify-between";
+        trackItem.setAttribute("data-track-item", track.id); // ✅ for live update/delete
 
         const trackName = document.createElement("span");
         trackName.textContent = track.track_name;
@@ -419,20 +416,20 @@ deleteBtn.addEventListener("click", () => {
         trackControls.className = "flex gap-2";
 
         const trackRenameBtn = document.createElement("button");
+        trackRenameBtn.textContent = "Edit";
         trackRenameBtn.className =
-  "px-2 py-0.5 text-xs rounded-full text-white bg-white/10 border border-white/20 " +
-  "hover:border-blue-400 hover:bg-blue-400/10 hover:text-white transition-all duration-200";
-trackRenameBtn.textContent = "Edit";
+          "px-2 py-0.5 text-xs rounded-full text-white bg-white/10 border border-white/20 " +
+          "hover:border-blue-400 hover:bg-blue-400/10 hover:text-white transition-all duration-200";
         trackRenameBtn.addEventListener("click", () => {
           const newName = prompt("Rename track:", track.track_name);
           if (newName) renameTrack(track.id, newName, track.type);
         });
 
         const trackDeleteBtn = document.createElement("button");
+        trackDeleteBtn.textContent = "−";
         trackDeleteBtn.className =
-  "w-6 h-6 flex items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
-  "hover:border-red-400 hover:bg-red-400/10 hover:text-white transition-all duration-200";
-trackDeleteBtn.textContent = "-";
+          "w-6 h-6 flex items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
+          "hover:border-red-400 hover:bg-red-400/10 hover:text-white transition-all duration-200";
         trackDeleteBtn.addEventListener("click", () => {
           if (confirm("Delete this track?")) deleteTrack(track.id);
         });
@@ -450,5 +447,41 @@ trackDeleteBtn.textContent = "-";
   }
 }
 
-// 🚀 Run manage section loader on page load
+// ==========================================================
+// 🔁 Live Update Helpers (no page refresh needed)
+// ==========================================================
+
+async function renameSession(id, newName) {
+  await fetch(`/sessions/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ new_name: newName })
+  });
+
+  const titleEl = document.querySelector(`[data-session-wrapper="${id}"] span`);
+  if (titleEl) titleEl.textContent = newName;
+}
+
+async function deleteSession(id) {
+  await fetch(`/sessions/${id}`, { method: "DELETE" });
+  const wrapper = document.querySelector(`[data-session-wrapper="${id}"]`);
+  if (wrapper) wrapper.remove();
+}
+
+async function renameTrack(id, newName, type) {
+  await fetch(`/tracks/${id}?track_name=${encodeURIComponent(newName)}&type=${encodeURIComponent(type)}`, {
+    method: "PUT"
+  });
+
+  const nameEl = document.querySelector(`[data-track-item="${id}"] span`);
+  if (nameEl) nameEl.textContent = newName;
+}
+
+async function deleteTrack(id) {
+  await fetch(`/tracks/${id}`, { method: "DELETE" });
+  const item = document.querySelector(`[data-track-item="${id}"]`);
+  if (item) item.remove();
+}
+
+// 🚀 Run on page load
 document.addEventListener("DOMContentLoaded", loadManageSection);
