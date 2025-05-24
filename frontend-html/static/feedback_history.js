@@ -1,32 +1,21 @@
 // ==========================================================
-// 🔸 Fetch and Populate Session Dropdown
-// ==========================================================
-async function fetchSessions() {
-  const res = await fetch("/sessions");
-  const sessions = await res.json();
-  const sessionDropdown = document.getElementById("session-select");
-
-  sessionDropdown.innerHTML = '<option value="">Choose Session</option>';
-
-  sessions.forEach(session => {
-    const opt = document.createElement("option");
-    opt.value = session.id;
-    opt.textContent = session.session_name;
-    sessionDropdown.appendChild(opt);
-  });
-}
-
-// ==========================================================
 // 🔸 Load Tracks When a Session Is Selected
 // Fetch session list on page load,
 // then populate tracks dropdown based on selected session
 // ==========================================================
 document.addEventListener("DOMContentLoaded", () => {
+  // 🔸 Fetch sessions and populate the dropdown
   fetchSessions();
 
-  document.getElementById("session-select").addEventListener("change", async (e) => {
+  // 🔧 Also load the Manage section on page load
+  loadManageSection();
+
+  // 🔄 Handle session dropdown changes
+  const sessionDropdown = document.getElementById("session-select");
+  const trackDropdown = document.getElementById("track-select");
+
+  sessionDropdown.addEventListener("change", async (e) => {
     const sessionId = e.target.value;
-    const trackDropdown = document.getElementById("track-select");
 
     // Reset track dropdown
     trackDropdown.innerHTML = '<option value="">-- Select a session first --</option>';
@@ -62,6 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 // ==========================================================
 // 🔸 Load and Display All Tracks in the Current Session
@@ -301,7 +291,15 @@ document.addEventListener("DOMContentLoaded", () => {
         div.className = "mb-4";
 
         const heading = document.createElement("p");
-        heading.className = "font-semibold text-blue-400";
+
+        // Choose color based on track type
+        const typeClass = msg.type?.toLowerCase() === "mixdown"
+          ? "text-pink-400"
+          : msg.type?.toLowerCase() === "master"
+          ? "text-blue-400"
+          : "text-white";
+
+        heading.className = `font-semibold ${typeClass}`;
         heading.textContent = `Type: ${msg.type} | Profile: ${msg.feedback_profile || "Default"}`;
         div.appendChild(heading);
 
@@ -310,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const lines = msg.message
           .split("\n")
-          .map(l => l.trim())
+          .map(l => l.replace(/^[-•\s]+/, "").trim()) // ⬅️ Strip leading - or • or whitespace
           .filter(Boolean);
 
         lines.forEach(line => {
@@ -377,16 +375,25 @@ async function loadManageSection() {
       sessionControls.className = "flex gap-2";
 
       const renameBtn = document.createElement("button");
-      renameBtn.textContent = "🖊";
-      renameBtn.className = "bg-blue-600 hover:bg-blue-700 text-white px-2 rounded";
-      renameBtn.addEventListener("click", () => {
-        const input = prompt("Rename session:", session.session_name);
-        if (input) renameSession(session.id, input);
-      });
+renameBtn.textContent = "Edit";
+renameBtn.className =
+  "px-3 py-1 text-sm rounded-full text-white bg-white/10 border border-white/20 " +
+  "hover:border-blue-400 hover:bg-blue-400/10 hover:text-white transition-all duration-200";
+renameBtn.addEventListener("click", () => {
+  const input = prompt("Rename session:", session.session_name);
+  if (input) renameSession(session.id, input);
+});
+
 
       const deleteBtn = document.createElement("button");
-      deleteBtn.textContent = "🗑";
-      deleteBtn.className = "bg-red-600 hover:bg-red-700 text-white px-2 rounded";
+deleteBtn.textContent = "−";
+deleteBtn.className =
+  "w-8 h-8 flex items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
+  "hover:border-red-400 hover:bg-red-400/10 hover:text-white transition-all duration-200";
+deleteBtn.addEventListener("click", () => {
+  if (confirm("Delete session and all tracks?")) deleteSession(session.id);
+});
+
       deleteBtn.addEventListener("click", () => {
         if (confirm("Delete session and all tracks?")) deleteSession(session.id);
       });
@@ -412,16 +419,20 @@ async function loadManageSection() {
         trackControls.className = "flex gap-2";
 
         const trackRenameBtn = document.createElement("button");
-        trackRenameBtn.textContent = "🖊";
-        trackRenameBtn.className = "bg-blue-500 hover:bg-blue-600 text-white px-1 rounded";
+        trackRenameBtn.className =
+  "px-2 py-0.5 text-xs rounded-full text-white bg-white/10 border border-white/20 " +
+  "hover:border-blue-400 hover:bg-blue-400/10 hover:text-white transition-all duration-200";
+trackRenameBtn.textContent = "Edit";
         trackRenameBtn.addEventListener("click", () => {
           const newName = prompt("Rename track:", track.track_name);
           if (newName) renameTrack(track.id, newName, track.type);
         });
 
         const trackDeleteBtn = document.createElement("button");
-        trackDeleteBtn.textContent = "🗑";
-        trackDeleteBtn.className = "bg-red-500 hover:bg-red-600 text-white px-1 rounded";
+        trackDeleteBtn.className =
+  "w-6 h-6 flex items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
+  "hover:border-red-400 hover:bg-red-400/10 hover:text-white transition-all duration-200";
+trackDeleteBtn.textContent = "-";
         trackDeleteBtn.addEventListener("click", () => {
           if (confirm("Delete this track?")) deleteTrack(track.id);
         });
