@@ -1,0 +1,145 @@
+/*
+===================================
+🎨 Global Styles for ZoundZcope AI
+===================================
+*/
+body {
+  background: #0b0d13;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/*
+=====================
+🧊 Milky Input Styles
+=====================
+*/
+.milky-input,
+select.milky-input {
+  background-color: rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(6px);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  border: none;
+  outline: none;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
+  width: 100%;
+  transition: background-color 0.2s ease, backdrop-filter 0.2s ease;
+}
+
+.milky-input:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+}
+
+select.milky-input {
+  appearance: none;
+  background-image: none;
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 1rem;
+  padding-right: 2rem;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+select option {
+  background-color: rgba(15, 15, 20, 0.95);
+  color: white;
+}
+
+select:focus option:checked {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+input.milky-input:-webkit-autofill {
+  box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.05) inset !important;
+  -webkit-text-fill-color: white !important;
+  caret-color: white;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+.milky-input::placeholder {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/*
+===========================
+📐 Layout Section Defaults
+===========================
+*/
+main {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+section {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+#feedback,
+#results {
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
+}
+
+#results {
+  margin-top: 6px;
+}
+
+/*
+===========================
+🎞️ Animation - Fade In Up
+===========================
+*/
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.fade-in-delay {
+  animation: fadeInUp 1.5s ease-out 0.3s forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/*
+====================
+📋 Dropdown List Style
+====================
+*/
+.dropdown-list {
+  position: absolute;
+  z-index: 10;
+  margin-top: 0.25rem;
+  width: 100%;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-size: 0.875rem;
+  color: white;
+  background-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+}
+
+.dropdown-list li {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-list li:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(4px);
+}

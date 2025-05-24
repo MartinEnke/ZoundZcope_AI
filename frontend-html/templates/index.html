@@ -1,3 +1,9 @@
+<!--
+  ZoundZcope AI — Main Interface
+  Author: Your Name
+  Description: Upload tracks, select session/genre/type, and receive AI feedback.
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,295 +11,138 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ZoundZcope AI</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <style>
-    body {
-      background: #0b0d13;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .milky-input,
-    select.milky-input {
-      background-color: rgba(0, 0, 0, 0.05);
-      backdrop-filter: blur(6px);
-      color: white;
-      padding: 0.5rem;
-      border-radius: 0.375rem;
-      border: none;
-      outline: none;
-      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
-      width: 100%;
-      transition: background-color 0.2s ease, backdrop-filter 0.2s ease;
-    }
-
-    .milky-input:hover {
-      background-color: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(8px);
-    }
-
-    select.milky-input {
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg fill='white' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 12l-5-5h10l-5 5z'/%3E%3C/svg%3E");
-      background-image: none; /* just in case there's a background arrow */
-      background-repeat: no-repeat;
-      background-position: right 0.5rem center;
-      background-size: 1rem;
-      padding-right: 2rem;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-    }
-
-
-    select option {
-      background-color: rgba(15, 15, 20, 0.95);
-      color: white;
-    }
-
-    select:focus option:checked {
-      background-color: rgba(255, 255, 255, 0.1);
-    }
-
-    input.milky-input:-webkit-autofill {
-      box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.05) inset !important;
-      -webkit-text-fill-color: white !important;
-      caret-color: white;
-      transition: background-color 9999s ease-in-out 0s;
-    }
-
-    main {
-      padding-left: 16px; /* Ensures the body content doesn't drift too far from the left */
-      padding-right: 16px; /* Ensures content has consistent margins */
-    }
-
-    section {
-      margin-top: 0; /* Remove any unexpected top margin */
-      margin-bottom: 1.5rem; /* Ensure sections have consistent spacing */
-    }
-
-    #feedback,
-    #results {
-      margin-left: 0; /* Ensure these sections align with the left side */
-      margin-right: 0; /* Ensure they align with the right side */
-      width: 100%; /* Make sure they take up full width of the column */
-    }
-
-    #results {
-    margin-left: 0;
-      margin-top: 6px;
-    }
-
-    @keyframes fadeInUp {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-in-up {
-  animation: fadeInUp 0.5s ease-out forwards;
-}
-.fade-in-delay {
-  animation: fadeInUp 1.5s ease-out 0.3s forwards;
-  opacity: 0;
-  transform: translateY(20px);
-}
-.milky-input::placeholder {
-  color: rgba(255, 255, 255, 0.9); /* or use 0.8 or 0.7 if you prefer softer */
-}
-
-  </style>
+  <link rel="stylesheet" href="static/style.css">
 </head>
+
 <body class="text-white">
-<div class="fixed inset-0 z-0 opacity-10 bg-no-repeat bg-center pointer-events-none"
-     style="background-image: url('/static/logo.png'); background-size: 1800px; background-position: center -450px;"></div>
-<header class="fixed inset-x-0 top-0 z-50 bg-black bg-opacity-75 backdrop-filter backdrop-blur-sm border-b-2 border-white border-opacity-80 shadow-md flex items-center justify-between p-4">
-  <div class="flex items-center">
-    <img src="/static/Logo.png" alt="Logo" class="h-10 w-10 mr-3">
-    <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
-  </div>
+  <div class="fixed inset-0 z-0 opacity-10 bg-no-repeat bg-center pointer-events-none"
+       style="background-image: url('/static/logo.png'); background-size: 1800px; background-position: center -450px;"></div>
 
-    <!-- HTML for session and track selection UI -->
-<div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center space-x-4">
-  <select id="session-select" class="milky-input px-3 min-w-max">
-    <option value="">Choose Session</option>
-  </select>
-  <select id="track-select" class="milky-input px-3 min-w-max" disabled>
-  <option value="">-- Select a session first --</option>
-</select>
-</div>
-
-
-</header>
-<main class="relative z-10 pt-28 max-w-6xl mx-auto px-3">
-  <div class="flex flex-col lg:flex-row lg:items-start lg:space-x-20">
-
-    <!-- LEFT COLUMN: Input + Results -->
-    <div class="lg:w-1/3 flex-shrink-0 flex flex-col space-y-6">
-      <section class="bg-black/10 p-6 rounded-lg shadow-inner">
-        <h2 class="text-lg font-semibold mb-6">Upload Your Track</h2>
-        <form id="uploadForm" class="flex flex-col space-y-3" enctype="multipart/form-data">
-        <label for="file-upload" class="milky-input flex items-center justify-between cursor-pointer transition hover:bg-white/20 hover:backdrop-blur-lg py-2">
-          <span id="file-name" class="text-white/90 text-base">Choose a file</span>
-          <input id="file-upload" name="file" type="file" accept="audio/*" class="hidden" required />
-        </label>
-
-  <!-- Simulated placeholder -->
-  <div class="relative">
-  <input type="text" id="track_name"
-       class="milky-input bg-transparent relative z-10"
-       style="backdrop-filter: none;" />
-
-  <!-- Custom placeholder above blur, below input -->
-  <div id="track-fake-placeholder"
-       class="absolute left-3 top-2 text-white/90 pointer-events-none z-10 flex gap-1">
-    <span class="text-base font-medium">Track Name</span>
-    <span class="text-base text-white/60 italic">&nbsp;(optional)</span>
-  </div>
-</div>
-
-<script>
-  const input = document.getElementById('track_name');
-  const fakePlaceholder = document.getElementById('track-fake-placeholder');
-
-  function toggleFakePlaceholder() {
-    fakePlaceholder.style.display = input.value.trim() === '' ? 'flex' : 'none';
-  }
-
-  input.addEventListener('input', toggleFakePlaceholder);
-  input.addEventListener('focus', toggleFakePlaceholder);
-  input.addEventListener('blur', toggleFakePlaceholder);
-
-  toggleFakePlaceholder(); // initial state
-</script>
-          <div>
-  <input type="text" name="session_name" id="session_name" class="milky-input" placeholder="Session Name" />
-</div>
-        <input type="hidden" name="session_id" id="session_id">
-        <div class="relative">
-          <input type="hidden" name="type" id="type-input" />
-          <button type="button" id="type-button" class="milky-input flex justify-between items-center cursor-pointer peer w-full px-4 py-2 text-left transition hover:bg-white/20">
-            <span id="type-selected" class="text-white/80">Select Type</span>
-            <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-          </button>
-          <ul id="type-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden" style="background-color: rgba(255, 255, 255, 0.08); backdrop-filter: blur(6px);">
-            <li data-value="mixdown" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Mixdown</li>
-            <li data-value="master" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Master</li>
-          </ul>
-        </div>
-        <div class="relative">
-          <input type="hidden" name="genre" id="genre-input" />
-          <button type="button" id="genre-button" class="milky-input flex justify-between items-center cursor-pointer peer w-full px-4 py-2 text-left transition hover:bg-white/20">
-            <span id="genre-selected" class="text-white/80">Select Genre</span>
-            <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-          </button>
-          <ul id="genre-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden" style="background-color: rgba(255, 255, 255, 0.08); backdrop-filter: blur(6px);">
-            <li data-value="electronic" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Electronic</li>
-            <li data-value="hiphop" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Hip Hop</li>
-            <li data-value="rock" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Rock</li>
-            <li data-value="ambient" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Ambient</li>
-            <li data-value="classic" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Classic</li>
-            <li data-value="punk" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Punk</li>
-          </ul>
-        </div>
-          <div class="relative">
-          <input type="hidden" name="feedback_profile" id="profile-input" />
-          <button type="button" id="profile-button" class="milky-input flex justify-between items-center cursor-pointer peer w-full px-4 py-2 text-left transition hover:bg-white/20">
-            <span id="profile-selected" class="text-white/80">Feedback Profile</span>
-            <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-          </button>
-          <ul id="profile-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden" style="background-color: rgba(255, 255, 255, 0.08); backdrop-filter: blur(6px);">
-            <li data-value="Simple Tips Only" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Simple Tips Only</li>
-            <li data-value="Detailed with Explanations" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Detailed with Explanations</li>
-            <li data-value="Pro-Level" class="dropdown-option px-4 py-2 cursor-pointer transition" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'" onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Pro_Level</li>
-          </ul>
-        </div>
-        <button type="submit" class="bg-gradient-to-r from-pink-500 to-blue-500 text-white py-2 px-4 rounded shadow hover:opacity-90">Analyze</button>
-      </form>
-      </section>
-
-      <section id="results" class="hidden bg-black/10 p-6 rounded-lg shadow-inner">
-        <h2 class="text-lg font-semibold mb-4">Analysis Results</h2>
-        <div id="analysisOutput" class="space-y-2 text-sm"></div>
-      </section>
+  <header class="fixed inset-x-0 top-0 z-50 bg-black bg-opacity-75 backdrop-filter backdrop-blur-sm border-b-2 border-white border-opacity-80 shadow-md flex items-center justify-between p-4">
+    <div class="flex items-center">
+      <img src="/static/Logo.png" alt="Logo" class="h-10 w-10 mr-3">
+      <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
     </div>
 
+    <!-- Session and Track Selection UI -->
+    <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center space-x-4">
+      <select id="session-select" class="milky-input px-3 min-w-max">
+        <option value="">Choose Session</option>
+      </select>
+      <select id="track-select" class="milky-input px-3 min-w-max" disabled>
+        <option value="">-- Select a session first --</option>
+      </select>
+    </div>
+  </header>
 
-<script>
-  const sessionDropdown = document.getElementById("session-select");
-  const trackDropdown = document.getElementById("track-select");
-  const createSessionBtn = document.getElementById("create-session-btn");
+  <main class="relative z-10 pt-28 max-w-6xl mx-auto px-3">
+    <div class="flex flex-col lg:flex-row lg:items-start lg:space-x-20">
 
-  async function fetchSessions() {
-    const res = await fetch("/sessions");
-    const sessions = await res.json();
-    sessionDropdown.innerHTML = '<option value="">-- Choose a session --</option>';
-    sessions.forEach(session => {
-      const opt = document.createElement("option");
-      opt.value = session.id;
-      opt.textContent = session.session_name;
-      sessionDropdown.appendChild(opt);
-    });
-  }
+      <!-- LEFT COLUMN: Upload + Results -->
+      <div class="lg:w-1/3 flex-shrink-0 flex flex-col space-y-6">
+        <section class="bg-black/10 p-6 rounded-lg shadow-inner">
+          <h2 class="text-lg font-semibold mb-6">Upload Your Track</h2>
 
-  async function fetchTracksForSession(sessionId) {
-    const res = await fetch(`/sessions/${sessionId}/tracks`);
-    const tracks = await res.json();
-    trackDropdown.innerHTML = '<option value="">-- Choose a track --</option>';
-    tracks.forEach(track => {
-      const opt = document.createElement("option");
-      opt.value = track.id;
-      opt.textContent = track.track_name;
-      trackDropdown.appendChild(opt);
-    });
-    trackDropdown.disabled = false;
-  }
+          <form id="uploadForm" class="flex flex-col space-y-3" enctype="multipart/form-data">
+            <label for="file-upload" class="milky-input flex items-center justify-between cursor-pointer transition hover:bg-white/20 hover:backdrop-blur-lg py-2">
+              <span id="file-name" class="text-white/90 text-base">Choose a file</span>
+              <input id="file-upload" name="file" type="file" accept="audio/*" class="hidden" required />
+            </label>
 
-  sessionDropdown.addEventListener("change", (e) => {
-    const sessionId = e.target.value;
-    if (sessionId) {
-      fetchTracksForSession(sessionId);
-    } else {
-      trackDropdown.innerHTML = '<option value="">-- Select a session first --</option>';
-      trackDropdown.disabled = true;
-    }
-  });
+            <!-- Simulated placeholder -->
+            <div class="relative">
+              <input type="text" id="track_name" class="milky-input bg-transparent relative z-10" style="backdrop-filter: none;" />
+              <div id="track-fake-placeholder"
+                   class="absolute left-3 top-2 text-white/90 pointer-events-none z-10 flex gap-1">
+                <span class="text-base font-medium">Track Name</span>
+                <span class="text-base text-white/60 italic">&nbsp;(optional)</span>
+              </div>
+            </div>
 
-  createSessionBtn.addEventListener("click", async () => {
-    const sessionName = prompt("Enter new session name:");
-    if (!sessionName) return;
-    const userId = 1;
-    const res = await fetch("/sessions/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ session_name: sessionName, user_id: userId })
-    });
-    const newSession = await res.json();
-    await fetchSessions();
-    sessionDropdown.value = newSession.id;
-    fetchTracksForSession(newSession.id);
-  });
+            <div>
+              <input type="text" name="session_name" id="session_name" class="milky-input" placeholder="Session Name" />
+            </div>
 
-  // Initial load
-  fetchSessions();
-</script>
+            <input type="hidden" name="session_id" id="session_id">
 
+            <!-- Type Dropdown -->
+            <div class="relative">
+              <input type="hidden" name="type" id="type-input" />
+              <button type="button" id="type-button" class="milky-input flex justify-between items-center cursor-pointer peer w-full px-4 py-2 text-left transition hover:bg-white/20">
+                <span id="type-selected" class="text-white/80">Select Type</span>
+                <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </button>
+              <ul id="type-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden"
+                  style="background-color: rgba(255, 255, 255, 0.08); backdrop-filter: blur(6px);">
+                <li data-value="mixdown" class="dropdown-option px-4 py-2 cursor-pointer transition"
+                    onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'"
+                    onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Mixdown</li>
+                <li data-value="master" class="dropdown-option px-4 py-2 cursor-pointer transition"
+                    onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'"
+                    onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Master</li>
+              </ul>
+            </div>
 
+            <!-- Genre Dropdown -->
+            <div class="relative">
+              <input type="hidden" name="genre" id="genre-input" />
+              <button type="button" id="genre-button" class="milky-input flex justify-between items-center cursor-pointer peer w-full px-4 py-2 text-left transition hover:bg-white/20">
+                <span id="genre-selected" class="text-white/80">Select Genre</span>
+                <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </button>
+              <ul id="genre-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden"
+                  style="background-color: rgba(255, 255, 255, 0.08); backdrop-filter: blur(6px);">
+                <li data-value="electronic" class="dropdown-option px-4 py-2 cursor-pointer transition">Electronic</li>
+                <li data-value="hiphop" class="dropdown-option px-4 py-2 cursor-pointer transition">Hip Hop</li>
+                <li data-value="rock" class="dropdown-option px-4 py-2 cursor-pointer transition">Rock</li>
+                <li data-value="ambient" class="dropdown-option px-4 py-2 cursor-pointer transition">Ambient</li>
+                <li data-value="classic" class="dropdown-option px-4 py-2 cursor-pointer transition">Classic</li>
+                <li data-value="punk" class="dropdown-option px-4 py-2 cursor-pointer transition">Punk</li>
+              </ul>
+            </div>
 
-    <!-- RIGHT COLUMN: Feedback -->
-    <section id="feedback" class="hidden lg:w-[65%] min-w-0 mt-6 lg:mt-0 bg-black/10 p-6 rounded-lg shadow-inner space-y-4">
+            <!-- Profile Dropdown -->
+            <div class="relative">
+              <input type="hidden" name="feedback_profile" id="profile-input" />
+              <button type="button" id="profile-button" class="milky-input flex justify-between items-center cursor-pointer peer w-full px-4 py-2 text-left transition hover:bg-white/20">
+                <span id="profile-selected" class="text-white/80">Feedback Profile</span>
+                <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </button>
+              <ul id="profile-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden"
+                  style="background-color: rgba(255, 255, 255, 0.08); backdrop-filter: blur(6px);">
+                <li data-value="Simple Tips Only" class="dropdown-option px-4 py-2 cursor-pointer transition">Simple Tips Only</li>
+                <li data-value="Detailed with Explanations" class="dropdown-option px-4 py-2 cursor-pointer transition">Detailed with Explanations</li>
+                <li data-value="Pro-Level" class="dropdown-option px-4 py-2 cursor-pointer transition">Pro_Level</li>
+              </ul>
+            </div>
 
+            <button type="submit" class="bg-gradient-to-r from-pink-500 to-blue-500 text-white py-2 px-4 rounded shadow hover:opacity-90">
+              Analyze
+            </button>
+          </form>
+        </section>
 
-  <h2 class="text-2xl font-bold text-white mb-4">AI Feedback</h2>
-  <div id="gptResponse" class="text-base leading-relaxed text-white/90 space-y-3"></div>
-</section>
+        <section id="results" class="hidden bg-black/10 p-6 rounded-lg shadow-inner">
+          <h2 class="text-lg font-semibold mb-4">Analysis Results</h2>
+          <div id="analysisOutput" class="space-y-2 text-sm"></div>
+        </section>
+      </div>
 
+      <!-- RIGHT COLUMN: Feedback -->
+      <section id="feedback" class="hidden lg:w-[65%] min-w-0 mt-6 lg:mt-0 bg-black/10 p-6 rounded-lg shadow-inner space-y-4">
+        <h2 class="text-2xl font-bold text-white mb-4">AI Feedback</h2>
+        <div id="gptResponse" class="text-base leading-relaxed text-white/90 space-y-3"></div>
+      </section>
 
+    </div>
+  </main>
 
-  </div>
-</main>
-<script src="/static/app.js"></script>
+  <script src="/static/app.js"></script>
 </body>
 </html>
