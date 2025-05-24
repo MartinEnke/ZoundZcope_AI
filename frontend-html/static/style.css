@@ -213,3 +213,53 @@ select.custom-dropdown:focus {
   transition: all 0.2s ease;
 }
 
+.drop-shadow-glow {
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.6));
+}
+
+
+
+.link-sweep-pinkblue {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+}
+
+.link-sweep-pinkblue::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(236, 72, 153, 0.15), /* pink */
+    rgba(59, 130, 246, 0.25)  /* blue */
+  );
+  z-index: 2;
+  pointer-events: none;
+  transition: none;
+}
+
+.link-sweep-pinkblue:hover::before {
+  animation: sweep-once 0.8s ease forwards;
+}
+
+.link-sweep-pinkblue span {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes sweep-once {
+  0% {
+    left: -100%;
+    opacity: 8;
+  }
+  100% {
+    left: 100%;
+    opacity: 3; /* Optional: fade out as it exits */
+  }
+}
