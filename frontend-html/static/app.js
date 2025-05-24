@@ -409,11 +409,11 @@ form.addEventListener("submit", async (e) => {
   const feedbackProfile = document.getElementById("profile-input").value;
   formData.set("feedback_profile", feedbackProfile);
 
-  // ✅ Ensure valid track name
-  const trackName = formData.get("track_name");
-  if (!trackName || trackName.trim() === "" || trackName.trim().toLowerCase() === "string") {
-    formData.set("track_name", "string");
-  }
+
+  // ✅ Use custom track name if provided
+  const customTrackName = document.getElementById("track_name").value.trim();
+  formData.set("track_name", customTrackName || "");
+
 
   try {
     const response = await fetch("/upload/", {

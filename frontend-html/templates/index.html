@@ -26,10 +26,10 @@
 
     <!-- Session and Track Selection UI -->
     <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center space-x-4">
-      <select id="session-select" class="custom-dropdown px-3 min-w-max">
+      <select id="session-select" class="custom-dropdown px-3 py-2 h-10 rounded bg-white/10 text-white">
         <option value="">Choose Session</option>
       </select>
-      <select id="track-select" class="custom-dropdown px-3 min-w-max" disabled>
+      <select id="track-select" class="custom-dropdown px-3 py-2 h-10 rounded bg-white/10 text-white" disabled>
         <option value="">-- Select a session first --</option>
       </select>
     </div>
@@ -51,7 +51,7 @@
 
             <!-- Simulated placeholder -->
             <div class="relative">
-              <input type="text" id="track_name" class="milky-input bg-transparent relative z-10" style="backdrop-filter: none;" />
+              <input type="text" id="track_name" name="track_name" class="milky-input bg-transparent relative z-10" style="backdrop-filter: none;" />
               <div id="track-fake-placeholder"
                    class="absolute left-3 top-2 text-white/90 pointer-events-none z-10 flex gap-1">
                 <span class="text-base font-medium">Track Name</span>
