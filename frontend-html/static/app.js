@@ -180,6 +180,34 @@ fileInput.addEventListener('change', () => {
 });
 
 // ==========================================================
+// 🔁 Helper: Load Session Tracks After Upload
+// ==========================================================
+async function loadSessionTracks(sessionId) {
+  try {
+    const response = await fetch(`/sessions/${sessionId}/tracks`);
+    if (!response.ok) throw new Error("Failed to fetch tracks");
+
+    const tracks = await response.json();
+    const latestTrack = tracks[0]; // 🔄 assumes latest uploaded is first
+
+    // Update dropdown if present
+    const trackSelect = document.getElementById("track-select");
+    if (trackSelect) {
+      trackSelect.innerHTML = '<option value="">Choose Track</option>';
+      tracks.forEach(track => {
+        const opt = document.createElement("option");
+        opt.value = track.id;
+        opt.textContent = track.track_name || "Untitled Track";
+        trackSelect.appendChild(opt);
+      });
+      trackSelect.value = latestTrack?.id || "";
+    }
+  } catch (err) {
+    console.error("❌ Error loading session tracks:", err);
+  }
+}
+console.log("loadSessionTracks is", loadSessionTracks);
+// ==========================================================
 // 🔸 Upload Form Submission Logic
 // ==========================================================
 const form = document.getElementById("uploadForm");

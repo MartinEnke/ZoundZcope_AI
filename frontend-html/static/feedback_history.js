@@ -373,32 +373,70 @@ async function loadManageSection() {
       sessionTitleWrap.append(sessionTitleText, arrow);
 
       const sessionControls = document.createElement("div");
-      sessionControls.className = "flex gap-2";
+sessionControls.className = "flex items-center gap-2";
 
-      const renameBtn = document.createElement("button");
-      renameBtn.textContent = "Edit";
-      renameBtn.className =
-        "px-3 py-1 text-sm rounded-full text-white bg-white/10 border border-white/20 " +
-        "hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
-      renameBtn.addEventListener("mouseenter", () => sessionTitleText.classList.add("text-green-400"));
+// DESKTOP BUTTONS
+const renameBtn = document.createElement("button");
+renameBtn.textContent = "Edit";
+renameBtn.className =
+  "hidden md:block px-3 py-1 text-sm rounded-full text-white bg-white/10 border border-white/20 " +
+  "hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
+renameBtn.addEventListener("mouseenter", () => sessionTitleText.classList.add("text-green-400"));
 renameBtn.addEventListener("mouseleave", () => sessionTitleText.classList.remove("text-green-400"));
 renameBtn.addEventListener("click", () => {
   const input = prompt("Rename session:", session.session_name);
   if (input) renameSession(session.id, input);
 });
 
-      const deleteBtn = document.createElement("button");
-      deleteBtn.textContent = "−";
-      deleteBtn.className =
-        "w-8 h-8 flex items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
-        "hover:border-red-500 hover:bg-rose-500/10 hover:text-white transition-all duration-200";
-      deleteBtn.addEventListener("mouseenter", () => sessionTitleText.classList.add("text-red-500"));
+const deleteBtn = document.createElement("button");
+deleteBtn.textContent = "−";
+deleteBtn.className =
+  "hidden md:flex w-8 h-8 items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
+  "hover:border-red-500 hover:bg-rose-500/10 hover:text-white transition-all duration-200";
+deleteBtn.addEventListener("mouseenter", () => sessionTitleText.classList.add("text-red-500"));
 deleteBtn.addEventListener("mouseleave", () => sessionTitleText.classList.remove("text-red-500"));
 deleteBtn.addEventListener("click", () => {
   if (confirm("Delete session and all tracks?")) deleteSession(session.id);
 });
 
-      sessionControls.append(renameBtn, deleteBtn);
+// MOBILE "⋮" MENU
+const dropdownWrapper = document.createElement("div");
+dropdownWrapper.className = "relative md:hidden";
+
+const menuButton = document.createElement("button");
+menuButton.textContent = "⋮";
+menuButton.className = "text-white text-xl px-2 py-1 rounded hover:bg-white/10";
+menuButton.addEventListener("click", (e) => {
+  e.stopPropagation();
+  dropdownMenu.classList.toggle("hidden");
+});
+
+const dropdownMenu = document.createElement("div");
+dropdownMenu.className = "absolute right-0 mt-2 w-32 rounded-md shadow-lg bg-black/90 border border-white/20 hidden z-20";
+
+const mobileEdit = document.createElement("div");
+mobileEdit.textContent = "Edit";
+mobileEdit.className = "px-4 py-2 cursor-pointer hover:bg-green-400/20";
+mobileEdit.addEventListener("click", () => {
+  dropdownMenu.classList.add("hidden");
+  const input = prompt("Rename session:", session.session_name);
+  if (input) renameSession(session.id, input);
+});
+
+const mobileDelete = document.createElement("div");
+mobileDelete.textContent = "Delete";
+mobileDelete.className = "px-4 py-2 cursor-pointer hover:bg-red-500/20";
+mobileDelete.addEventListener("click", () => {
+  dropdownMenu.classList.add("hidden");
+  if (confirm("Delete session and all tracks?")) deleteSession(session.id);
+});
+
+dropdownMenu.append(mobileEdit, mobileDelete);
+dropdownWrapper.append(menuButton, dropdownMenu);
+
+// Assemble controls
+sessionControls.append(renameBtn, deleteBtn, dropdownWrapper);
+
       sessionHeader.append(sessionTitleWrap, sessionControls);
       sessionDiv.appendChild(sessionHeader);
 
@@ -417,32 +455,70 @@ deleteBtn.addEventListener("click", () => {
         trackName.textContent = track.track_name;
 
         const trackControls = document.createElement("div");
-        trackControls.className = "flex gap-2";
+trackControls.className = "flex items-center gap-2";
 
-        const trackRenameBtn = document.createElement("button");
-        trackRenameBtn.textContent = "Edit";
-        trackRenameBtn.className =
-          "px-2 py-0.5 text-xs rounded-full text-white bg-white/10 border border-white/20 " +
-          "hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
-        trackRenameBtn.addEventListener("mouseenter", () => trackName.classList.add("text-green-400"));
+// DESKTOP BUTTONS
+const trackRenameBtn = document.createElement("button");
+trackRenameBtn.textContent = "Edit";
+trackRenameBtn.className =
+  "hidden md:block px-2 py-0.5 text-xs rounded-full text-white bg-white/10 border border-white/20 " +
+  "hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
+trackRenameBtn.addEventListener("mouseenter", () => trackName.classList.add("text-green-400"));
 trackRenameBtn.addEventListener("mouseleave", () => trackName.classList.remove("text-green-400"));
 trackRenameBtn.addEventListener("click", () => {
   const newName = prompt("Rename track:", track.track_name);
   if (newName) renameTrack(track.id, newName, track.type);
 });
 
-        const trackDeleteBtn = document.createElement("button");
-        trackDeleteBtn.textContent = "−";
-        trackDeleteBtn.className =
-          "w-6 h-6 flex items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
-          "hover:border-red-500 hover:bg-red-500/10 hover:text-white transition-all duration-200";
-        trackDeleteBtn.addEventListener("mouseenter", () => trackName.classList.add("text-red-500"));
+const trackDeleteBtn = document.createElement("button");
+trackDeleteBtn.textContent = "−";
+trackDeleteBtn.className =
+  "hidden md:flex w-6 h-6 items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
+  "hover:border-red-500 hover:bg-red-500/10 hover:text-white transition-all duration-200";
+trackDeleteBtn.addEventListener("mouseenter", () => trackName.classList.add("text-red-500"));
 trackDeleteBtn.addEventListener("mouseleave", () => trackName.classList.remove("text-red-500"));
 trackDeleteBtn.addEventListener("click", () => {
   if (confirm("Delete this track?")) deleteTrack(track.id);
 });
 
-        trackControls.append(trackRenameBtn, trackDeleteBtn);
+// MOBILE "⋮" MENU
+const trackDropdownWrapper = document.createElement("div");
+trackDropdownWrapper.className = "relative md:hidden";
+
+const trackMenuBtn = document.createElement("button");
+trackMenuBtn.textContent = "⋮";
+trackMenuBtn.className = "text-white text-xl px-2 py-1 rounded hover:bg-white/10";
+trackMenuBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  trackDropdown.classList.toggle("hidden");
+});
+
+const trackDropdown = document.createElement("div");
+trackDropdown.className = "absolute right-0 mt-2 w-28 rounded-md shadow-lg bg-black/90 border border-white/20 hidden z-20";
+
+const trackEditOption = document.createElement("div");
+trackEditOption.textContent = "Edit";
+trackEditOption.className = "px-4 py-2 cursor-pointer hover:bg-green-400/20";
+trackEditOption.addEventListener("click", () => {
+  trackDropdown.classList.add("hidden");
+  const newName = prompt("Rename track:", track.track_name);
+  if (newName) renameTrack(track.id, newName, track.type);
+});
+
+const trackDeleteOption = document.createElement("div");
+trackDeleteOption.textContent = "Delete";
+trackDeleteOption.className = "px-4 py-2 cursor-pointer hover:bg-red-500/20";
+trackDeleteOption.addEventListener("click", () => {
+  trackDropdown.classList.add("hidden");
+  if (confirm("Delete this track?")) deleteTrack(track.id);
+});
+
+trackDropdown.append(trackEditOption, trackDeleteOption);
+trackDropdownWrapper.append(trackMenuBtn, trackDropdown);
+
+// Assemble controls
+trackControls.append(trackRenameBtn, trackDeleteBtn, trackDropdownWrapper);
+
         trackItem.append(trackName, trackControls);
         trackList.appendChild(trackItem);
       }
