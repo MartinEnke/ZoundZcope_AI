@@ -218,58 +218,59 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Load session list
-  async function fetchSessions() {
-    const res = await fetch("/sessions");
-    const sessions = await res.json();
+async function fetchSessions() {
+  const res = await fetch("/sessions");
+  const sessions = await res.json();
 
-    sessionOptions.innerHTML = "";
-    sessions.forEach(session => {
-      const li = document.createElement("li");
-      li.className = "dropdown-option px-4 py-2 cursor-pointer transition";
-      li.textContent = session.session_name;
-      li.dataset.sessionId = session.id;
+  sessionOptions.innerHTML = "";
+  sessions.forEach(session => {
+    const li = document.createElement("li");
+    li.className = "dropdown-option";
+    li.textContent = session.session_name;
+    li.dataset.sessionId = session.id;
 
-      li.addEventListener("click", () => {
-        sessionInput.value = session.id;
-        sessionSelected.textContent = session.session_name;
-        sessionOptions.classList.add("hidden");
-        fetchTracks(session.id); // 🔄 Load tracks for this session
-      });
-
-      sessionOptions.appendChild(li);
+    li.addEventListener("click", () => {
+      sessionInput.value = session.id;
+      sessionSelected.textContent = session.session_name;
+      sessionOptions.classList.add("hidden");
+      fetchTracks(session.id); // 🔄 Load tracks for this session
     });
+
+    sessionOptions.appendChild(li);
+  });
+}
+
+// Load tracks for selected session
+async function fetchTracks(sessionId) {
+  const res = await fetch(`/sessions/${sessionId}/tracks`);
+  const tracks = await res.json();
+
+  trackOptions.innerHTML = "";
+  if (!tracks.length) {
+    const li = document.createElement("li");
+    li.textContent = "No tracks in session";
+    li.className = "text-white/60 px-4 py-2 italic";
+    trackOptions.appendChild(li);
+    return;
   }
 
-  // Load tracks for selected session
-  async function fetchTracks(sessionId) {
-    const res = await fetch(`/sessions/${sessionId}/tracks`);
-    const tracks = await res.json();
+  tracks.forEach(track => {
+    const li = document.createElement("li");
+    li.className = "dropdown-option";
+    li.textContent = track.track_name || "Untitled Track";
+    li.dataset.trackId = track.id;
 
-    trackOptions.innerHTML = "";
-    if (!tracks.length) {
-      const li = document.createElement("li");
-      li.textContent = "No tracks in session";
-      li.className = "text-white/60 px-4 py-2 italic";
-      trackOptions.appendChild(li);
-      return;
-    }
-
-    tracks.forEach(track => {
-      const li = document.createElement("li");
-      li.className = "dropdown-option px-4 py-2 cursor-pointer transition";
-      li.textContent = track.track_name || "Untitled Track";
-      li.dataset.trackId = track.id;
-
-      li.addEventListener("click", () => {
-        trackInput.value = track.id;
-        trackSelected.textContent = track.track_name;
-        trackOptions.classList.add("hidden");
-        loadTrackFeedback(track.id);
-      });
-
-      trackOptions.appendChild(li);
+    li.addEventListener("click", () => {
+      trackInput.value = track.id;
+      trackSelected.textContent = track.track_name;
+      trackOptions.classList.add("hidden");
+      loadTrackFeedback(track.id);
     });
-  }
+
+    trackOptions.appendChild(li);
+  });
+}
+
 
   // Load feedback and analysis
   async function loadTrackFeedback(trackId) {

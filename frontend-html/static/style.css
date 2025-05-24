@@ -129,19 +129,19 @@ section {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   font-size: 0.875rem;
   color: white;
-  background-color: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(6px);
+  background-color: rgba(255, 255, 255, 5.00);
+  backdrop-filter: blur(10px);
 }
 
 .dropdown-list li {
   padding: 0.5rem 1rem;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.5s ease;
 }
 
 .dropdown-list li:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(4px);
+  background-color: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(10px);
 }
 
 
@@ -201,3 +201,15 @@ select.custom-dropdown:focus {
     0 0 10px #ff4b5c,
     0 0 15px #ff4b5c;
 }
+
+.dropdown-option:hover {
+  background-color: rgba(255, 255, 255, 0.20);
+  backdrop-filter: blur(10px);
+}
+
+.dropdown-option {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
