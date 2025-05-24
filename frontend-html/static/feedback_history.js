@@ -502,7 +502,7 @@ trackEditOption.className = "px-4 py-2 cursor-pointer hover:bg-green-400/20";
 trackEditOption.addEventListener("click", () => {
   trackDropdown.classList.add("hidden");
   const newName = prompt("Rename track:", track.track_name);
-  if (newName) renameTrack(track.id, newName, track.type);
+  if (newName) renameTrack(track.id, newName);
 });
 
 const trackDeleteOption = document.createElement("div");
@@ -536,15 +536,22 @@ trackControls.append(trackRenameBtn, trackDeleteBtn, trackDropdownWrapper);
 // ==========================================================
 
 async function renameSession(id, newName) {
-  await fetch(`/sessions/${id}`, {
+  const formData = new FormData();
+  formData.append("new_name", newName);
+
+  const res = await fetch(`/sessions/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ new_name: newName })
+    body: formData,
   });
 
-  const titleEl = document.querySelector(`[data-session-wrapper="${id}"] span`);
-  if (titleEl) titleEl.textContent = newName;
+  if (!res.ok) {
+    console.error("❌ Failed to rename session:", await res.text());
+    alert("Failed to rename session.");
+  }
+
+  loadManageSection();
 }
+
 
 async function deleteSession(id) {
   await fetch(`/sessions/${id}`, { method: "DELETE" });
@@ -552,13 +559,22 @@ async function deleteSession(id) {
   if (wrapper) wrapper.remove();
 }
 
-async function renameTrack(id, newName, type) {
-  await fetch(`/tracks/${id}?track_name=${encodeURIComponent(newName)}&type=${encodeURIComponent(type)}`, {
-    method: "PUT"
+async function renameTrack(id, newName) {
+  const formData = new FormData();
+  formData.append("track_name", newName);
+
+  const res = await fetch(`/tracks/${id}`, {
+    method: "PUT",
+    body: formData,
   });
 
-  const nameEl = document.querySelector(`[data-track-item="${id}"] span`);
-  if (nameEl) nameEl.textContent = newName;
+  if (!res.ok) {
+    console.error("❌ Failed to rename track:", await res.text());
+    alert("Failed to rename track.");
+    return;
+  }
+
+  loadManageSection();
 }
 
 async function deleteTrack(id) {
