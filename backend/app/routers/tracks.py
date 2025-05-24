@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Form
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import Track, AnalysisResult
@@ -29,12 +29,15 @@ def get_single_track(track_id: str, db: Session = Depends(get_db)):
     }
 
 @router.put("/{id}")
-def update_track(id: int, track_name: str, type: str, db: Session = Depends(get_db)):
+def update_track(
+    id: int,
+    track_name: str = Form(...),
+    db: Session = Depends(get_db)
+):
     track = db.query(Track).filter(Track.id == id).first()
     if not track:
         raise HTTPException(status_code=404, detail="Track not found")
     track.track_name = track_name
-    track.type = type
     db.commit()
     return {"message": "Track updated", "track": track}
 

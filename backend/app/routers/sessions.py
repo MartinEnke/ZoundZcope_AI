@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import ChatMessage, Session as UserSession, Track
@@ -134,7 +134,11 @@ def get_tracks_for_session(
 
 
 @router.put("/{id}")
-def update_session_name(id: str, new_name: str, db: Session = Depends(get_db)):
+def update_session_name(
+    id: str,
+    new_name: str = Form(...),
+    db: Session = Depends(get_db)
+):
     session = db.query(UserSession).filter(UserSession.id == id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")

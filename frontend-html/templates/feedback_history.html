@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Feedback History – ZoundZcope AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="static/style.css" />
+</head>
+
+<body class="bg-black text-white px-4 py-8">
+  <div class="fixed inset-0 z-0 opacity-10 bg-no-repeat bg-center pointer-events-none"
+       style="background-image: url('/static/logo.png'); background-size: 1800px; background-position: center -450px;"></div>
+
+  <header class="fixed inset-x-0 top-0 z-50 bg-black bg-opacity-75 backdrop-filter backdrop-blur-sm border-b-2 border-white border-opacity-80 shadow-md flex items-center justify-between p-4">
+    <div class="flex items-center">
+      <img src="/static/Logo.png" alt="Logo" class="h-10 w-10 mr-3">
+      <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
+    </div>
+  </header>
+
+  <main class="relative z-10 pt-28 max-w-4xl mx-auto px-3 space-y-8">
+    <h1 class="text-3xl font-bold mb-6">Feedback History</h1>
+
+    <!-- SESSION CONTROLS -->
+    <div class="flex items-center gap-2">
+      <div class="relative w-full">
+        <input type="hidden" id="session-input" />
+        <button type="button" id="session-button" class="milky-input flex justify-between items-center w-full px-4 py-2 text-left">
+          <span id="session-selected" class="text-white/80">Choose Session</span>
+          <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <ul id="session-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden"
+            style="background-color: rgba(255,255,255,0.08); backdrop-filter: blur(6px);"></ul>
+      </div>
+    </div>
+    <input type="text" id="rename-session-input" class="milky-input w-full mt-1 hidden" placeholder="New session name" />
+
+    <!-- TRACK CONTROLS -->
+    <div class="flex items-center gap-2 mt-4">
+      <div class="relative w-full">
+        <input type="hidden" id="track-input" />
+        <button type="button" id="track-button" class="milky-input flex justify-between items-center w-full px-4 py-2 text-left">
+          <span id="track-selected" class="text-white/80">Choose Track</span>
+          <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        <ul id="track-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden"
+            style="background-color: rgba(255,255,255,0.08); backdrop-filter: blur(6px);"></ul>
+      </div>
+    </div>
+    <input type="text" id="rename-track-input" class="milky-input w-full mt-1 hidden" placeholder="New track name" />
+
+    <!-- FEEDBACK DISPLAY -->
+    <section id="history-feedback" class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4 hidden">
+      <h2 class="text-xl font-semibold">AI Feedback</h2>
+      <div id="history-feedback-output" class="text-white/90 text-sm whitespace-pre-wrap"></div>
+    </section>
+      <!-- 🔹 Manage Sessions and Tracks -->
+<section class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4">
+  <h2 class="text-xl font-semibold text-white mb-4">Manage Sessions & Tracks</h2>
+  <div id="manage-section" class="space-y-6">
+    <!-- JS will populate this with:
+         - session name + edit/delete
+         - track list per session + edit/delete
+    -->
+  </div>
+</section>
+  </main>
+
+  <script src="/static/feedback_history.js"></script>
+</body>
+</html>

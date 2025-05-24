@@ -14,7 +14,7 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/")
+@router.post("/feedback_history.html")
 def get_feedback(
     track_id: int = Form(...),
     session_id: int = Form(...),
