@@ -379,20 +379,24 @@ async function loadManageSection() {
       renameBtn.textContent = "Edit";
       renameBtn.className =
         "px-3 py-1 text-sm rounded-full text-white bg-white/10 border border-white/20 " +
-        "hover:border-blue-400 hover:bg-blue-400/10 hover:text-white transition-all duration-200";
-      renameBtn.addEventListener("click", () => {
-        const input = prompt("Rename session:", session.session_name);
-        if (input) renameSession(session.id, input);
-      });
+        "hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
+      renameBtn.addEventListener("mouseenter", () => sessionTitleText.classList.add("text-green-400"));
+renameBtn.addEventListener("mouseleave", () => sessionTitleText.classList.remove("text-green-400"));
+renameBtn.addEventListener("click", () => {
+  const input = prompt("Rename session:", session.session_name);
+  if (input) renameSession(session.id, input);
+});
 
       const deleteBtn = document.createElement("button");
       deleteBtn.textContent = "−";
       deleteBtn.className =
         "w-8 h-8 flex items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
-        "hover:border-red-400 hover:bg-red-400/10 hover:text-white transition-all duration-200";
-      deleteBtn.addEventListener("click", () => {
-        if (confirm("Delete session and all tracks?")) deleteSession(session.id);
-      });
+        "hover:border-red-500 hover:bg-rose-500/10 hover:text-white transition-all duration-200";
+      deleteBtn.addEventListener("mouseenter", () => sessionTitleText.classList.add("text-red-500"));
+deleteBtn.addEventListener("mouseleave", () => sessionTitleText.classList.remove("text-red-500"));
+deleteBtn.addEventListener("click", () => {
+  if (confirm("Delete session and all tracks?")) deleteSession(session.id);
+});
 
       sessionControls.append(renameBtn, deleteBtn);
       sessionHeader.append(sessionTitleWrap, sessionControls);
@@ -419,20 +423,24 @@ async function loadManageSection() {
         trackRenameBtn.textContent = "Edit";
         trackRenameBtn.className =
           "px-2 py-0.5 text-xs rounded-full text-white bg-white/10 border border-white/20 " +
-          "hover:border-blue-400 hover:bg-blue-400/10 hover:text-white transition-all duration-200";
-        trackRenameBtn.addEventListener("click", () => {
-          const newName = prompt("Rename track:", track.track_name);
-          if (newName) renameTrack(track.id, newName, track.type);
-        });
+          "hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
+        trackRenameBtn.addEventListener("mouseenter", () => trackName.classList.add("text-green-400"));
+trackRenameBtn.addEventListener("mouseleave", () => trackName.classList.remove("text-green-400"));
+trackRenameBtn.addEventListener("click", () => {
+  const newName = prompt("Rename track:", track.track_name);
+  if (newName) renameTrack(track.id, newName, track.type);
+});
 
         const trackDeleteBtn = document.createElement("button");
         trackDeleteBtn.textContent = "−";
         trackDeleteBtn.className =
           "w-6 h-6 flex items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
-          "hover:border-red-400 hover:bg-red-400/10 hover:text-white transition-all duration-200";
-        trackDeleteBtn.addEventListener("click", () => {
-          if (confirm("Delete this track?")) deleteTrack(track.id);
-        });
+          "hover:border-red-500 hover:bg-red-500/10 hover:text-white transition-all duration-200";
+        trackDeleteBtn.addEventListener("mouseenter", () => trackName.classList.add("text-red-500"));
+trackDeleteBtn.addEventListener("mouseleave", () => trackName.classList.remove("text-red-500"));
+trackDeleteBtn.addEventListener("click", () => {
+  if (confirm("Delete this track?")) deleteTrack(track.id);
+});
 
         trackControls.append(trackRenameBtn, trackDeleteBtn);
         trackItem.append(trackName, trackControls);

@@ -178,3 +178,26 @@ select.custom-dropdown:focus {
 .rotate-90 {
   transform: rotate(90deg);
 }
+
+.neon-red {
+  color: #ff4b5c !important;
+  text-shadow:
+    0 0 5px #ff4b5c,
+    0 0 10px #ff4b5c,
+    0 0 15px #ff4b5c;
+}
+
+.btn-neon-red {
+  color: #ff4b5c;
+  border-color: #ff4b5c;
+  background-color: rgba(255, 75, 92, 0.1);
+  transition: all 0.2s ease;
+}
+
+.btn-neon-red:hover {
+  background-color: rgba(255, 75, 92, 0.2);
+  text-shadow:
+    0 0 5px #ff4b5c,
+    0 0 10px #ff4b5c,
+    0 0 15px #ff4b5c;
+}
