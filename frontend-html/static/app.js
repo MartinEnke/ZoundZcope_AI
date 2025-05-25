@@ -65,6 +65,33 @@ document.getElementById("askAIButton").addEventListener("click", async () => {
     // ✅ Save follow-up to localStorage
     localStorage.setItem("zoundzcope_last_followup", outputBox.innerHTML);
 
+    try {
+  const raw = localStorage.getItem("zoundzcope_history") || "[]";
+  const history = JSON.parse(raw);
+
+  if (history.length > 0) {
+    // Ensure followup is an array
+    if (!Array.isArray(history[0].followup)) {
+      history[0].followup = history[0].followup
+        ? [history[0].followup]
+        : [];
+    }
+
+    // Add the new follow-up if it's not already in
+    if (!history[0].followup.includes(outputBox.innerHTML)) {
+      history[0].followup.push(outputBox.innerHTML);
+    }
+
+    localStorage.setItem("zoundzcope_history", JSON.stringify(history));
+  }
+} catch (err) {
+  console.error("❌ Failed to store follow-up in history:", err);
+}
+
+
+    // ✅ Save follow-up to localStorage
+    localStorage.setItem("zoundzcope_last_followup", outputBox.innerHTML);
+
   } catch (err) {
     console.error("Follow-up failed:", err);
     outputBox.innerHTML = "<p class='text-red-400'>Something went wrong. Try again.</p>";
@@ -453,7 +480,7 @@ feedbackBox.classList.remove("pulsing-feedback");
 
 // ✅ Now save everything after feedback is typed out
 localStorage.setItem("zoundzcope_last_analysis", output.innerHTML);
-localStorage.setItem("zoundzcope_last_feedback", feedbackBox.innerHTML);
+localStorage.setItem("zoundzcope_last_feedback", ul.outerHTML); // only list
 localStorage.setItem("zoundzcope_last_subheading", subheading?.outerHTML || "");
 localStorage.setItem("zoundzcope_last_followup", ""); // default for fresh entry
 
@@ -620,8 +647,8 @@ function restoreZoundzcopeState() {
 
   if (lastAnalysis && lastFeedback) {
     output.innerHTML = lastAnalysis;
-    feedbackBox.innerHTML = "";
-    if (subheadingHTML) feedbackBox.innerHTML += subheadingHTML;
+    feedbackBox.innerHTML = ""; // ← just the list, no subheading
+const subheading = document.createElement("p");
     feedbackBox.innerHTML += lastFeedback;
     resultsSection.classList.remove("hidden");
     feedbackSection.classList.remove("hidden");
@@ -685,26 +712,44 @@ function renderRecentFeedbackPanel() {
   }
 
   const recent = history.slice(0, 3);
-  recent.forEach(entry => {
+  recent.forEach((entry, i) => {
     const box = document.createElement("div");
     box.className = "bg-white/5 p-4 rounded-lg shadow-md space-y-2 border border-white/10";
 
-    const headingHTML = (entry.subheading && !entry.feedback?.includes(entry.subheading))
-  ? entry.subheading
-  : '';
+    // Subheading (like "Mixdown Suggestions") if not already inside feedback
+    const subheadingText = entry.subheading?.replace(/<[^>]+>/g, "").trim();
+    const alreadyIncluded = entry.feedback?.includes(subheadingText);
+    const headingHTML = (!alreadyIncluded && entry.subheading?.includes("<p")) ? entry.subheading : "";
 
     const feedbackHTML = entry.feedback || "<div class='text-white/60'>No feedback content.</div>";
 
-    const followupHTML = entry.followup
-      ? `<div class="mt-2 text-sm text-white/70 border-t border-white/10 pt-2">${entry.followup}</div>`
-      : "";
+    const followupId = `followup-${i}`;
+    let followupToggleHTML = "";
+    let followupHTML = "";
+
+    if (Array.isArray(entry.followup) && entry.followup.length > 0) {
+      followupToggleHTML = `<button class="text-xs text-purple-300 underline" onclick="toggleFollowup('${followupId}')">Show Follow-ups (${entry.followup.length})</button>`;
+      followupHTML = `
+        <div id="${followupId}" class="mt-2 text-sm text-white/70 border-t border-white/10 pt-2 hidden space-y-2">
+          ${entry.followup.map(text => `<div class="bg-white/5 p-2 rounded">${text}</div>`).join("")}
+        </div>
+      `;
+    } else if (typeof entry.followup === "string" && entry.followup.trim() !== "") {
+      followupToggleHTML = `<button class="text-xs text-purple-300 underline" onclick="toggleFollowup('${followupId}')">Show Follow-up</button>`;
+      followupHTML = `
+        <div id="${followupId}" class="mt-2 text-sm text-white/70 border-t border-white/10 pt-2 hidden">
+          ${entry.followup}
+        </div>
+      `;
+    }
 
     box.innerHTML = `
-      <div class="text-white/90 text-sm">
+      <div class="text-white/90 text-sm space-y-2">
         ${headingHTML}
         ${feedbackHTML}
+        ${followupToggleHTML}
+        ${followupHTML}
       </div>
-      ${followupHTML}
     `;
 
     container.appendChild(box);
@@ -712,6 +757,18 @@ function renderRecentFeedbackPanel() {
 
   panel.classList.remove("hidden");
 }
+
+function toggleFollowup(id) {
+  const el = document.getElementById(id);
+  const btn = el?.previousElementSibling;
+  if (el && btn) {
+    const isHidden = el.classList.contains("hidden");
+    el.classList.toggle("hidden");
+    btn.textContent = isHidden ? "Hide Follow-up" : "Show Follow-up";
+  }
+}
+
+
 
 window.addEventListener("DOMContentLoaded", renderRecentFeedbackPanel);
 window.addEventListener("pageshow", (e) => {
