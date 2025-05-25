@@ -482,8 +482,13 @@ formData.set("track_name", finalTrackName || "Untitled Track");
   li.style.display = "list-item";
   if (index > 0) li.style.marginTop = "0.75rem";
   ul.appendChild(li);
-  await typeText(li, line, 10);
+  await typeText(li, line, 5);  // 🧠 This types each line slowly
 }
+
+// 🔥 Unhide follow-up input after typing is complete
+document.getElementById("custom-ai-section")?.classList.remove("hidden");
+
+
 
 feedbackBox.classList.remove("pulsing-feedback");
 
