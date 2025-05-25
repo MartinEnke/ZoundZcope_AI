@@ -264,3 +264,36 @@ select.custom-dropdown:focus {
   }
 }
 
+
+.analyze-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.analyze-loading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: sweep-glance 1.5s ease-in-out infinite;
+}
+
+@keyframes sweep-glance {
+  0% {
+    left: -75%;
+  }
+  50% {
+    left: 125%;
+  }
+  100% {
+    left: 125%;
+  }
+}

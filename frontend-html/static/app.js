@@ -97,7 +97,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ==========================================================
 // 🔸 Dropdown Logic for Feedback Profile Selector
-// ✅ Add this separately — do not replace your existing trackSelect block!
 // ==========================================================
 document.addEventListener("DOMContentLoaded", () => {
   const profileButton = document.getElementById("profile-button");
@@ -221,6 +220,9 @@ form.addEventListener("submit", async (e) => {
     alert("Please enter a session name.");
     return;
   }
+  const analyzeButton = form.querySelector('button[type="submit"]');
+  analyzeButton.classList.add("analyze-loading");
+  analyzeButton.disabled = true;
 
   // ✅ Create session in backend
   const sessionResult = await createSessionInBackend(sessionName);
@@ -256,6 +258,7 @@ form.addEventListener("submit", async (e) => {
 
       const resultsEl = document.getElementById("results");
       const feedbackEl = document.getElementById("feedback");
+      const feedbackHeading = document.getElementById("feedback-heading");
       const feedbackBox = document.getElementById("gptResponse");
 
       resultsEl.classList.remove("hidden");
@@ -264,6 +267,9 @@ form.addEventListener("submit", async (e) => {
       feedbackEl.classList.remove("fade-in-up");
       void feedbackEl.offsetWidth;
       feedbackEl.classList.add("fade-in-up");
+
+      analyzeButton.classList.remove("analyze-loading");
+      analyzeButton.disabled = false;
 
       const output = document.getElementById("analysisOutput");
       const a = result.analysis;
@@ -326,11 +332,17 @@ form.addEventListener("submit", async (e) => {
     } else {
       console.error("Upload failed response:", result);
       alert("Upload failed: " + JSON.stringify(result));
+      analyzeButton.classList.remove("analyze-loading");
+      analyzeButton.disabled = false;
+
     }
 
   } catch (err) {
     console.error("Fetch error:", err);
     alert("An error occurred during upload.");
+    analyzeButton.classList.remove("analyze-loading");
+    analyzeButton.disabled = false;
+
   }
 });
 
