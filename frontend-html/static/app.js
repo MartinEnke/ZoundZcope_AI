@@ -1,7 +1,6 @@
-// ==========================================================
-// 🔸 Track Selection State
-// ==========================================================
-let currentSelectedTrack = null;
+// ✅ Cleaned version of your app.js with separate flat DOMContentLoaded blocks
+
+console.log("✅ app.js loaded");
 
 // ==========================================================
 // 🔠 Text Animation: Type letter-by-letter
@@ -25,6 +24,10 @@ function typeText(targetElement, text, speed = 10) {
   });
 }
 
+
+// ==========================================================
+// 🔁 Ask AI Follow-Up Logic
+// ==========================================================
 document.getElementById("askAIButton").addEventListener("click", async () => {
   const question = document.getElementById("customQuestion").value.trim();
   const outputBox = document.getElementById("aiFollowupResponse");
@@ -38,39 +41,30 @@ document.getElementById("askAIButton").addEventListener("click", async () => {
   const feedback = document.getElementById("gptResponse")?.innerText || "";
   const metrics = document.getElementById("analysisOutput")?.innerText || "";
 
-  const fullPrompt = `
-Original Analysis:
-${metrics}
-
-Original Feedback:
-${feedback}
-
-User's Question:
-${question}
-
-Please respond concisely and helpfully.
-`;
-
   // UI loading state
   outputBox.classList.remove("hidden");
   outputBox.innerHTML = "<p class='text-white/60 italic'>Thinking...</p>";
 
   try {
     const res = await fetch("/chat/ask-followup", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    analysis_text: metrics,
-    feedback_text: feedback,
-    user_question: question,
-    session_id: document.getElementById("session_id").value,
-    track_id: document.getElementById("track-select")?.value || "",
-    feedback_profile: document.getElementById("profile-input")?.value || "",
-  }),
-});
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        analysis_text: metrics,
+        feedback_text: feedback,
+        user_question: question,
+        session_id: document.getElementById("session_id").value,
+        track_id: document.getElementById("track-select")?.value || "",
+        feedback_profile: document.getElementById("profile-input")?.value || "",
+      }),
+    });
 
     const data = await res.json();
     outputBox.innerHTML = `<p>${data.answer}</p>`;
+
+    // ✅ Save follow-up to localStorage
+    localStorage.setItem("zoundzcope_last_followup", outputBox.innerHTML);
+
   } catch (err) {
     console.error("Follow-up failed:", err);
     outputBox.innerHTML = "<p class='text-red-400'>Something went wrong. Try again.</p>";
@@ -247,12 +241,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-
-
-
-
-
-
 // ==========================================================
 // 📥 File Input Handling + Placeholder Logic
 // ==========================================================
@@ -330,6 +318,11 @@ const form = document.getElementById("uploadForm");
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  localStorage.removeItem("zoundzcope_last_analysis");
+  localStorage.removeItem("zoundzcope_last_feedback");
+  localStorage.removeItem("zoundzcope_last_followup");
+  localStorage.removeItem("zoundzcope_last_subheading");
+
   const analyzeButton = form.querySelector('button[type="submit"]');
   const formData = new FormData(form);
 
@@ -340,17 +333,14 @@ form.addEventListener("submit", async (e) => {
 
   let sessionId = sessionIdInput.value;
 
-  // ✅ Validate input before triggering animation
   if (isNewSession && !newSessionName) {
     alert("Please enter a session name.");
     return;
   }
 
-  // ✅ Start gentle sweep only now
   analyzeButton.classList.add("analyze-loading");
   analyzeButton.disabled = true;
 
-  // ✅ Create new session if needed
   if (isNewSession) {
     const sessionResult = await createSessionInBackend(newSessionName);
     if (!sessionResult || !sessionResult.id) {
@@ -362,7 +352,6 @@ form.addEventListener("submit", async (e) => {
     sessionId = sessionResult.id;
   }
 
-  // ✅ Use existing session if selected
   if (!sessionId) {
     alert("Please choose or create a session.");
     analyzeButton.classList.remove("analyze-loading");
@@ -372,7 +361,6 @@ form.addEventListener("submit", async (e) => {
 
   formData.set("session_id", sessionId);
 
-  // ✅ Get other fields
   const feedbackProfile = document.getElementById("profile-input").value;
   const customTrackName = document.getElementById("track_name").value.trim();
 
@@ -445,7 +433,6 @@ form.addEventListener("submit", async (e) => {
       ul.className = "list-disc list-inside mt-2 text-white/90 space-y-1";
       feedbackBox.appendChild(ul);
 
-      // ✅ Stop sweep animation before typing starts
       analyzeButton.classList.remove("analyze-loading");
       analyzeButton.disabled = false;
 
@@ -455,14 +442,43 @@ form.addEventListener("submit", async (e) => {
         .filter(Boolean);
 
       for (const [index, line] of lines.entries()) {
-        const li = document.createElement("li");
-        li.style.display = "list-item";
-        if (index > 0) li.style.marginTop = "0.75rem";
-        ul.appendChild(li);
-        await typeText(li, line, 10);
+  const li = document.createElement("li");
+  li.style.display = "list-item";
+  if (index > 0) li.style.marginTop = "0.75rem";
+  ul.appendChild(li);
+  await typeText(li, line, 10);
+}
+
+feedbackBox.classList.remove("pulsing-feedback");
+
+// ✅ Now save everything after feedback is typed out
+localStorage.setItem("zoundzcope_last_analysis", output.innerHTML);
+localStorage.setItem("zoundzcope_last_feedback", feedbackBox.innerHTML);
+localStorage.setItem("zoundzcope_last_subheading", subheading?.outerHTML || "");
+localStorage.setItem("zoundzcope_last_followup", ""); // default for fresh entry
+
+      // 🔁 Save to zoundzcope_history (max 3)
+      try {
+        const current = {
+          analysis: output.innerHTML,
+          feedback: feedbackBox.innerHTML,
+          subheading: subheading?.outerHTML || "",
+          followup: ""
+        };
+
+        const rawHistory = localStorage.getItem("zoundzcope_history") || "[]";
+        const history = JSON.parse(rawHistory);
+
+        const duplicate = history.find(h => JSON.stringify(h) === JSON.stringify(current));
+        if (!duplicate) {
+          history.unshift(current);
+          if (history.length > 3) history.length = 3;
+          localStorage.setItem("zoundzcope_history", JSON.stringify(history));
+        }
+      } catch (err) {
+        console.error("❌ Failed to store history:", err);
       }
 
-      feedbackBox.classList.remove("pulsing-feedback");
     } else {
       console.error("Upload failed response:", result);
       alert("Upload failed: " + JSON.stringify(result));
@@ -475,6 +491,7 @@ form.addEventListener("submit", async (e) => {
     analyzeButton.disabled = false;
   }
 });
+
 
 
 // ==========================================================
@@ -585,6 +602,47 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+
+// ==========================================================
+// 🔁 Restore Last Analysis, Feedback & Follow-up (incl. browser back nav)
+// ==========================================================
+function restoreZoundzcopeState() {
+  const output = document.getElementById("analysisOutput");
+  const feedbackBox = document.getElementById("gptResponse");
+  const followupBox = document.getElementById("aiFollowupResponse");
+  const resultsSection = document.getElementById("results");
+  const feedbackSection = document.getElementById("feedback");
+  const subheadingHTML = localStorage.getItem("zoundzcope_last_subheading");
+
+  const lastAnalysis = localStorage.getItem("zoundzcope_last_analysis");
+  const lastFeedback = localStorage.getItem("zoundzcope_last_feedback");
+  const lastFollowup = localStorage.getItem("zoundzcope_last_followup");
+
+  if (lastAnalysis && lastFeedback) {
+    output.innerHTML = lastAnalysis;
+    feedbackBox.innerHTML = "";
+    if (subheadingHTML) feedbackBox.innerHTML += subheadingHTML;
+    feedbackBox.innerHTML += lastFeedback;
+    resultsSection.classList.remove("hidden");
+    feedbackSection.classList.remove("hidden");
+  }
+
+  if (lastFollowup) {
+    followupBox.innerHTML = lastFollowup;
+    followupBox.classList.remove("hidden");
+  }
+}
+
+// 🔁 Works on normal load + browser back/forward navigation
+window.addEventListener("DOMContentLoaded", restoreZoundzcopeState);
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) {
+    // This means the page was loaded from the back/forward cache
+    restoreZoundzcopeState();
+  }
+});
+
+
   // ==========================================================
   // 🔸 Hide Profile Options on Outside Click
   // ==========================================================
@@ -596,5 +654,66 @@ document.addEventListener("DOMContentLoaded", () => {
       profileOptions.classList.add("hidden");
     }
   });
-});
 
+
+});
+// ==========================================================
+// 🧠 Recent Feedback Panel (from localStorage, max 3 shown)
+// ==========================================================
+function renderRecentFeedbackPanel() {
+  console.log("✅ renderRecentFeedbackPanel() called");
+
+  const container = document.getElementById("recent-feedback-container");
+  const panel = document.getElementById("recentFeedbackPanel");
+
+  if (!container || !panel) return;
+
+  let history = [];
+  try {
+    history = JSON.parse(localStorage.getItem("zoundzcope_history")) || [];
+    console.log("🧠 Loaded history:", history);
+  } catch (err) {
+    console.error("🧠 Failed to parse feedback history:", err);
+  }
+
+  container.innerHTML = "";
+
+  if (!history || history.length === 0) {
+    console.warn("⚠️ No feedback history found.");
+    panel.classList.add("hidden");
+    return;
+  }
+
+  const recent = history.slice(0, 3);
+  recent.forEach(entry => {
+    const box = document.createElement("div");
+    box.className = "bg-white/5 p-4 rounded-lg shadow-md space-y-2 border border-white/10";
+
+    const headingHTML = (entry.subheading && !entry.feedback?.includes(entry.subheading))
+  ? entry.subheading
+  : '';
+
+    const feedbackHTML = entry.feedback || "<div class='text-white/60'>No feedback content.</div>";
+
+    const followupHTML = entry.followup
+      ? `<div class="mt-2 text-sm text-white/70 border-t border-white/10 pt-2">${entry.followup}</div>`
+      : "";
+
+    box.innerHTML = `
+      <div class="text-white/90 text-sm">
+        ${headingHTML}
+        ${feedbackHTML}
+      </div>
+      ${followupHTML}
+    `;
+
+    container.appendChild(box);
+  });
+
+  panel.classList.remove("hidden");
+}
+
+window.addEventListener("DOMContentLoaded", renderRecentFeedbackPanel);
+window.addEventListener("pageshow", (e) => {
+  if (e.persisted) renderRecentFeedbackPanel();
+});
