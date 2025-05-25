@@ -24,6 +24,69 @@ function typeText(targetElement, text, speed = 10) {
     typeChar();
   });
 }
+// ==========================================================
+// 🔁 Session Dropdown Logic (Populate + Toggle New Input)
+// ==========================================================
+document.addEventListener("DOMContentLoaded", () => {
+  const button = document.getElementById("session-dropdown-button");
+  const options = document.getElementById("session-dropdown-options");
+  const label = document.getElementById("session-dropdown-label");
+  const input = document.getElementById("new-session-input");
+  const hiddenInput = document.getElementById("session_id");
+
+  async function populateSessionDropdown() {
+    const res = await fetch("/sessions");
+    const sessions = await res.json();
+
+    options.innerHTML = "";
+
+    // ✅ First: New Session
+    const createNew = document.createElement("li");
+    createNew.textContent = "New Session";
+    createNew.className =
+      "dropdown-option px-4 py-2 cursor-pointer hover:bg-purple-500/10 transition text-purple-300";
+    createNew.addEventListener("click", () => {
+      label.textContent = "New Session";
+      hiddenInput.value = "";
+      input.classList.remove("hidden");
+      options.classList.add("hidden");
+    });
+    options.appendChild(createNew);
+
+    // ✅ Then: Existing sessions
+    sessions.forEach((session) => {
+      const li = document.createElement("li");
+      li.className =
+        "dropdown-option px-4 py-2 cursor-pointer hover:bg-white/10 transition";
+      li.textContent = session.session_name;
+      li.addEventListener("click", () => {
+        label.textContent = session.session_name;
+        hiddenInput.value = session.id;
+        input.classList.add("hidden");
+        options.classList.add("hidden");
+      });
+      options.appendChild(li);
+    });
+  }
+
+  // 🧠 Populate list on load
+  populateSessionDropdown();
+
+  // 🎯 Toggle dropdown on click
+  button.addEventListener("click", (e) => {
+    e.stopPropagation();
+    options.classList.toggle("hidden");
+  });
+
+  // 🚫 Close if clicked outside
+  document.addEventListener("click", (e) => {
+    if (!options.contains(e.target) && !button.contains(e.target)) {
+      options.classList.add("hidden");
+    }
+  });
+});
+
+
 
 // ==========================================================
 // 🔸 Dropdown Logic for Track Type Selector
@@ -213,36 +276,54 @@ const form = document.getElementById("uploadForm");
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  const analyzeButton = form.querySelector('button[type="submit"]');
   const formData = new FormData(form);
-  const sessionName = document.getElementById("session_name").value.trim();
 
-  if (!sessionName) {
+  const sessionIdInput = document.getElementById("session_id");
+  const newSessionInput = document.getElementById("new-session-input");
+  const isNewSession = !newSessionInput.classList.contains("hidden");
+  const newSessionName = newSessionInput.value.trim();
+
+  let sessionId = sessionIdInput.value;
+
+  // ✅ Validate input before triggering animation
+  if (isNewSession && !newSessionName) {
     alert("Please enter a session name.");
     return;
   }
-  const analyzeButton = form.querySelector('button[type="submit"]');
+
+  // ✅ Start gentle sweep only now
   analyzeButton.classList.add("analyze-loading");
   analyzeButton.disabled = true;
 
-  // ✅ Create session in backend
-  const sessionResult = await createSessionInBackend(sessionName);
-  if (!sessionResult || !sessionResult.id) {
-    console.warn("⚠️ sessionResult:", sessionResult);
-    alert("Session creation failed.");
+  // ✅ Create new session if needed
+  if (isNewSession) {
+    const sessionResult = await createSessionInBackend(newSessionName);
+    if (!sessionResult || !sessionResult.id) {
+      alert("Session creation failed.");
+      analyzeButton.classList.remove("analyze-loading");
+      analyzeButton.disabled = false;
+      return;
+    }
+    sessionId = sessionResult.id;
+  }
+
+  // ✅ Use existing session if selected
+  if (!sessionId) {
+    alert("Please choose or create a session.");
+    analyzeButton.classList.remove("analyze-loading");
+    analyzeButton.disabled = false;
     return;
   }
 
-  const sessionId = sessionResult.id;
   formData.set("session_id", sessionId);
 
+  // ✅ Get other fields
   const feedbackProfile = document.getElementById("profile-input").value;
-  formData.set("feedback_profile", feedbackProfile);
-
-
-  // ✅ Use custom track name if provided
   const customTrackName = document.getElementById("track_name").value.trim();
-  formData.set("track_name", customTrackName || "");
 
+  formData.set("feedback_profile", feedbackProfile);
+  formData.set("track_name", customTrackName || "");
 
   try {
     const response = await fetch("/upload/", {
@@ -254,11 +335,10 @@ form.addEventListener("submit", async (e) => {
     const result = JSON.parse(raw);
 
     if (response.ok) {
-      await loadSessionTracks(sessionId); // ✅ Refresh dropdown
+      await loadSessionTracks(sessionId);
 
       const resultsEl = document.getElementById("results");
       const feedbackEl = document.getElementById("feedback");
-      const feedbackHeading = document.getElementById("feedback-heading");
       const feedbackBox = document.getElementById("gptResponse");
 
       resultsEl.classList.remove("hidden");
@@ -267,9 +347,6 @@ form.addEventListener("submit", async (e) => {
       feedbackEl.classList.remove("fade-in-up");
       void feedbackEl.offsetWidth;
       feedbackEl.classList.add("fade-in-up");
-
-      analyzeButton.classList.remove("analyze-loading");
-      analyzeButton.disabled = false;
 
       const output = document.getElementById("analysisOutput");
       const a = result.analysis;
@@ -314,6 +391,10 @@ form.addEventListener("submit", async (e) => {
       ul.className = "list-disc list-inside mt-2 text-white/90 space-y-1";
       feedbackBox.appendChild(ul);
 
+      // ✅ Stop sweep animation before typing starts
+      analyzeButton.classList.remove("analyze-loading");
+      analyzeButton.disabled = false;
+
       const lines = result.feedback
         .split("\n")
         .map(line => line.replace(/^[-•\s]+/, "").trim())
@@ -328,23 +409,19 @@ form.addEventListener("submit", async (e) => {
       }
 
       feedbackBox.classList.remove("pulsing-feedback");
-
     } else {
       console.error("Upload failed response:", result);
       alert("Upload failed: " + JSON.stringify(result));
-      analyzeButton.classList.remove("analyze-loading");
-      analyzeButton.disabled = false;
-
     }
-
   } catch (err) {
     console.error("Fetch error:", err);
     alert("An error occurred during upload.");
+  } finally {
     analyzeButton.classList.remove("analyze-loading");
     analyzeButton.disabled = false;
-
   }
 });
+
 
 // ==========================================================
 // 🔸 Session Creation via Backend

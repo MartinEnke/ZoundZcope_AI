@@ -56,11 +56,26 @@
               </div>
             </div>
 
-            <div>
-              <input type="text" name="session_name" id="session_name" class="milky-input" placeholder="Session Name" />
-            </div>
+            <div id="session-dropdown-wrapper" class="relative">
+  <input type="hidden" name="session_id" id="session_id">
 
-            <input type="hidden" name="session_id" id="session_id">
+  <button type="button" id="session-dropdown-button" class="milky-input flex justify-between items-center w-full px-4 py-2 text-left">
+    <span id="session-dropdown-label" class="text-white/80">Select Session</span>
+    <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+    </svg>
+  </button>
+
+  <ul id="session-dropdown-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden"
+      style="background-color: rgba(255,255,255,0.05); backdrop-filter: blur(6px);">
+    <!-- Dynamically populated -->
+  </ul>
+
+  <!-- Hidden input that shows only when "New Session" is selected -->
+  <input type="text" id="new-session-input" name="session_name" placeholder="New session name"
+         class="milky-input mt-2 hidden" />
+</div>
+
 
             <!-- Type Dropdown -->
             <div class="relative">
