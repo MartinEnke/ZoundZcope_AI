@@ -389,10 +389,19 @@ form.addEventListener("submit", async (e) => {
   formData.set("session_id", sessionId);
 
   const feedbackProfile = document.getElementById("profile-input").value;
-  const customTrackName = document.getElementById("track_name").value.trim();
+const customTrackName = document.getElementById("track_name").value.trim();
+const fileInput = document.getElementById("file-upload");
 
-  formData.set("feedback_profile", feedbackProfile);
-  formData.set("track_name", customTrackName || "");
+let finalTrackName = customTrackName;
+
+if (!finalTrackName && fileInput && fileInput.files.length > 0) {
+  const fullName = fileInput.files[0].name;
+  finalTrackName = fullName.replace(/\.[^/.]+$/, "");  // ✅ strip extension
+}
+
+formData.set("feedback_profile", feedbackProfile);
+formData.set("track_name", finalTrackName || "Untitled Track");
+
 
   try {
     const response = await fetch("/upload/", {
@@ -484,27 +493,32 @@ localStorage.setItem("zoundzcope_last_feedback", ul.outerHTML); // only list
 localStorage.setItem("zoundzcope_last_subheading", subheading?.outerHTML || "");
 localStorage.setItem("zoundzcope_last_followup", ""); // default for fresh entry
 
+
       // 🔁 Save to zoundzcope_history (max 3)
-      try {
-        const current = {
-          analysis: output.innerHTML,
-          feedback: feedbackBox.innerHTML,
-          subheading: subheading?.outerHTML || "",
-          followup: ""
-        };
+try {
+  const current = {
+  analysis: output.innerHTML,
+  feedback: feedbackBox.innerHTML,
+  subheading: subheading?.outerHTML || "",
+  followup: "",
+  track_name: finalTrackName,
+  timestamp: Date.now()
+};
 
-        const rawHistory = localStorage.getItem("zoundzcope_history") || "[]";
-        const history = JSON.parse(rawHistory);
 
-        const duplicate = history.find(h => JSON.stringify(h) === JSON.stringify(current));
-        if (!duplicate) {
-          history.unshift(current);
-          if (history.length > 3) history.length = 3;
-          localStorage.setItem("zoundzcope_history", JSON.stringify(history));
-        }
-      } catch (err) {
-        console.error("❌ Failed to store history:", err);
-      }
+  const rawHistory = localStorage.getItem("zoundzcope_history") || "[]";
+  const history = JSON.parse(rawHistory);
+
+  const duplicate = history.find(h => JSON.stringify(h) === JSON.stringify(current));
+  if (!duplicate) {
+    history.unshift(current);
+    if (history.length > 3) history.length = 3;
+    localStorage.setItem("zoundzcope_history", JSON.stringify(history));
+  }
+} catch (err) {
+  console.error("❌ Failed to store history:", err);
+}
+
 
     } else {
       console.error("Upload failed response:", result);
@@ -684,9 +698,6 @@ window.addEventListener("pageshow", (event) => {
 
 
 });
-// ==========================================================
-// 🧠 Recent Feedback Panel (from localStorage, max 3 shown)
-// ==========================================================
 function renderRecentFeedbackPanel() {
   console.log("✅ renderRecentFeedbackPanel() called");
 
@@ -711,37 +722,42 @@ function renderRecentFeedbackPanel() {
     return;
   }
 
-  const recent = history.slice(0, 3);
+  const recent = history.slice(0, 5);
   recent.forEach((entry, i) => {
     const box = document.createElement("div");
     box.className = "bg-white/5 p-4 rounded-lg shadow-md space-y-2 border border-white/10";
 
-    // Subheading (like "Mixdown Suggestions") if not already inside feedback
-    const subheadingText = entry.subheading?.replace(/<[^>]+>/g, "").trim();
-    const alreadyIncluded = entry.feedback?.includes(subheadingText);
-    const headingHTML = (!alreadyIncluded && entry.subheading?.includes("<p")) ? entry.subheading : "";
+    const subheadingText = entry.subheading?.replace(/<[^>]+>/g, "").trim() || "Previous Feedback";
+    const trackName = entry.track_name || "Untitled Track";
+    const dateStr = entry.timestamp ? new Date(entry.timestamp).toLocaleDateString() : "";
 
-    const feedbackHTML = entry.feedback || "<div class='text-white/60'>No feedback content.</div>";
+    // Remove subheading from feedback if duplicated
+    let feedbackHTML = entry.feedback || "<div class='text-white/60'>No feedback content.</div>";
+    const headingRegex = new RegExp(`<p[^>]*>${subheadingText}</p>`, "i");
+    feedbackHTML = feedbackHTML.replace(headingRegex, "").trim();
 
     const followupId = `followup-${i}`;
-    let followupToggleHTML = "";
-    let followupHTML = "";
+    const hasFollowup = entry.followup && Array.isArray(entry.followup) && entry.followup.length > 0;
 
-    if (Array.isArray(entry.followup) && entry.followup.length > 0) {
-      followupToggleHTML = `<button class="text-xs text-purple-300 underline" onclick="toggleFollowup('${followupId}')">Show Follow-ups (${entry.followup.length})</button>`;
-      followupHTML = `
-        <div id="${followupId}" class="mt-2 text-sm text-white/70 border-t border-white/10 pt-2 hidden space-y-2">
-          ${entry.followup.map(text => `<div class="bg-white/5 p-2 rounded">${text}</div>`).join("")}
+    const followupToggleHTML = hasFollowup
+      ? `<button class="text-xs text-purple-300 underline" onclick="toggleFollowup('${followupId}')">Show Follow-up</button>`
+      : "";
+
+    const followupHTML = hasFollowup
+      ? `<div id="${followupId}" class="mt-2 text-sm text-white/70 border-t border-white/10 pt-2 hidden">
+          ${entry.followup.map(f => `<p>${f}</p>`).join("")}
+        </div>`
+      : "";
+
+    const headingHTML = `
+      <div class="flex justify-between items-center mb-1">
+        <div class="flex items-baseline gap-2">
+          <p class="text-pink-400 text-lg font-bold">${subheadingText}</p>
+          <span class="text-white font-semibold text-sm">${trackName}</span>
         </div>
-      `;
-    } else if (typeof entry.followup === "string" && entry.followup.trim() !== "") {
-      followupToggleHTML = `<button class="text-xs text-purple-300 underline" onclick="toggleFollowup('${followupId}')">Show Follow-up</button>`;
-      followupHTML = `
-        <div id="${followupId}" class="mt-2 text-sm text-white/70 border-t border-white/10 pt-2 hidden">
-          ${entry.followup}
-        </div>
-      `;
-    }
+        <span class="text-white/50 text-xs">${dateStr}</span>
+      </div>
+    `;
 
     box.innerHTML = `
       <div class="text-white/90 text-sm space-y-2">
