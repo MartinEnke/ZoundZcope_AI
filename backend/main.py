@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+
 #/================/#
 # import for frontend html
 from fastapi.staticfiles import StaticFiles

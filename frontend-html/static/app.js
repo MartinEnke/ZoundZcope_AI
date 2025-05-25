@@ -24,6 +24,60 @@ function typeText(targetElement, text, speed = 10) {
     typeChar();
   });
 }
+
+document.getElementById("askAIButton").addEventListener("click", async () => {
+  const question = document.getElementById("customQuestion").value.trim();
+  const outputBox = document.getElementById("aiFollowupResponse");
+
+  if (!question) {
+    alert("Please enter a question.");
+    return;
+  }
+
+  // Prepare prompt with existing feedback + question
+  const feedback = document.getElementById("gptResponse")?.innerText || "";
+  const metrics = document.getElementById("analysisOutput")?.innerText || "";
+
+  const fullPrompt = `
+Original Analysis:
+${metrics}
+
+Original Feedback:
+${feedback}
+
+User's Question:
+${question}
+
+Please respond concisely and helpfully.
+`;
+
+  // UI loading state
+  outputBox.classList.remove("hidden");
+  outputBox.innerHTML = "<p class='text-white/60 italic'>Thinking...</p>";
+
+  try {
+    const res = await fetch("/chat/ask-followup", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    analysis_text: metrics,
+    feedback_text: feedback,
+    user_question: question,
+    session_id: document.getElementById("session_id").value,
+    track_id: document.getElementById("track-select")?.value || "",
+    feedback_profile: document.getElementById("profile-input")?.value || "",
+  }),
+});
+
+    const data = await res.json();
+    outputBox.innerHTML = `<p>${data.answer}</p>`;
+  } catch (err) {
+    console.error("Follow-up failed:", err);
+    outputBox.innerHTML = "<p class='text-red-400'>Something went wrong. Try again.</p>";
+  }
+});
+
+
 // ==========================================================
 // 🔁 Session Dropdown Logic (Populate + Toggle New Input)
 // ==========================================================

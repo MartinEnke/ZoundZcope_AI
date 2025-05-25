@@ -59,3 +59,29 @@ def generate_feedback_response(prompt: str) -> str:
         messages=[{"role": "user", "content": prompt}]
     )
     return response.choices[0].message.content.strip()
+
+
+def generate_followup_response(analysis_text: str, feedback_text: str, user_question: str) -> str:
+    combined_prompt = f"""
+You are an expert audio engineer assistant.
+
+Here is the previous analysis of the track:
+{analysis_text}
+
+Here is the feedback that was given:
+{feedback_text}
+
+Now the user has a follow-up question:
+"{user_question}"
+
+Please answer helpfully and concisely, using the context above.
+Avoid repeating the full analysis or feedback again.
+"""
+    print("💬 Sending follow-up prompt:\n", combined_prompt)
+
+    response = client.chat.completions.create(
+        model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+        messages=[{"role": "user", "content": combined_prompt}]
+    )
+    return response.choices[0].message.content.strip()
+

@@ -4,6 +4,11 @@ from app.database import SessionLocal
 from app.models import Track, AnalysisResult, ChatMessage
 from app.gpt_utils import generate_feedback_prompt, generate_feedback_response
 import json
+from app.gpt_utils import generate_followup_response
+from fastapi import Request
+from pydantic import BaseModel
+from fastapi import Request, HTTPException
+
 
 router = APIRouter()
 
@@ -80,3 +85,56 @@ def get_messages_for_track(track_id: str, db: Session = Depends(get_db)):
         }
         for msg in messages
     ]
+
+class FollowUpRequest(BaseModel):
+    analysis_text: str
+    feedback_text: str
+    user_question: str
+    session_id: str
+    track_id: str
+    feedback_profile: str
+
+
+@router.post("/ask-followup")
+def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
+    combined_prompt = f"""
+This is the original track analysis:
+{req.analysis_text}
+
+This was the first feedback:
+{req.feedback_text}
+
+User's follow-up question:
+{req.user_question}
+
+Please respond concisely and helpfully.
+"""
+
+    try:
+        ai_response = generate_feedback_response(combined_prompt)
+    except Exception as e:
+        print("❌ GPT call failed:", e)
+        raise HTTPException(status_code=500, detail="AI follow-up failed")
+
+    # Save user's question
+    user_msg = ChatMessage(
+        session_id=req.session_id,
+        track_id=req.track_id,
+        sender="user",
+        message=req.user_question,
+        feedback_profile=req.feedback_profile
+    )
+    db.add(user_msg)
+
+    # Save assistant's reply
+    assistant_msg = ChatMessage(
+        session_id=req.session_id,
+        track_id=req.track_id,
+        sender="assistant",
+        message=ai_response,
+        feedback_profile=req.feedback_profile
+    )
+    db.add(assistant_msg)
+    db.commit()
+
+    return {"answer": ai_response}
