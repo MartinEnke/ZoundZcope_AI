@@ -376,6 +376,8 @@ async function loadManageSection() {
       const sessionControls = document.createElement("div");
 sessionControls.className = "flex items-center gap-2";
 
+
+
 // DESKTOP BUTTONS
 const renameBtn = document.createElement("button");
 renameBtn.textContent = "Edit";
@@ -407,13 +409,11 @@ dropdownWrapper.className = "relative md:hidden";
 const menuButton = document.createElement("button");
 menuButton.textContent = "⋮";
 menuButton.className = "text-white text-xl px-2 py-1 rounded hover:bg-white/10";
-menuButton.addEventListener("click", (e) => {
-  e.stopPropagation();
-  dropdownMenu.classList.toggle("hidden");
-});
+menuButton.setAttribute("type", "button");
 
 const dropdownMenu = document.createElement("div");
-dropdownMenu.className = "absolute right-0 mt-2 w-32 rounded-md shadow-lg bg-black/90 border border-white/20 hidden z-20";
+dropdownMenu.className = "session-dropdown absolute right-0 mt-2 w-36 rounded-lg shadow-lg backdrop-blur-md bg-white/10 border border-white/10 text-sm text-white z-20 hidden p-2 space-y-1";
+
 
 const mobileEdit = document.createElement("div");
 mobileEdit.textContent = "Edit";
@@ -434,6 +434,13 @@ mobileDelete.addEventListener("click", () => {
 
 dropdownMenu.append(mobileEdit, mobileDelete);
 dropdownWrapper.append(menuButton, dropdownMenu);
+
+// Toggle visibility on click
+menuButton.addEventListener("click", (e) => {
+  e.stopPropagation(); // prevent it from being closed immediately
+  dropdownMenu.classList.toggle("hidden");
+});
+
 
 // Assemble controls
 sessionControls.append(renameBtn, deleteBtn, dropdownWrapper);
@@ -470,8 +477,8 @@ sessionControls.append(renameBtn, deleteBtn, dropdownWrapper);
 
   const trackDeleteBtn = document.createElement("button");
   trackDeleteBtn.textContent = "−";
-  trackDeleteBtn.className = "hidden md:flex w-6 h-6 items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
-    "hover:border-red-500 hover:bg-red-500/10 hover:text-white transition-all duration-200";
+  trackDeleteBtn.className = "flex w-6 h-6 items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
+  "hover:border-red-500 hover:bg-red-500/10 hover:text-white transition-all duration-200";
   trackDeleteBtn.addEventListener("mouseenter", () => {
   trackName.classList.remove("text-green-400");
   trackName.classList.add("text-red-400", "red-hover");
@@ -527,7 +534,7 @@ trackDeleteBtn.addEventListener("mouseleave", () => {
 
   const trackControls = document.createElement("div");
   trackControls.className = "flex items-center gap-2";
-  trackControls.append(trackRenameBtn, trackDeleteBtn, trackDropdownWrapper);
+  trackControls.append(trackRenameBtn, trackDeleteBtn);
 
   trackItem.append(trackName, trackControls);
   trackList.appendChild(trackItem);
@@ -548,6 +555,16 @@ trackDeleteBtn.addEventListener("mouseleave", () => {
       sessionDiv.appendChild(trackList);
       container.appendChild(sessionDiv);
     }
+    // 🔒 Close any open session mobile ⋮ menus when clicking outside
+document.addEventListener("click", (e) => {
+  document.querySelectorAll(".session-dropdown").forEach((menu) => {
+    const isInsideDropdown = menu.contains(e.target);
+    const isInsideButton = menu.previousSibling?.contains(e.target);
+    if (!isInsideDropdown && !isInsideButton) {
+      menu.classList.add("hidden");
+    }
+  });
+});
   } catch (err) {
     console.error("Failed to load manage section:", err);
   }

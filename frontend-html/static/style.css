@@ -340,3 +340,14 @@ select.custom-dropdown:focus {
   background-color: rgba(255, 255, 255, 0.1) !important;
   color: white !important;
 }
+
+.session-dropdown {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px); /* for Safari */
+  background-color: rgba(255, 255, 255, 0.02);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  color: white;
+}
