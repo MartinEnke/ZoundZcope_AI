@@ -1,3 +1,4 @@
+let justClosedDropdown = false;
 // ==========================================================
 // 🔸 Load Tracks When a Session Is Selected
 // Fetch session list on page load,
@@ -332,14 +333,32 @@ async function fetchTracks(sessionId) {
   fetchSessions();
 });
 
+
 // ==========================================================
 // 🔧 Manage Sessions & Tracks Logic (with live UI updates)
 // ==========================================================
+
+// ✅ Enable session open/closed memory using localStorage
+
+function getOpenSessions() {
+  const raw = localStorage.getItem("openSessions");
+  try {
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveOpenSessions(openSessionIds) {
+  localStorage.setItem("openSessions", JSON.stringify(openSessionIds));
+}
 
 async function loadManageSection() {
   try {
     const res = await fetch("/sessions");
     const sessions = await res.json();
+
+    const openSessionIds = getOpenSessions();
 
     const container = document.getElementById("manage-section");
     container.innerHTML = "";
@@ -347,18 +366,13 @@ async function loadManageSection() {
     for (const session of sessions) {
       const sessionDiv = document.createElement("div");
       sessionDiv.className = "border-b border-white/20 pb-4";
-      sessionDiv.setAttribute("data-session-wrapper", session.id); // ✅ for live delete
+      sessionDiv.setAttribute("data-session-wrapper", session.id);
 
       const sessionHeader = document.createElement("div");
       sessionHeader.className = "flex items-center justify-between mb-2";
 
-      // Collapsible title with arrow
       const sessionTitleWrap = document.createElement("button");
       sessionTitleWrap.className = "flex items-center justify-between w-full text-left";
-      sessionTitleWrap.addEventListener("click", () => {
-        trackList.classList.toggle("hidden");
-        arrow.classList.toggle("rotate-90");
-      });
 
       const sessionTitleText = document.createElement("span");
       sessionTitleText.className = "text-lg font-semibold";
@@ -369,202 +383,166 @@ async function loadManageSection() {
       arrow.setAttribute("fill", "none");
       arrow.setAttribute("stroke", "currentColor");
       arrow.setAttribute("viewBox", "0 0 24 24");
-      arrow.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />`;
+      arrow.innerHTML = `<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M9 5l7 7-7 7\" />`;
 
       sessionTitleWrap.append(sessionTitleText, arrow);
 
       const sessionControls = document.createElement("div");
-sessionControls.className = "flex items-center gap-2";
+      sessionControls.className = "flex items-center gap-2";
 
+      const renameBtn = document.createElement("button");
+      renameBtn.textContent = "Edit";
+      renameBtn.className = "hidden md:block px-3 py-1 text-sm rounded-full text-white bg-white/10 border border-white/20 hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
+      renameBtn.addEventListener("mouseenter", () => sessionTitleText.classList.add("text-green-400"));
+      renameBtn.addEventListener("mouseleave", () => sessionTitleText.classList.remove("text-green-400"));
+      renameBtn.addEventListener("click", () => {
+        const input = prompt("Rename session:", session.session_name);
+        if (input) renameSession(session.id, input);
+      });
 
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "−";
+      deleteBtn.className = "hidden md:flex w-8 h-8 items-center justify-center rounded-full text-white bg-white/10 border border-white/20 hover:border-red-500 hover:bg-rose-500/10 hover:text-white transition-all duration-200";
+      deleteBtn.addEventListener("mouseenter", () => sessionTitleText.classList.add("text-red-500"));
+      deleteBtn.addEventListener("mouseleave", () => sessionTitleText.classList.remove("text-red-500"));
+      deleteBtn.addEventListener("click", () => {
+        if (confirm("Delete session and all tracks?")) deleteSession(session.id);
+      });
 
-// DESKTOP BUTTONS
-const renameBtn = document.createElement("button");
-renameBtn.textContent = "Edit";
-renameBtn.className =
-  "hidden md:block px-3 py-1 text-sm rounded-full text-white bg-white/10 border border-white/20 " +
-  "hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
-renameBtn.addEventListener("mouseenter", () => sessionTitleText.classList.add("text-green-400"));
-renameBtn.addEventListener("mouseleave", () => sessionTitleText.classList.remove("text-green-400"));
-renameBtn.addEventListener("click", () => {
-  const input = prompt("Rename session:", session.session_name);
-  if (input) renameSession(session.id, input);
-});
+      const dropdownWrapper = document.createElement("div");
+      dropdownWrapper.className = "relative md:hidden";
 
-const deleteBtn = document.createElement("button");
-deleteBtn.textContent = "−";
-deleteBtn.className =
-  "hidden md:flex w-8 h-8 items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
-  "hover:border-red-500 hover:bg-rose-500/10 hover:text-white transition-all duration-200";
-deleteBtn.addEventListener("mouseenter", () => sessionTitleText.classList.add("text-red-500"));
-deleteBtn.addEventListener("mouseleave", () => sessionTitleText.classList.remove("text-red-500"));
-deleteBtn.addEventListener("click", () => {
-  if (confirm("Delete session and all tracks?")) deleteSession(session.id);
-});
+      const menuButton = document.createElement("button");
+      menuButton.textContent = "⋮";
+      menuButton.className = "text-white text-xl px-2 py-1 rounded hover:bg-white/10";
+      menuButton.setAttribute("type", "button");
 
-// MOBILE "⋮" MENU
-const dropdownWrapper = document.createElement("div");
-dropdownWrapper.className = "relative md:hidden";
+      const dropdownMenu = document.createElement("div");
+      dropdownMenu.className = "session-dropdown absolute right-0 mt-2 w-36 rounded-lg shadow-lg backdrop-blur-md bg-white/10 border border-white/10 text-sm text-white z-20 hidden p-2 space-y-1";
 
-const menuButton = document.createElement("button");
-menuButton.textContent = "⋮";
-menuButton.className = "text-white text-xl px-2 py-1 rounded hover:bg-white/10";
-menuButton.setAttribute("type", "button");
+      const mobileEdit = document.createElement("div");
+      mobileEdit.textContent = "Edit";
+      mobileEdit.className = "px-4 py-2 cursor-pointer hover:bg-green-400/20";
+      mobileEdit.addEventListener("click", () => {
+        dropdownMenu.classList.add("hidden");
+        const input = prompt("Rename session:", session.session_name);
+        if (input) renameSession(session.id, input);
+      });
 
-const dropdownMenu = document.createElement("div");
-dropdownMenu.className = "session-dropdown absolute right-0 mt-2 w-36 rounded-lg shadow-lg backdrop-blur-md bg-white/10 border border-white/10 text-sm text-white z-20 hidden p-2 space-y-1";
+      const mobileDelete = document.createElement("div");
+      mobileDelete.textContent = "Delete";
+      mobileDelete.className = "px-4 py-2 cursor-pointer hover:bg-red-500/20";
+      mobileDelete.addEventListener("click", () => {
+        dropdownMenu.classList.add("hidden");
+        if (confirm("Delete session and all tracks?")) deleteSession(session.id);
+      });
 
+      dropdownMenu.append(mobileEdit, mobileDelete);
+      dropdownWrapper.append(menuButton, dropdownMenu);
 
-const mobileEdit = document.createElement("div");
-mobileEdit.textContent = "Edit";
-mobileEdit.className = "px-4 py-2 cursor-pointer hover:bg-green-400/20";
-mobileEdit.addEventListener("click", () => {
-  dropdownMenu.classList.add("hidden");
-  const input = prompt("Rename session:", session.session_name);
-  if (input) renameSession(session.id, input);
-});
+      menuButton.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle("hidden");
+      });
 
-const mobileDelete = document.createElement("div");
-mobileDelete.textContent = "Delete";
-mobileDelete.className = "px-4 py-2 cursor-pointer hover:bg-red-500/20";
-mobileDelete.addEventListener("click", () => {
-  dropdownMenu.classList.add("hidden");
-  if (confirm("Delete session and all tracks?")) deleteSession(session.id);
-});
-
-dropdownMenu.append(mobileEdit, mobileDelete);
-dropdownWrapper.append(menuButton, dropdownMenu);
-
-// Toggle visibility on click
-menuButton.addEventListener("click", (e) => {
-  e.stopPropagation(); // prevent it from being closed immediately
-  dropdownMenu.classList.toggle("hidden");
-});
-
-
-// Assemble controls
-sessionControls.append(renameBtn, deleteBtn, dropdownWrapper);
-
+      sessionControls.append(renameBtn, deleteBtn, dropdownWrapper);
       sessionHeader.append(sessionTitleWrap, sessionControls);
       sessionDiv.appendChild(sessionHeader);
 
       const trackList = document.createElement("ul");
       trackList.className = "ml-4 space-y-1 text-sm";
 
+      const isOpen = openSessionIds.includes(String(session.id));
+
+if (isOpen) {
+  trackList.classList.remove("hidden");
+  arrow.classList.add("rotate-90");
+} else {
+  trackList.classList.add("hidden");
+  arrow.classList.remove("rotate-90");
+}
+
+
+      sessionTitleWrap.addEventListener("click", () => {
+  if (justClosedDropdown) return;
+
+  const currentlyOpen = !trackList.classList.contains("hidden");
+  const sessionIdStr = String(session.id);
+  let updatedList;
+
+  if (currentlyOpen) {
+    trackList.classList.add("hidden");
+    arrow.classList.remove("rotate-90");
+    updatedList = openSessionIds.filter(id => String(id) !== sessionIdStr);
+  } else {
+    trackList.classList.remove("hidden");
+    arrow.classList.add("rotate-90");
+    updatedList = [...new Set([...openSessionIds.map(String), sessionIdStr])];
+  }
+
+  saveOpenSessions(updatedList);
+});
+
       const tracksRes = await fetch(`/sessions/${session.id}/tracks`);
       const tracks = await tracksRes.json();
 
       for (const track of tracks) {
-  const trackItem = document.createElement("li");
-  trackItem.className = "track-hover-row flex items-center justify-between px-2 py-1 relative z-10 rounded-md";
-  trackItem.setAttribute("data-track-item", track.id); // ✅ for live update/delete
+        const trackItem = document.createElement("li");
+        trackItem.className = "track-hover-row flex items-center justify-between px-2 py-1 relative z-10 rounded-md";
+        trackItem.setAttribute("data-track-item", track.id);
 
-  const trackName = document.createElement("span");
-  trackName.className = "track-name"; // for hover styling
-  trackName.textContent = track.track_name;
+        const trackName = document.createElement("span");
+        trackName.className = "track-name";
+        trackName.textContent = track.track_name;
 
-  const trackRenameBtn = document.createElement("button");
-  trackRenameBtn.textContent = "Edit";
-  trackRenameBtn.className = "track-edit-btn hidden md:block px-2 py-0.5 text-xs rounded-full text-white bg-white/10 border border-white/20 " +
-    "hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
-  trackRenameBtn.addEventListener("mouseenter", () => trackName.classList.add("text-green-400"));
-  trackRenameBtn.addEventListener("mouseleave", () => trackName.classList.remove("text-green-400"));
-  trackRenameBtn.addEventListener("click", (e) => {
-    e.stopPropagation(); // prevent row click
-    const newName = prompt("Rename track:", track.track_name);
-    if (newName) renameTrack(track.id, newName, track.type);
-  });
+        const trackRenameBtn = document.createElement("button");
+        trackRenameBtn.textContent = "Edit";
+        trackRenameBtn.className = "track-edit-btn hidden md:block px-2 py-0.5 text-xs rounded-full text-white bg-white/10 border border-white/20 hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
+        trackRenameBtn.addEventListener("mouseenter", () => trackName.classList.add("text-green-400"));
+        trackRenameBtn.addEventListener("mouseleave", () => trackName.classList.remove("text-green-400"));
+        trackRenameBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const newName = prompt("Rename track:", track.track_name);
+          if (newName) renameTrack(track.id, newName, track.type);
+        });
 
-  const trackDeleteBtn = document.createElement("button");
-  trackDeleteBtn.textContent = "−";
-  trackDeleteBtn.className = "flex w-6 h-6 items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
-  "hover:border-red-500 hover:bg-red-500/10 hover:text-white transition-all duration-200";
-  trackDeleteBtn.addEventListener("mouseenter", () => {
-  trackName.classList.remove("text-green-400");
-  trackName.classList.add("text-red-400", "red-hover");
+        const trackDeleteBtn = document.createElement("button");
+        trackDeleteBtn.textContent = "−";
+        trackDeleteBtn.className = "flex w-6 h-6 items-center justify-center rounded-full text-white bg-white/10 border border-white/20 hover:border-red-500 hover:bg-red-500/10 hover:text-white transition-all duration-200";
+        trackDeleteBtn.addEventListener("mouseenter", () => {
+          trackName.classList.remove("text-green-400");
+          trackName.classList.add("text-red-400", "red-hover");
+          trackItem.classList.add("suppress-edit-hover");
+        });
+        trackDeleteBtn.addEventListener("mouseleave", () => {
+          trackName.classList.remove("text-red-400", "red-hover");
+          trackItem.classList.remove("suppress-edit-hover");
+        });
+        trackDeleteBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (confirm("Delete this track?")) deleteTrack(track.id);
+        });
 
-  trackItem.classList.add("suppress-edit-hover");
-});
+        const trackControls = document.createElement("div");
+        trackControls.className = "flex items-center gap-2";
+        trackControls.append(trackRenameBtn, trackDeleteBtn);
 
-trackDeleteBtn.addEventListener("mouseleave", () => {
-  trackName.classList.remove("text-red-400", "red-hover");
+        trackItem.append(trackName, trackControls);
+        trackList.appendChild(trackItem);
 
-  trackItem.classList.remove("suppress-edit-hover");
-});
+        trackItem.addEventListener("click", (e) => {
+          const isDelete = e.target.closest("button")?.textContent.trim() === "−";
+          const isMobileMenu = e.target.closest(".relative.md\\:hidden");
+          if (isDelete || isMobileMenu) return;
 
-  trackDeleteBtn.addEventListener("click", (e) => {
-    e.stopPropagation(); // prevent row click
-    if (confirm("Delete this track?")) deleteTrack(track.id);
-  });
-
-  // MOBILE "⋮" MENU
-  const trackDropdownWrapper = document.createElement("div");
-  trackDropdownWrapper.className = "relative md:hidden";
-
-  const trackMenuBtn = document.createElement("button");
-  trackMenuBtn.textContent = "⋮";
-  trackMenuBtn.className = "text-white text-xl px-2 py-1 rounded hover:bg-white/10";
-  trackMenuBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    trackDropdown.classList.toggle("hidden");
-  });
-
-  const trackDropdown = document.createElement("div");
-  trackDropdown.className = "absolute right-0 mt-2 w-28 rounded-md shadow-lg bg-black/90 border border-white/20 hidden z-20";
-
-  const trackEditOption = document.createElement("div");
-  trackEditOption.textContent = "Edit";
-  trackEditOption.className = "px-4 py-2 cursor-pointer hover:bg-green-400/20";
-  trackEditOption.addEventListener("click", () => {
-    trackDropdown.classList.add("hidden");
-    const newName = prompt("Rename track:", track.track_name);
-    if (newName) renameTrack(track.id, newName, track.type);
-  });
-
-  const trackDeleteOption = document.createElement("div");
-  trackDeleteOption.textContent = "Delete";
-  trackDeleteOption.className = "px-4 py-2 cursor-pointer hover:bg-red-500/20";
-  trackDeleteOption.addEventListener("click", () => {
-    trackDropdown.classList.add("hidden");
-    if (confirm("Delete this track?")) deleteTrack(track.id);
-  });
-
-  trackDropdown.append(trackEditOption, trackDeleteOption);
-  trackDropdownWrapper.append(trackMenuBtn, trackDropdown);
-
-  const trackControls = document.createElement("div");
-  trackControls.className = "flex items-center gap-2";
-  trackControls.append(trackRenameBtn, trackDeleteBtn);
-
-  trackItem.append(trackName, trackControls);
-  trackList.appendChild(trackItem);
-
-  // 🟢 Row click → acts as invisible "Edit" trigger (excluding buttons)
-  trackItem.addEventListener("click", (e) => {
-    const isDelete = e.target.closest("button")?.textContent.trim() === "−";
-    const isMobileMenu = e.target.closest(".relative.md\\:hidden");
-    if (isDelete || isMobileMenu) return;
-
-    const newName = prompt("Rename track:", track.track_name);
-    if (newName) renameTrack(track.id, newName, track.type);
-  });
-}
-
-
+          const newName = prompt("Rename track:", track.track_name);
+          if (newName) renameTrack(track.id, newName, track.type);
+        });
+      }
 
       sessionDiv.appendChild(trackList);
       container.appendChild(sessionDiv);
     }
-    // 🔒 Close any open session mobile ⋮ menus when clicking outside
-document.addEventListener("click", (e) => {
-  document.querySelectorAll(".session-dropdown").forEach((menu) => {
-    const isInsideDropdown = menu.contains(e.target);
-    const isInsideButton = menu.previousSibling?.contains(e.target);
-    if (!isInsideDropdown && !isInsideButton) {
-      menu.classList.add("hidden");
-    }
-  });
-});
   } catch (err) {
     console.error("Failed to load manage section:", err);
   }
