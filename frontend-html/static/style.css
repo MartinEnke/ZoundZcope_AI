@@ -297,3 +297,46 @@ select.custom-dropdown:focus {
     left: 125%;
   }
 }
+.track-hover-row {
+  position: relative;
+  transition: background 0.3s ease;
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+.track-hover-row::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.20);
+  backdrop-filter: blur(0px);
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.track-hover-row:hover::before {
+  opacity: 1;
+}
+
+.track-hover-row:hover .track-name {
+  color: #34d399; /* green-400 */
+}
+
+.track-hover-row:hover .track-edit-btn {
+  border-color: #34d399;
+  background-color: rgba(52, 211, 153, 0.1);
+  color: white;
+}
+.track-name.red-hover {
+  color: #f87171 !important; /* Tailwind red-400 */
+}
+.track-hover-row:hover .track-name:not(.red-hover) {
+  color: #34d399; /* green-400 */
+}
+.track-hover-row.suppress-edit-hover .track-edit-btn {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+}

@@ -448,81 +448,102 @@ sessionControls.append(renameBtn, deleteBtn, dropdownWrapper);
       const tracks = await tracksRes.json();
 
       for (const track of tracks) {
-        const trackItem = document.createElement("li");
-        trackItem.className = "flex items-center justify-between";
-        trackItem.setAttribute("data-track-item", track.id); // ✅ for live update/delete
+  const trackItem = document.createElement("li");
+  trackItem.className = "track-hover-row flex items-center justify-between px-2 py-1 relative z-10 rounded-md";
+  trackItem.setAttribute("data-track-item", track.id); // ✅ for live update/delete
 
-        const trackName = document.createElement("span");
-        trackName.textContent = track.track_name;
+  const trackName = document.createElement("span");
+  trackName.className = "track-name"; // for hover styling
+  trackName.textContent = track.track_name;
 
-        const trackControls = document.createElement("div");
-trackControls.className = "flex items-center gap-2";
+  const trackRenameBtn = document.createElement("button");
+  trackRenameBtn.textContent = "Edit";
+  trackRenameBtn.className = "track-edit-btn hidden md:block px-2 py-0.5 text-xs rounded-full text-white bg-white/10 border border-white/20 " +
+    "hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
+  trackRenameBtn.addEventListener("mouseenter", () => trackName.classList.add("text-green-400"));
+  trackRenameBtn.addEventListener("mouseleave", () => trackName.classList.remove("text-green-400"));
+  trackRenameBtn.addEventListener("click", (e) => {
+    e.stopPropagation(); // prevent row click
+    const newName = prompt("Rename track:", track.track_name);
+    if (newName) renameTrack(track.id, newName, track.type);
+  });
 
-// DESKTOP BUTTONS
-const trackRenameBtn = document.createElement("button");
-trackRenameBtn.textContent = "Edit";
-trackRenameBtn.className =
-  "hidden md:block px-2 py-0.5 text-xs rounded-full text-white bg-white/10 border border-white/20 " +
-  "hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
-trackRenameBtn.addEventListener("mouseenter", () => trackName.classList.add("text-green-400"));
-trackRenameBtn.addEventListener("mouseleave", () => trackName.classList.remove("text-green-400"));
-trackRenameBtn.addEventListener("click", () => {
-  const newName = prompt("Rename track:", track.track_name);
-  if (newName) renameTrack(track.id, newName, track.type);
+  const trackDeleteBtn = document.createElement("button");
+  trackDeleteBtn.textContent = "−";
+  trackDeleteBtn.className = "hidden md:flex w-6 h-6 items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
+    "hover:border-red-500 hover:bg-red-500/10 hover:text-white transition-all duration-200";
+  trackDeleteBtn.addEventListener("mouseenter", () => {
+  trackName.classList.remove("text-green-400");
+  trackName.classList.add("text-red-400", "red-hover");
+
+  trackItem.classList.add("suppress-edit-hover");
 });
 
-const trackDeleteBtn = document.createElement("button");
-trackDeleteBtn.textContent = "−";
-trackDeleteBtn.className =
-  "hidden md:flex w-6 h-6 items-center justify-center rounded-full text-white bg-white/10 border border-white/20 " +
-  "hover:border-red-500 hover:bg-red-500/10 hover:text-white transition-all duration-200";
-trackDeleteBtn.addEventListener("mouseenter", () => trackName.classList.add("text-red-500"));
-trackDeleteBtn.addEventListener("mouseleave", () => trackName.classList.remove("text-red-500"));
-trackDeleteBtn.addEventListener("click", () => {
-  if (confirm("Delete this track?")) deleteTrack(track.id);
+trackDeleteBtn.addEventListener("mouseleave", () => {
+  trackName.classList.remove("text-red-400", "red-hover");
+
+  trackItem.classList.remove("suppress-edit-hover");
 });
 
-// MOBILE "⋮" MENU
-const trackDropdownWrapper = document.createElement("div");
-trackDropdownWrapper.className = "relative md:hidden";
+  trackDeleteBtn.addEventListener("click", (e) => {
+    e.stopPropagation(); // prevent row click
+    if (confirm("Delete this track?")) deleteTrack(track.id);
+  });
 
-const trackMenuBtn = document.createElement("button");
-trackMenuBtn.textContent = "⋮";
-trackMenuBtn.className = "text-white text-xl px-2 py-1 rounded hover:bg-white/10";
-trackMenuBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  trackDropdown.classList.toggle("hidden");
-});
+  // MOBILE "⋮" MENU
+  const trackDropdownWrapper = document.createElement("div");
+  trackDropdownWrapper.className = "relative md:hidden";
 
-const trackDropdown = document.createElement("div");
-trackDropdown.className = "absolute right-0 mt-2 w-28 rounded-md shadow-lg bg-black/90 border border-white/20 hidden z-20";
+  const trackMenuBtn = document.createElement("button");
+  trackMenuBtn.textContent = "⋮";
+  trackMenuBtn.className = "text-white text-xl px-2 py-1 rounded hover:bg-white/10";
+  trackMenuBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    trackDropdown.classList.toggle("hidden");
+  });
 
-const trackEditOption = document.createElement("div");
-trackEditOption.textContent = "Edit";
-trackEditOption.className = "px-4 py-2 cursor-pointer hover:bg-green-400/20";
-trackEditOption.addEventListener("click", () => {
-  trackDropdown.classList.add("hidden");
-  const newName = prompt("Rename track:", track.track_name);
-  if (newName) renameTrack(track.id, newName);
-});
+  const trackDropdown = document.createElement("div");
+  trackDropdown.className = "absolute right-0 mt-2 w-28 rounded-md shadow-lg bg-black/90 border border-white/20 hidden z-20";
 
-const trackDeleteOption = document.createElement("div");
-trackDeleteOption.textContent = "Delete";
-trackDeleteOption.className = "px-4 py-2 cursor-pointer hover:bg-red-500/20";
-trackDeleteOption.addEventListener("click", () => {
-  trackDropdown.classList.add("hidden");
-  if (confirm("Delete this track?")) deleteTrack(track.id);
-});
+  const trackEditOption = document.createElement("div");
+  trackEditOption.textContent = "Edit";
+  trackEditOption.className = "px-4 py-2 cursor-pointer hover:bg-green-400/20";
+  trackEditOption.addEventListener("click", () => {
+    trackDropdown.classList.add("hidden");
+    const newName = prompt("Rename track:", track.track_name);
+    if (newName) renameTrack(track.id, newName, track.type);
+  });
 
-trackDropdown.append(trackEditOption, trackDeleteOption);
-trackDropdownWrapper.append(trackMenuBtn, trackDropdown);
+  const trackDeleteOption = document.createElement("div");
+  trackDeleteOption.textContent = "Delete";
+  trackDeleteOption.className = "px-4 py-2 cursor-pointer hover:bg-red-500/20";
+  trackDeleteOption.addEventListener("click", () => {
+    trackDropdown.classList.add("hidden");
+    if (confirm("Delete this track?")) deleteTrack(track.id);
+  });
 
-// Assemble controls
-trackControls.append(trackRenameBtn, trackDeleteBtn, trackDropdownWrapper);
+  trackDropdown.append(trackEditOption, trackDeleteOption);
+  trackDropdownWrapper.append(trackMenuBtn, trackDropdown);
 
-        trackItem.append(trackName, trackControls);
-        trackList.appendChild(trackItem);
-      }
+  const trackControls = document.createElement("div");
+  trackControls.className = "flex items-center gap-2";
+  trackControls.append(trackRenameBtn, trackDeleteBtn, trackDropdownWrapper);
+
+  trackItem.append(trackName, trackControls);
+  trackList.appendChild(trackItem);
+
+  // 🟢 Row click → acts as invisible "Edit" trigger (excluding buttons)
+  trackItem.addEventListener("click", (e) => {
+    const isDelete = e.target.closest("button")?.textContent.trim() === "−";
+    const isMobileMenu = e.target.closest(".relative.md\\:hidden");
+    if (isDelete || isMobileMenu) return;
+
+    const newName = prompt("Rename track:", track.track_name);
+    if (newName) renameTrack(track.id, newName, track.type);
+  });
+}
+
+
 
       sessionDiv.appendChild(trackList);
       container.appendChild(sessionDiv);
