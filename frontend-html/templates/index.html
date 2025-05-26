@@ -188,12 +188,15 @@
       class="w-full px-5 py-2.5 rounded-xl text-white placeholder-white/40 text-sm transition focus:outline-none"
       style="
         background-color: rgba(0, 0, 0, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.20);
+        border: 1px solid rgba(255, 255, 255, 0.10);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
+        box-shadow:
+          0 0 4px rgba(236, 72, 153, 0.25),
+          0 0 4px rgba(59, 130, 246, 0.25);
       "
-      onfocus="this.style.boxShadow = '0 0 0 2px rgba(255, 255, 255, 0.1), 0 0 8px rgba(255, 0, 150, 0.3), 0 0 8px rgba(0, 200, 255, 0.3)'"
-      onblur="this.style.boxShadow = 'none'"
+      onfocus="this.style.boxShadow='0 0 6px rgba(236,72,153,0.4), 0 0 6px rgba(59,130,246,0.4)'"
+      onblur="this.style.boxShadow='0 0 4px rgba(236,72,153,0.25), 0 0 4px rgba(59,130,246,0.25)'"
     />
     <button
       id="askAIButton"
@@ -204,6 +207,7 @@
   </div>
   <div id="aiFollowupResponse" class="mt-4 text-white/90 text-sm space-y-2 hidden"></div>
 </div>
+
 </section>
 </div> <!-- CLOSE row div -->
 <!-- 🔁 Recent Feedback Panel (below main content) -->
