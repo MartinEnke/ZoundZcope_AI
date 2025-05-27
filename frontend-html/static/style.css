@@ -363,3 +363,31 @@ select.custom-dropdown:focus {
   padding: 0.5rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
+.followup-btn {
+  padding: 0.25rem 0.75rem;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  border-radius: 9999px;
+  color: white;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+.followup-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255,255,255,0.25);
+}
+
+.followup-btn {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.followup-btn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}

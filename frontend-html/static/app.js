@@ -25,6 +25,7 @@ function typeText(targetElement, text, speed = 10) {
 }
 
 
+
 // ==========================================================
 // 🔁 Ask AI Follow-Up Logic
 // ==========================================================
@@ -97,6 +98,64 @@ document.getElementById("askAIButton").addEventListener("click", async () => {
     outputBox.innerHTML = "<p class='text-red-400'>Something went wrong. Try again.</p>";
   }
 });
+
+// ==========================================================
+// 💡 Smart Predefined Follow-Up Buttons (Based on Context)
+// ==========================================================
+const predefinedFollowupQuestions = {
+  mixdown: [
+    "What’s the most critical issue?",
+    "How do I fix the low-end?",
+    "Is the stereo image balanced?"
+  ],
+  master: [
+    "Would this pass streaming loudness?",
+    "Is dynamic range okay?",
+    "What’s limiting the clarity?"
+  ],
+  hiphop: [
+    "Are the vocals too upfront?",
+    "Is the kick overpowering the bass?"
+  ],
+  pro: [
+    "Are transients handled well?",
+    "Would multiband compression improve this?"
+  ],
+  simple: [
+    "What should I improve first?",
+    "Is this ready to share?"
+  ]
+};
+
+function loadQuickFollowupButtons(type, genre, profile) {
+  const container = document.getElementById("quick-followup");
+  if (!container) return;
+
+  container.innerHTML = `
+    <p class="text-white/70 text-sm mb-1">Quick Follow-Up Questions:</p>
+    <div class="flex flex-wrap gap-2"></div>
+  `;
+
+  const btnWrapper = container.querySelector("div");
+  const uniqueQuestions = new Set([
+    ...(predefinedFollowupQuestions[type] || []),
+    ...(predefinedFollowupQuestions[genre] || []),
+    ...(predefinedFollowupQuestions[profile] || [])
+  ]);
+
+  Array.from(uniqueQuestions).slice(0, 5).forEach((q) => {
+    const btn = document.createElement("button");
+    btn.textContent = q;
+    btn.className = "px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white transition text-xs";
+    btn.addEventListener("click", () => {
+      document.getElementById("customQuestion").value = q;
+      document.getElementById("askAIButton").click();
+    });
+    btnWrapper.appendChild(btn);
+  });
+    // ✅ Show it now
+  container.classList.remove("hidden");
+}
 
 
 // ==========================================================
@@ -488,6 +547,13 @@ formData.set("track_name", finalTrackName || "Untitled Track");
 // 🔥 Unhide follow-up input after typing is complete
 document.getElementById("custom-ai-section")?.classList.remove("hidden");
 
+// 👇 Add after typing out AI feedback (after showing the follow-up section)
+const type = document.getElementById("type-input")?.value;
+const genre = document.getElementById("genre-input")?.value;
+const profile = document.getElementById("profile-input")?.value?.toLowerCase();
+
+loadQuickFollowupButtons(type, genre, profile);
+
 
 
 feedbackBox.classList.remove("pulsing-feedback");
@@ -813,3 +879,4 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
