@@ -19,18 +19,31 @@
        style="background-image: url('/static/logo.png'); background-size: 1800px; background-position: center -450px;"></div>
 
   <header class="fixed inset-x-0 top-0 z-50 bg-black bg-opacity-75 backdrop-filter backdrop-blur-sm border-b-2 border-white border-opacity-80 shadow-md flex items-center justify-between p-4">
-    <a href="/" class="flex items-center hover:opacity-80 transition">
-      <img src="/static/Logo.png" alt="Logo" class="h-10 w-10 mr-3">
-      <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
-    </a>
+  <!-- Left: Logo -->
+  <a href="/" class="flex items-center hover:opacity-80 transition">
+    <img src="/static/Logo.png" alt="Logo" class="h-10 w-10 mr-3">
+    <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
+  </a>
 
-    <!-- Centered Feedback History Link -->
-    <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-      <a href="/feedback_history.html" class="link-sweep-pinkblue text-lg font-medium">
-  <span>Feedback History</span>
-</a>
-    </div>
-  </header>
+  <!-- Desktop: Feedback History Link -->
+  <nav class="hidden md:flex items-center gap-6">
+    <a href="/feedback_history.html" class="link-sweep-pinkblue text-lg font-medium">
+      <span>Feedback History</span>
+    </a>
+  </nav>
+
+  <!-- Mobile: ⋮ Menu -->
+  <!-- MOBILE MENU (Hidden on md and up) -->
+<div class="relative md:hidden">
+  <button id="mobile-menu-button" class="text-white text-2xl px-2 py-1 rounded hover:bg-white/10">
+    ⋮
+  </button>
+  <div id="mobile-menu-dropdown"
+       class="milky-dropdown absolute right-0 mt-2 w-48 text-sm text-white z-50 hidden space-y-1">
+    <a href="/feedback_history.html" class="block px-4 py-2 hover:bg-white/10 rounded">Feedback History</a>
+  </div>
+</div>
+</header>
 
   <main class="relative z-10 pt-28 max-w-6xl mx-auto px-3">
     <div class="flex flex-col lg:flex-row lg:items-start lg:space-x-20">
