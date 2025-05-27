@@ -3,6 +3,9 @@ import os
 import json
 from dotenv import load_dotenv
 load_dotenv()
+from app.utils import normalize_type, normalize_profile, normalize_genre
+import html
+
 
 print("DEBUG: ENV KEY =", os.getenv("OPENAI_API_KEY"))
 client = OpenAI(
@@ -11,7 +14,13 @@ client = OpenAI(
 
 #openai.api_key = os.getenv("OPENAI_API_KEY")
 
+
 def generate_feedback_prompt(genre: str, type: str, analysis_data: dict, feedback_profile: str) -> str:
+    # Normalize and sanitize inputs
+    type = normalize_type(type)
+    genre = normalize_genre(genre)
+    feedback_profile = normalize_profile(feedback_profile)
+
     role_context = {
         "mixdown": f"You are a professional **mixing engineer** with deep knowledge of {genre} music.",
         "master": f"You are a professional **mastering engineer** with deep knowledge of {genre} music.",
@@ -23,8 +32,8 @@ def generate_feedback_prompt(genre: str, type: str, analysis_data: dict, feedbac
         "pro": "Use professional-level language. Assume expert knowledge. Provide detailed, technical tips using terms like multiband compression, stereo field manipulation, and transient shaping."
     }
 
-    context = role_context.get(type.lower(), f"You are an audio engineer for {genre} music.")
-    skill_hint = profile_guidance.get(feedback_profile.lower(), "")
+    context = role_context.get(type, f"You are an audio engineer for {genre} music.")
+    skill_hint = profile_guidance.get(feedback_profile, "")
 
     return f"""
     {context}
@@ -62,6 +71,11 @@ def generate_feedback_response(prompt: str) -> str:
 
 
 def generate_followup_response(analysis_text: str, feedback_text: str, user_question: str) -> str:
+    # Sanitize follow-up question
+    user_question = user_question.strip()
+    user_question = user_question.replace("\n", " ")  # avoid prompt injection tricks
+    user_question = html.escape(user_question)[:300]  # escape HTML and truncate
+
     combined_prompt = f"""
 You are an expert audio engineer assistant.
 

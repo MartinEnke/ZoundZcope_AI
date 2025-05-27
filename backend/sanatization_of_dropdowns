@@ -1,0 +1,32 @@
+The sanitize_input() helper does both:
+
+goes to gpt_utils, upload, chat
+
+Validation – making sure the input is not empty, too long, or malformed.
+
+Sanitization – trimming whitespace, normalizing formatting (like .lower()), and escaping risky characters.
+
+It replaces the need for separate validators in many cases, especially when:
+
+You're only dealing with strings,
+
+You don’t need to raise detailed validation errors for users,
+
+And you're prepping data primarily for use in prompts or storage.
+
+For more complex scenarios (like form submissions or database inserts), you might combine sanitization with stricter schema validation (e.g. with pydantic or marshmallow), but for prompt hygiene and app stability — your current approach is 👌 and future-ready.
+
+Want a reusable utils.py version of this that you can import into any script?
+
+
+
+
+Validation for tracks.py and sessions.py still planned:
+
+Field	              Needs Sanitization?	Needs Validation?	          Notes
+track_name            ❌ (no mapping)	    ✅ (trim + not empty)	      Strip and check
+session_name	      ❌ (no mapping)	    ✅ (trim + not empty)	      Strip and check
+user_id	              ❌	                ✅ (FastAPI handles type)     Ensure it’s valid if not trusted
+session_id (UUID)	  ❌	                ✅ (check format)	          Optional, but useful
+
+

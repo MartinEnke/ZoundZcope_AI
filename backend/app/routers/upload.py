@@ -7,6 +7,8 @@ from app.audio_analysis import analyze_audio
 from typing import Optional
 from fastapi.responses import JSONResponse
 from app.gpt_utils import generate_feedback_prompt, generate_feedback_response
+from app.utils import normalize_type, normalize_profile, normalize_genre
+
 
 router = APIRouter()
 
@@ -30,6 +32,10 @@ def upload_audio(
     genre: str = Form(...),
     feedback_profile: str = Form(...),
 ):
+    # 🧼 Normalize user input
+    genre = normalize_genre(genre)
+    type = normalize_type(type)
+    feedback_profile = normalize_profile(feedback_profile)
     try:
         print("Incoming upload:", {
             "session_id": session_id,
