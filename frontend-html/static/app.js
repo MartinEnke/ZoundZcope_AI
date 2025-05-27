@@ -833,6 +833,7 @@ window.addEventListener("pageshow", (event) => {
 
 
 });
+
 function renderRecentFeedbackPanel() {
   console.log("✅ renderRecentFeedbackPanel() called");
 
@@ -887,7 +888,9 @@ function renderRecentFeedbackPanel() {
     const headingHTML = `
       <div class="flex justify-between items-center mb-1">
         <div class="flex items-baseline gap-2">
-          <p class="text-pink-400 text-lg font-bold">${subheadingText}</p>
+          <p class="${subheadingText.toLowerCase().includes('master') ? 'text-blue-400' : 'text-pink-400'} text-lg font-bold">
+            ${subheadingText}
+          </p>
           <span class="text-white font-semibold text-sm">${trackName}</span>
         </div>
         <span class="text-white/50 text-xs">${dateStr}</span>
