@@ -104,28 +104,82 @@ document.getElementById("askAIButton").addEventListener("click", async () => {
 // ==========================================================
 const predefinedFollowupQuestions = {
   mixdown: [
-    "What’s the most critical issue?",
-    "How do I fix the low-end?",
-    "Is the stereo image balanced?"
+    "Which element is clashing most in this mix?",
+    "Which plugin could improve transient clarity on the snare?",
+    "How can I better use stereo panning to separate instruments?",
+    "Should I apply multiband compression on the drum bus?"
   ],
   master: [
-    "Would this pass streaming loudness?",
-    "Is dynamic range okay?",
-    "What’s limiting the clarity?"
+    "Would this track match the loudness of Daft Punk's 'Random Access Memories'?",
+    "Which limiter plugin gives transparent results for this style?",
+    "Is a dynamic EQ needed to tame harshness here?",
+    "Could widening the stereo field improve spatial depth?",
+    "Does this master need a low-shelf boost below 80Hz?"
+  ],
+  electronic: [
+    "Does this mix have the punch of Flume’s productions?",
+    "How can I make the drop hit harder?",
+    "Which synth plugin would enhance the lead’s texture?",
+    "Should I automate filter cutoff for more movement?",
+    "How can I tighten the sidechain compression?"
   ],
   hiphop: [
-    "Are the vocals too upfront?",
-    "Is the kick overpowering the bass?"
+    "Are the vocals sitting right like in Kendrick Lamar’s mixes?",
+    "What plugin is best to glue the drums?",
+    "Should I try parallel compression on the rap vocal?",
+    "How do I add analog warmth to the beat?",
+    "Would a CLA plugin chain help here?"
   ],
-  pro: [
-    "Are transients handled well?",
-    "Would multiband compression improve this?"
+  rock: [
+    "How does the guitar layer compare to Foo Fighters’ mixes?",
+    "Should I try an API-style EQ on the drums?",
+    "How can I make the bass more audible without clashing with the kick?",
+    "Does this need tape saturation on the mix bus?",
+    "Is the vocal presence comparable to Green Day’s tracks?"
+  ],
+  ambient: [
+    "How can I widen the stereo field without blurring elements?",
+    "Should I use Valhalla or Eventide reverb for this?",
+    "Does this track have the subtle dynamics of Brian Eno’s work?",
+    "Is the low-end too heavy for ambient?",
+    "Which plugin would help create deeper textures?"
+  ],
+  classic: [
+    "Would referencing a Deutsche Grammophon master help dynamics?",
+    "How do I preserve orchestral space while enhancing clarity?",
+    "Is this reverb tail appropriate for the room size?",
+    "Should I avoid compression on classical recordings?",
+    "Would linear-phase EQ benefit this arrangement?"
+  ],
+  punk: [
+    "Does the energy match early Ramones or Sex Pistols?",
+    "Is the guitar tone too clean for this style?",
+    "Would a Neve-style preamp plugin improve grit?",
+    "Should I push the vocal compression harder?",
+    "Is the rawness authentic or too harsh?"
   ],
   simple: [
-    "What should I improve first?",
-    "Is this ready to share?"
+    "What is the first thing I should fix?",
+    "Which plugin would improve the sound quickly?",
+    "Is this mix good enough to upload?",
+    "Should I turn anything down?",
+    "How do I fix muddy sound easily?"
+  ],
+  detailed: [
+    "Is the spectral balance consistent across the frequency range?",
+    "Which plugin chain would optimize glue on the master bus?",
+    "How would you approach surgical EQ here?",
+    "Are the transients crisp enough on the snare?"
+  ],
+  pro: [
+    "Which plugin chain gives best results for mastering this genre?",
+    "Should I use MS processing on the midrange?",
+    "Would a clipper enhance perceived loudness before the limiter?",
+    "Is the multiband compression transparent enough?",
+    "Which frequency range could benefit from harmonic saturation?"
   ]
 };
+
 
 function loadQuickFollowupButtons(type, genre, profile) {
   const container = document.getElementById("quick-followup");
@@ -143,10 +197,20 @@ function loadQuickFollowupButtons(type, genre, profile) {
     ...(predefinedFollowupQuestions[profile] || [])
   ]);
 
-  Array.from(uniqueQuestions).slice(0, 5).forEach((q) => {
+  Array.from(uniqueQuestions).slice(0, 15).forEach((q) => {
     const btn = document.createElement("button");
     btn.textContent = q;
-    btn.className = "px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white transition text-xs";
+    btn.className = `
+  px-4 py-1 rounded-full
+  bg-white/5 hover:bg-white/10
+  text-white text-[0.75rem]
+  shadow-sm hover:shadow-md
+  border border-white/10 hover:border-white/20
+  backdrop-blur-sm transition-all duration-150
+`;
+btn.style.fontSize = "0.78rem";
+
+btn.style.fontSize = "0.825rem";
     btn.addEventListener("click", () => {
       document.getElementById("customQuestion").value = q;
       document.getElementById("askAIButton").click();
