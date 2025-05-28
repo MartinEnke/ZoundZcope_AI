@@ -44,17 +44,20 @@ def generate_feedback_prompt(genre: str, type: str, analysis_data: dict, feedbac
     - Peak: {analysis_data['peak_db']} dB
     - RMS: {analysis_data['rms_db']} dB
     - LUFS: {analysis_data['lufs']}
+    - Spectral balance note: {analysis_data['spectral_balance_description']}
     - Dynamic range: {analysis_data['dynamic_range']}
     - Stereo width: {analysis_data['stereo_width']}
     - Key: {analysis_data['key']}
     - Tempo: {analysis_data['tempo']} BPM
-    - Bass profile: {analysis_data['bass_profile']}
+    - Bass profile: {analysis_data['bass_profile']} ({analysis_data['low_end_energy_ratio']})
+      {analysis_data.get('low_end_description', '')}
     - Band energies: {json.dumps(analysis_data['band_energies'], indent=2)}
 
     Your task:
     Return **exactly 2–3 bullet points**, each one should:
     - Identify 1 issue clearly
     - Give a **concrete, genre-aware** improvement tip
+    - Briefly explain **why** this advice helps, referencing the data or genre
     - Keep each bullet to 2–3 sentences
 
     Only return the bullet points in a clean, readable format.
