@@ -27,9 +27,24 @@ def generate_feedback_prompt(genre: str, type: str, analysis_data: dict, feedbac
     }
 
     profile_guidance = {
-        "simple": "Use beginner-friendly language. Avoid technical jargon. Give practical advice like 'try boosting bass by 3dB'.",
-        "detailed": "Use moderately technical language. Assume some production experience. Include brief explanations like 'try gentle saturation to add presence'.",
-        "pro": "Use professional-level language. Assume expert knowledge. Provide detailed, technical tips using terms like multiband compression, stereo field manipulation, and transient shaping."
+        "simple": (
+            "Speak as if you're explaining to someone with no technical knowledge. "
+            "Avoid all audio engineering jargon. "
+            "Use plain, friendly language like 'the bass feels too strong' or "
+            "'maybe turn the drums down a bit'. Focus on what to do, not how."
+        ),
+        "detailed": (
+            "Use moderately technical language. "
+            "Assume the listener has some production experience. "
+            "You can mention terms like EQ, compression, reverb, etc., "
+            "but keep explanations short and accessible."
+        ),
+        "pro": (
+            "Use advanced audio production vocabulary. "
+            "Assume you're speaking to a seasoned engineer. "
+            "Feel free to reference techniques like transient shaping, mid-side EQ, multiband compression, etc. "
+            "Keep your tone concise and precise."
+        )
     }
 
     context = role_context.get(type, f"You are an audio engineer for {genre} music.")
@@ -42,7 +57,8 @@ def generate_feedback_prompt(genre: str, type: str, analysis_data: dict, feedbac
 
     This is an analysis of the track's {type} version:
     - Peak: {analysis_data['peak_db']} dB
-    - RMS: {analysis_data['rms_db']} dB
+    - RMS Avg: {analysis_data['rms_db_avg']} dB
+    - RMS Peak: {analysis_data['rms_db_peak']} dB
     - LUFS: {analysis_data['lufs']}
     - Spectral balance note: {analysis_data['spectral_balance_description']}
     - Dynamic range: {analysis_data['dynamic_range']}

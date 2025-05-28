@@ -107,7 +107,7 @@ def get_tracks_for_session(
 
             analysis_data = {
                 "peak_db": track.analysis.peak_db,
-                "rms_db": track.analysis.rms_db,
+                "rms_db": track.analysis.rms_db_peak,
                 "lufs": track.analysis.lufs,
                 "dynamic_range": track.analysis.dynamic_range,
                 "stereo_width_ratio": track.analysis.stereo_width_ratio,

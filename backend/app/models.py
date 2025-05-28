@@ -40,20 +40,25 @@ class AnalysisResult(Base):
     __tablename__ = 'analysis_results'
     id = Column(Integer, primary_key=True)
     track_id = Column(String, ForeignKey('tracks.id'))
+
     peak_db = Column(Float)
-    rms_db = Column(Float)
+    rms_db_avg = Column(Float)  # average RMS
+    rms_db_peak = Column(Float)
     lufs = Column(Float)
     dynamic_range = Column(Float)
+
     stereo_width_ratio = Column(Float)
     stereo_width = Column(String)
+
     key = Column(String)
     tempo = Column(Float)
+
     low_end_energy_ratio = Column(Float)
     low_end_description = Column(String)
     bass_profile = Column(String)
-    band_energies = Column(String)  # (JSON string like '{"low": 10.1, ...}')
+    band_energies = Column(String)  # JSON string like '{"low": 10.1, ...}'
     spectral_balance_description = Column(String)
-    issues = Column(Text) # JSON string (e.g. '["clipping", "bass masking"]')
+    issues = Column(Text)  # JSON string like '["clipping", "bass masking"]'
 
     track = relationship("Track", back_populates="analysis")
 

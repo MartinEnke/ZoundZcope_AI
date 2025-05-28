@@ -97,6 +97,27 @@ def describe_spectral_balance(band_energies: dict) -> str:
         return "Unusual spectral balance. Further inspection may be needed."
 
 
+def compute_windowed_rms_db(y_mono, sr, window_duration=0.5):
+    window_size = int(sr * window_duration)
+    hop_size = int(window_size / 2)
+
+    rms_blocks = []
+    for i in range(0, len(y_mono) - window_size, hop_size):
+        block = y_mono[i:i + window_size]
+        rms = np.sqrt(np.mean(block ** 2))
+        rms_blocks.append(rms)
+
+    # Now calculate:
+    rms_blocks = np.array(rms_blocks)
+    rms_db_avg = 20 * np.log10(np.mean(rms_blocks) + 1e-9)
+
+    # Loudest 10%
+    sorted_rms = np.sort(rms_blocks)
+    top_10 = sorted_rms[int(len(sorted_rms) * 0.9):]
+    rms_db_peak = 20 * np.log10(np.mean(top_10) + 1e-9)
+
+    return round(rms_db_avg, 2), round(rms_db_peak, 2)
+
 
 def analyze_audio(file_path):
     y, sr = librosa.load(file_path, mono=False)
@@ -107,8 +128,8 @@ def analyze_audio(file_path):
     peak_amp = np.max(np.abs(y_mono))
     peak_db = 20 * np.log10(peak_amp + 1e-9)
 
-    rms_linear = librosa.feature.rms(y=y_mono).mean()
-    rms_db = 20 * np.log10(rms_linear + 1e-9)
+    rms_db_avg, rms_db_peak = compute_windowed_rms_db(y_mono, sr)
+
 
     tempo_arr, _ = librosa.beat.beat_track(y=y_mono, sr=sr)
     tempo = float(tempo_arr)
@@ -118,7 +139,7 @@ def analyze_audio(file_path):
     meter = pyln.Meter(sr)
     loudness = meter.integrated_loudness(y_mono)
 
-    dynamic_range = peak_db - rms_db
+    dynamic_range = peak_db - rms_db_avg
 
     width_ratio = 0.0
     if y.ndim == 1:
@@ -163,7 +184,8 @@ def analyze_audio(file_path):
 
     return {
         "peak_db": f"{peak_db:.2f}",
-        "rms_db": f"{rms_db:.2f}",
+        "rms_db_avg": round(float(rms_db_avg), 2),
+        "rms_db_peak": round(float(rms_db_peak), 2),
         "tempo": f"{tempo:.2f}",
         "key": key,
         "lufs": f"{loudness:.2f}",

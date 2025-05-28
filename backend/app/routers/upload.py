@@ -8,6 +8,8 @@ from typing import Optional
 from fastapi.responses import JSONResponse
 from app.gpt_utils import generate_feedback_prompt, generate_feedback_response
 from app.utils import normalize_type, normalize_profile, normalize_genre
+import time
+
 
 
 router = APIRouter()
@@ -32,6 +34,7 @@ def upload_audio(
     genre: str = Form(...),
     feedback_profile: str = Form(...),
 ):
+
     # 🧼 Normalize user input
     genre = normalize_genre(genre)
     type = normalize_type(type)
@@ -45,9 +48,17 @@ def upload_audio(
             "feedback_profile": feedback_profile
         })
 
-        file_location = f"{UPLOAD_FOLDER}/{file.filename}"
+
+        # Get extension from uploaded file
+        ext = os.path.splitext(file.filename)[1]
+        timestamped_name = f"{int(time.time())}_{file.filename}"
+        file_location = os.path.join(UPLOAD_FOLDER, timestamped_name)
+
+        # Save file
         with open(file_location, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+
+
 
         # Analyze audio BEFORE DB
         analysis = analyze_audio(file_location)
@@ -103,7 +114,9 @@ def upload_audio(
             "genre": genre,
             "type": type,
             "analysis": analysis,
-            "feedback": feedback
+            "feedback": feedback,
+            # Include this new name in your return value
+            "track_path": f"/uploads/{timestamped_name}"
         }
 
     except Exception as e:
