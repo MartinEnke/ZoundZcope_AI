@@ -61,6 +61,9 @@ class AnalysisResult(Base):
     issues = Column(Text)  # JSON string like '["clipping", "bass masking"]'
     peak_issue = Column(Text)
     peak_issue_explanation = Column(Text)
+    avg_transient_strength = Column(Float)
+    max_transient_strength = Column(Float)
+    transient_description = Column(Text)
 
     track = relationship("Track", back_populates="analysis")
 

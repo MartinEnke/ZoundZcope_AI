@@ -143,6 +143,36 @@ def generate_peak_issues_description(peak_db: float):
     return issues, explanation
 
 
+def detect_transient_strength(y, sr):
+    onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+    avg_transient_strength = float(np.mean(onset_env))
+    max_transient_strength = float(np.max(onset_env))
+    return round(avg_transient_strength, 4), round(max_transient_strength, 4)
+
+
+def describe_transients(avg, max):
+    if avg < 1.5:
+        quality = "very soft or buried"
+    elif avg < 3.5:
+        quality = "balanced"
+    elif avg < 7:
+        quality = "punchy and defined"
+    else:
+        quality = "sharp or overly spiky"
+
+    if max > 30:
+        note = "The track has extremely spiky transients — possibly over-accentuated drums or uncompressed attacks."
+    elif max > 15:
+        note = "Transients are strong and pronounced — mix might feel punchy or aggressive."
+    elif max < 5:
+        note = "Transients appear soft throughout — the mix may lack snap or attack."
+    else:
+        note = "Transient range appears normal for most styles."
+
+    return f"Transients are {quality}. {note}"
+
+
+
 def analyze_audio(file_path):
     y, sr = librosa.load(file_path, mono=False)
     print(f"y shape: {y.shape}, ndim: {y.ndim}")
@@ -168,6 +198,8 @@ def analyze_audio(file_path):
     loudness = meter.integrated_loudness(y_mono)
 
     dynamic_range = peak_db - rms_db_avg
+
+    avg_transients, max_transients = detect_transient_strength(y_mono, sr)
 
     width_ratio = 0.0
     if y.ndim == 1:
@@ -227,6 +259,9 @@ def analyze_audio(file_path):
         "spectral_balance_description": spectral_description,
         "peak_issue": peak_issues[0] if peak_issues else None,
         "peak_issue_explanation": peak_explanation,
+        "avg_transient_strength": round(avg_transients, 2),
+        "max_transient_strength": round(max_transients, 2),
+        "transient_description": describe_transients(avg_transients, max_transients),
         "issues": json.dumps(issues)
     }
 
