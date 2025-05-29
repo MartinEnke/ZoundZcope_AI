@@ -8,7 +8,12 @@ from typing import Optional
 from fastapi.responses import JSONResponse
 from app.gpt_utils import generate_feedback_prompt, generate_feedback_response
 from app.utils import normalize_type, normalize_profile, normalize_genre
+from app.analysis_rms_chunks import compute_rms_chunks
 import time
+from pathlib import Path
+
+
+
 
 
 
@@ -35,6 +40,7 @@ def upload_audio(
     feedback_profile: str = Form(...),
 ):
 
+
     # 🧼 Normalize user input
     genre = normalize_genre(genre)
     type = normalize_type(type)
@@ -58,6 +64,15 @@ def upload_audio(
         with open(file_location, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
+        # Path to where your app is running, e.g. /yourproject/backend/upload.py
+        BASE_DIR = Path(__file__).resolve().parents[3]  # currently backend/
+        rms_filename = f"{timestamped_name}_rms.json"
+        rms_output_path = BASE_DIR / "frontend-html" / "static" / "analysis" / rms_filename
+        compute_rms_chunks(file_location, json_output_path=str(rms_output_path))
+        print("✅ RMS saved to:", rms_output_path)
+        print("BASE_DIR:", BASE_DIR)
+        print("rms_output_path:", rms_output_path)
+
 
 
         # Analyze audio BEFORE DB
@@ -65,7 +80,7 @@ def upload_audio(
 
         db = SessionLocal()
 
-        # ✅ Make sure the session exists or create one
+        # Make sure the session exists or create one
         existing_session = db.query(UserSession).filter(UserSession.id == session_id).first()
         if not existing_session:
             new_session = UserSession(id=session_id, user_id=1, session_name="Untitled Session")
@@ -90,12 +105,12 @@ def upload_audio(
         db.add(result)
         db.commit()
 
-        # ✅ Generate GPT feedback
+        # Generate GPT feedback
         prompt = generate_feedback_prompt(genre, type, analysis, feedback_profile)
 
         feedback = generate_feedback_response(prompt)
 
-        # ✅ Save feedback in chat
+        # Save feedback in chat
         chat = ChatMessage(
             session_id=session_id,
             track_id=track.id,
@@ -116,7 +131,8 @@ def upload_audio(
             "analysis": analysis,
             "feedback": feedback,
             # Include this new name in your return value
-            "track_path": f"/uploads/{timestamped_name}"
+            "track_path": f"/uploads/{timestamped_name}",
+            "rms_path": f"/static/analysis/{rms_filename}"
         }
 
     except Exception as e:

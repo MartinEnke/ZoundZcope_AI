@@ -3,7 +3,8 @@ import numpy as np
 import json
 from pathlib import Path
 
-def compute_rms_chunks(file_path, chunk_duration=0.5):
+def compute_rms_chunks(file_path, chunk_duration=0.5, json_output_path=None):
+    print("🔍 Writing RMS JSON to:", json_output_path)
     y, sr = librosa.load(file_path, mono=True)
     samples_per_chunk = int(sr * chunk_duration)
     total_chunks = len(y) // samples_per_chunk
@@ -19,15 +20,15 @@ def compute_rms_chunks(file_path, chunk_duration=0.5):
         rms_db = 20 * np.log10(rms + 1e-9)
         rms_chunks.append(float(np.round(rms_db, 2)))
 
-
-    base_dir = Path(__file__).resolve().parents[2]
-    output_path = base_dir / "frontend-html" / "static" / "analysis" / "sample_rms.json"
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-
-    with open(output_path, "w") as f:
-        json.dump(rms_chunks, f)
+    # ✅ Write JSON only if path is provided
+    if json_output_path:
+        json_path = Path(json_output_path)
+        json_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(json_path, "w") as f:
+            json.dump(rms_chunks, f)
 
     return rms_chunks
+
 
 
 # if __name__ == "__main__":

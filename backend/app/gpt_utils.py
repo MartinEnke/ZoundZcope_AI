@@ -70,7 +70,7 @@ def generate_feedback_prompt(genre: str, type: str, analysis_data: dict, feedbac
     - Band energies: {json.dumps(analysis_data['band_energies'], indent=2)}
 
     Your task:
-    Return **exactly 2–3 bullet points**, each one should:
+    Return exactly 2–3 bullet points, each one should:
     - Identify 1 issue clearly
     - Give a **concrete, genre-aware** improvement tip
     - Briefly explain **why** this advice helps, referencing the data or genre

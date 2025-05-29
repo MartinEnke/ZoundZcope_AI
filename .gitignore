@@ -8,6 +8,8 @@ __pycache__/
 *.env
 uploads/
 
+frontend-html/static/analysis/*.json
+
 # Virtual environments
 .venv/
 env/

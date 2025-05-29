@@ -1,4 +1,7 @@
 // ✅ Cleaned version of your app.js with separate flat DOMContentLoaded blocks
+let rmsChunks = [];  // 👈 declare it globally
+const chunkDuration = 0.5;
+
 
 console.log("✅ app.js loaded");
 
@@ -285,7 +288,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-
 // ==========================================================
 // 🔸 Dropdown Logic for Track Type Selector
 // ==========================================================
@@ -461,8 +463,9 @@ async function loadSessionTracks(sessionId) {
   }
 }
 console.log("loadSessionTracks is", loadSessionTracks);
+
 // ==========================================================
-// 🔸 Upload Form Submission Logic
+// 🔸 Upload Form Submission Logic (UPDATED)
 // ==========================================================
 const form = document.getElementById("uploadForm");
 form.addEventListener("submit", async (e) => {
@@ -512,19 +515,18 @@ form.addEventListener("submit", async (e) => {
   formData.set("session_id", sessionId);
 
   const feedbackProfile = document.getElementById("profile-input").value;
-const customTrackName = document.getElementById("track_name").value.trim();
-const fileInput = document.getElementById("file-upload");
+  const customTrackName = document.getElementById("track_name").value.trim();
+  const fileInput = document.getElementById("file-upload");
 
-let finalTrackName = customTrackName;
+  let finalTrackName = customTrackName;
 
-if (!finalTrackName && fileInput && fileInput.files.length > 0) {
-  const fullName = fileInput.files[0].name;
-  finalTrackName = fullName.replace(/\.[^/.]+$/, "");  // ✅ strip extension
-}
+  if (!finalTrackName && fileInput && fileInput.files.length > 0) {
+    const fullName = fileInput.files[0].name;
+    finalTrackName = fullName.replace(/\.[^/.]+$/, "");
+  }
 
-formData.set("feedback_profile", feedbackProfile);
-formData.set("track_name", finalTrackName || "Untitled Track");
-
+  formData.set("feedback_profile", feedbackProfile);
+  formData.set("track_name", finalTrackName || "Untitled Track");
 
   try {
     const response = await fetch("/upload/", {
@@ -592,67 +594,133 @@ formData.set("track_name", finalTrackName || "Untitled Track");
       ul.className = "list-disc list-inside mt-2 text-white/90 space-y-1";
       feedbackBox.appendChild(ul);
 
-      analyzeButton.classList.remove("analyze-loading");
-      analyzeButton.disabled = false;
-
       const lines = result.feedback
         .split("\n")
         .map(line => line.replace(/^[-•\s]+/, "").trim())
         .filter(Boolean);
 
       for (const [index, line] of lines.entries()) {
-  const li = document.createElement("li");
-  li.style.display = "list-item";
-  if (index > 0) li.style.marginTop = "0.75rem";
-  ul.appendChild(li);
-  await typeText(li, line, 5);  // 🧠 This types each line slowly
+        const li = document.createElement("li");
+        li.style.display = "list-item";
+        if (index > 0) li.style.marginTop = "0.75rem";
+        ul.appendChild(li);
+        await typeText(li, line, 5);
+      }
+
+      document.getElementById("custom-ai-section")?.classList.remove("hidden");
+
+      const type = document.getElementById("type-input")?.value;
+      const genre = document.getElementById("genre-input")?.value;
+      const profile = document.getElementById("profile-input")?.value?.toLowerCase();
+      loadQuickFollowupButtons(type, genre, profile);
+
+      feedbackBox.classList.remove("pulsing-feedback");
+
+      localStorage.setItem("zoundzcope_last_analysis", output.innerHTML);
+      localStorage.setItem("zoundzcope_last_feedback", ul.outerHTML);
+      localStorage.setItem("zoundzcope_last_subheading", subheading?.outerHTML || "");
+      localStorage.setItem("zoundzcope_last_followup", "");
+
+      try {
+        const current = {
+          analysis: output.innerHTML,
+          feedback: feedbackBox.innerHTML,
+          subheading: subheading?.outerHTML || "",
+          followup: "",
+          track_name: finalTrackName,
+          timestamp: Date.now()
+        };
+
+        const rawHistory = localStorage.getItem("zoundzcope_history") || "[]";
+        const history = JSON.parse(rawHistory);
+
+        const duplicate = history.find(h => JSON.stringify(h) === JSON.stringify(current));
+        if (!duplicate) {
+          history.unshift(current);
+          if (history.length > 3) history.length = 3;
+          localStorage.setItem("zoundzcope_history", JSON.stringify(history));
+        }
+      } catch (err) {
+        console.error("❌ Failed to store history:", err);
+      }
+
+
+      // 🎵 Load the newly uploaded track into WaveSurfer
+const waveformDiv = document.getElementById("waveform");
+waveformDiv.innerHTML = "";  // Clear previous waveform (if needed)
+
+// Destroy the old WaveSurfer instance if it exists
+if (window.wavesurfer) {
+  window.wavesurfer.destroy();
 }
 
-// 🔥 Unhide follow-up input after typing is complete
-document.getElementById("custom-ai-section")?.classList.remove("hidden");
+// Create new WaveSurfer instance globally
+window.wavesurfer = WaveSurfer.create({
+  container: '#waveform',
+  waveColor: '#a0a0a0',
+  progressColor: '#2196f3',
+  height: 100,
+  responsive: true
+});
 
-// 👇 Add after typing out AI feedback (after showing the follow-up section)
-const type = document.getElementById("type-input")?.value;
-const genre = document.getElementById("genre-input")?.value;
-const profile = document.getElementById("profile-input")?.value?.toLowerCase();
+// Add cache-busting timestamp to avoid browser cache issues
+const trackUrl = result.track_path + `?t=${Date.now()}`;
+window.wavesurfer.load(trackUrl);
 
-loadQuickFollowupButtons(type, genre, profile);
+document.getElementById("waveform").addEventListener("click", () => {
+  const time = window.wavesurfer.getCurrentTime();
+  console.log("🖱️ Clicked! Current time:", time);
+  updateRMSDisplayAtTime(time);
+});
+
+// 🔗 Load the corresponding RMS chunk file
+console.log("🔗 Trying to load RMS file:", result.rms_path);
+fetch(result.rms_path)
+  .then(response => response.json())
+  .then(data => {
+    rmsChunks = data;
+    console.log("✅ RMS chunks loaded:", rmsChunks.length);
+    console.log("🧪 First few RMS values:", rmsChunks.slice(0, 5));
+
+  })
+  .catch(err => {
+    console.error("❌ Failed to load RMS chunks", err);
+  });
+
+window.wavesurfer.on('ready', () => {
+  console.log("✅ New track loaded into WaveSurfer");
+});
 
 
+// ✅ Utility: Display RMS based on time
+function updateRMSDisplayAtTime(time) {
+  const index = Math.floor(time / chunkDuration);
+  const rmsValue = rmsChunks[index];
+  const display = document.getElementById("rms-display");
 
-feedbackBox.classList.remove("pulsing-feedback");
+  console.log("🧠 Time:", time, "→ Chunk Index:", index, "→ RMS:", rmsValue); // ✅ DIAGNOSTIC
 
-// ✅ Now save everything after feedback is typed out
-localStorage.setItem("zoundzcope_last_analysis", output.innerHTML);
-localStorage.setItem("zoundzcope_last_feedback", ul.outerHTML); // only list
-localStorage.setItem("zoundzcope_last_subheading", subheading?.outerHTML || "");
-localStorage.setItem("zoundzcope_last_followup", ""); // default for fresh entry
-
-
-      // 🔁 Save to zoundzcope_history (max 3)
-try {
-  const current = {
-  analysis: output.innerHTML,
-  feedback: feedbackBox.innerHTML,
-  subheading: subheading?.outerHTML || "",
-  followup: "",
-  track_name: finalTrackName,
-  timestamp: Date.now()
-};
-
-
-  const rawHistory = localStorage.getItem("zoundzcope_history") || "[]";
-  const history = JSON.parse(rawHistory);
-
-  const duplicate = history.find(h => JSON.stringify(h) === JSON.stringify(current));
-  if (!duplicate) {
-    history.unshift(current);
-    if (history.length > 3) history.length = 3;
-    localStorage.setItem("zoundzcope_history", JSON.stringify(history));
+  if (display && rmsValue !== undefined) {
+    display.innerText = `Current RMS: ${rmsValue.toFixed(2)} dB`;
+  } else if (display) {
+    display.innerText = `Current RMS: --`;
   }
-} catch (err) {
-  console.error("❌ Failed to store history:", err);
 }
+
+// ✅ Playback listener — update live
+window.wavesurfer.on("audioprocess", () => {
+  if (rmsChunks.length === 0) return;
+  const time = window.wavesurfer.getCurrentTime();
+  updateRMSDisplayAtTime(time);
+});
+
+// ✅ Seek/click listener — update when user clicks/scrubs
+window.wavesurfer.on("seek", (progress) => {
+  if (rmsChunks.length === 0) return;
+  const duration = window.wavesurfer.getDuration();
+  const time = duration * progress;
+  updateRMSDisplayAtTime(time);
+});
 
 
     } else {
@@ -667,7 +735,31 @@ try {
     analyzeButton.disabled = false;
   }
 });
+// ✅ Add this block after the form handler
+window.addEventListener("DOMContentLoaded", () => {
+  window.wavesurfer?.on("interaction", (e) => {
+    const waveformContainer = window.wavesurfer.container;
+    if (!waveformContainer) return;
 
+    const boundingBox = waveformContainer.getBoundingClientRect();
+    const percent = (e.clientX - boundingBox.left) / boundingBox.width;
+    const duration = window.wavesurfer.getDuration();
+    const time = percent * duration;
+
+    const index = Math.floor(time / chunkDuration);
+    const rmsValue = rmsChunks[index];
+
+    const display = document.getElementById("rms-display");
+    console.log(`🖱️ Clicked time: ${time.toFixed(2)}s → chunk ${index} → RMS: ${rmsValue}`);
+    console.log("📊 rmsChunks length:", rmsChunks.length);
+
+    if (display && rmsValue !== undefined) {
+      display.innerText = `RMS at ${time.toFixed(2)}s: ${rmsValue.toFixed(2)} dB`;
+    } else if (display) {
+      display.innerText = `No RMS data at ${time.toFixed(2)}s`;
+    }
+  });
+});
 
 
 // ==========================================================
