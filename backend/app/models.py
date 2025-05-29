@@ -59,6 +59,8 @@ class AnalysisResult(Base):
     band_energies = Column(String)  # JSON string like '{"low": 10.1, ...}'
     spectral_balance_description = Column(String)
     issues = Column(Text)  # JSON string like '["clipping", "bass masking"]'
+    peak_issue = Column(Text)
+    peak_issue_explanation = Column(Text)
 
     track = relationship("Track", back_populates="analysis")
 

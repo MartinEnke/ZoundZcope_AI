@@ -119,6 +119,30 @@ def compute_windowed_rms_db(y_mono, sr, window_duration=0.5):
     return round(rms_db_avg, 2), round(rms_db_peak, 2)
 
 
+def generate_peak_issues_description(peak_db: float):
+    issues = []
+    explanation = ""
+
+    if peak_db > 0.0:
+        issues.append("Clipping risk")
+        explanation = (
+            "The track peaks above 0.0 dBFS, which can result in digital clipping. "
+            "Even if your DAW meters show 0.0 dB, intersample peaks may exceed this in real-world playback. "
+            "Consider using a true peak limiter set to -1.0 dBTP to avoid distortion."
+        )
+    elif -0.3 < peak_db <= 0.0:
+        issues.append("Near-clipping warning")
+        explanation = (
+            "The track peaks very close to 0.0 dBFS. While it may not clip outright, "
+            "there is a risk of intersample peaks causing distortion on some playback systems. "
+            "A ceiling of -1.0 dBTP is generally safer."
+        )
+    else:
+        return [], ""
+
+    return issues, explanation
+
+
 def analyze_audio(file_path):
     y, sr = librosa.load(file_path, mono=False)
     print(f"y shape: {y.shape}, ndim: {y.ndim}")
@@ -127,6 +151,10 @@ def analyze_audio(file_path):
 
     peak_amp = np.max(np.abs(y_mono))
     peak_db = 20 * np.log10(peak_amp + 1e-9)
+    peak_issues, peak_explanation = generate_peak_issues_description(peak_db)
+
+    issues = []
+    issues.extend(peak_issues)
 
     rms_db_avg, rms_db_peak = compute_windowed_rms_db(y_mono, sr)
 
@@ -197,5 +225,8 @@ def analyze_audio(file_path):
         "low_end_description": low_end_description,
         "band_energies": json.dumps(band_energies),
         "spectral_balance_description": spectral_description,
-        "issues": json.dumps(["issues"])
+        "peak_issue": peak_issues[0] if peak_issues else None,
+        "peak_issue_explanation": peak_explanation,
+        "issues": json.dumps(issues)
     }
+

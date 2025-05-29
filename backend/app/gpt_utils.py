@@ -50,6 +50,10 @@ def generate_feedback_prompt(genre: str, type: str, analysis_data: dict, feedbac
     context = role_context.get(type, f"You are an audio engineer for {genre} music.")
     skill_hint = profile_guidance.get(feedback_profile, "")
 
+    peak_warning = ""
+    if analysis_data.get("peak_issue_explanation"):
+        peak_warning = f"\n⚠️ Peak warning: {analysis_data['peak_issue_explanation']}\n"
+
     return f"""
     {context}
 
@@ -68,6 +72,7 @@ def generate_feedback_prompt(genre: str, type: str, analysis_data: dict, feedbac
     - Bass profile: {analysis_data['bass_profile']} ({analysis_data['low_end_energy_ratio']})
       {analysis_data.get('low_end_description', '')}
     - Band energies: {json.dumps(analysis_data['band_energies'], indent=2)}
+    {peak_warning}
 
     Your task:
     Return exactly 2–3 bullet points, each one should:

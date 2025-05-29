@@ -559,23 +559,24 @@ form.addEventListener("submit", async (e) => {
       }
 
       output.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-          <p><strong>Tempo:</strong> ${a.tempo} BPM</p>
-          <p><strong>Key:</strong> ${a.key}</p>
-          <p><strong>Peak db:</strong> ${r(a.peak_db)}</p>
-          <p><strong>RMS db:</strong> ${r(a.rms_db)}</p>
-          <p><strong>LUFS:</strong> ${r(a.lufs)}</p>
-          <p><strong>Dynamic Range:</strong> ${r(a.dynamic_range)}</p>
-          <p><strong>Stereo Width Ratio:</strong> ${r(a.stereo_width_ratio)}</p>
-          <p><strong>Stereo Width:</strong> ${a.stereo_width}</p>
-          <p><strong>Low End Energy Ratio:</strong> ${r(a.low_end_energy_ratio)}</p>
-          <p><strong>Bass Profile:</strong> ${a.bass_profile}</p>
-          <div class="md:col-span-2">
-            <strong>Band Energies:</strong>
-            <pre class="whitespace-pre-wrap">${JSON.stringify(a.band_energies, null, 2)}</pre>
-          </div>
-        </div>
-      `;
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+    <p><strong>Tempo:</strong> ${a.tempo} BPM</p>
+    <p><strong>Key:</strong> ${a.key}</p>
+    <p><strong>Peak Level:</strong> ${r(a.peak_db)} dB</p>
+    <p><strong>Peak Issue:</strong> ${a.peak_issue}</p>
+    <p><strong>RMS Peak:</strong> ${r(a.rms_db_peak)} dB</p>
+    <p><strong>LUFS:</strong> ${r(a.lufs)} LUFS</p>
+    <p><strong>Dynamic Range:</strong> ${r(a.dynamic_range)} dB</p>
+    <p><strong>Stereo Width:</strong> ${a.stereo_width}</p>
+    <p><strong>Bass Profile:</strong> ${a.bass_profile}</p>
+    <p class="md:col-span-2"><strong>Low-End:</strong> ${a.low_end_description}</p>
+    <p class="md:col-span-2"><strong>Spectral Balance:</strong> ${a.spectral_balance_description}</p>
+    <div class="md:col-span-2">
+      <strong>Band Energies:</strong>
+      <pre class="whitespace-pre-wrap">${JSON.stringify(a.band_energies, null, 2)}</pre>
+    </div>
+  </div>
+`;
 
       feedbackBox.innerHTML = "";
       feedbackBox.classList.add("pulsing-feedback");
