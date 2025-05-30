@@ -14,7 +14,6 @@ client = OpenAI(
 
 #openai.api_key = os.getenv("OPENAI_API_KEY")
 
-
 def generate_feedback_prompt(genre: str, type: str, analysis_data: dict, feedback_profile: str) -> str:
     # Normalize and sanitize inputs
     type = normalize_type(type)

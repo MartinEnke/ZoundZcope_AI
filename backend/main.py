@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from app.routers import upload, chat, sessions, tracks
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
-from app.routers import chat
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 load_dotenv()

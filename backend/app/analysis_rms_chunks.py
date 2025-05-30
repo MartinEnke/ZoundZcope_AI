@@ -29,12 +29,3 @@ def compute_rms_chunks(file_path, chunk_duration=0.5, json_output_path=None):
 
     return rms_chunks
 
-
-
-# if __name__ == "__main__":
-#     # ✅ Safe absolute path to audio file inside backend/uploads
-#     base_dir = Path(__file__).resolve().parents[2]
-#     audio_path = base_dir / "backend" / "uploads" / "01 - Llewellyn - Total Fantasy.mp3"
-#
-#     compute_rms_chunks(str(audio_path))
-#     print("✅ sample_rms.json created at", audio_path)
