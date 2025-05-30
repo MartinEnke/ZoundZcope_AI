@@ -21,8 +21,9 @@ def generate_feedback_prompt(genre: str, type: str, analysis_data: dict, feedbac
     feedback_profile = normalize_profile(feedback_profile)
 
     role_context = {
-        "mixdown": f"You are a professional **mixing engineer** with deep knowledge of {genre} music.",
-        "master": f"You are a professional **mastering engineer** with deep knowledge of {genre} music.",
+        "mixdown": f"You are a professional **mixing engineer reviewing a mixdown** with deep knowledge of {genre} music.",
+        "mastering": f"You are a professional **mastering engineer giving mastering advice** for this mixdown with deep knowledge of {genre} music.",
+        "master": f"You are a professional **mastering engineer reviewing a finished master** to assess its quality with deep knowledge of {genre} music.",
     }
 
     profile_guidance = {
@@ -77,7 +78,8 @@ def generate_feedback_prompt(genre: str, type: str, analysis_data: dict, feedbac
     {peak_warning}
 
     Your task:
-    Return exactly 2–3 bullet points, each one should:
+    Consider ESCPEACIALLY the relatiosnship between role context and genre.
+    Return exactly 2-3 bullet points, each one should:
     - Identify 1 issue clearly
     - Give a **concrete, genre-aware** improvement tip
     - Briefly explain **why** this advice helps, referencing the data or genre

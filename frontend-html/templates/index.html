@@ -94,7 +94,7 @@
             <div class="relative">
               <input type="hidden" name="type" id="type-input" />
               <button type="button" id="type-button" class="milky-input flex justify-between items-center cursor-pointer peer w-full px-4 py-2 text-left transition hover:bg-white/20">
-                <span id="type-selected" class="text-white/80">Select Type</span>
+                <span id="type-selected" class="text-white/80">Select Track Context</span>
                 <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
                 </svg>
@@ -103,10 +103,13 @@
                   style="background-color: rgba(255, 255, 255, 0.02); backdrop-filter: blur(6px);">
                 <li data-value="mixdown" class="dropdown-option px-4 py-2 cursor-pointer transition"
                     onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'"
-                    onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Mixdown</li>
+                    onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Mixing Feedback</li>
+                <li data-value="mastering" class="dropdown-option px-4 py-2 cursor-pointer transition"
+                    onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'"
+                    onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Mastering Guidance</li>
                 <li data-value="master" class="dropdown-option px-4 py-2 cursor-pointer transition"
                     onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'"
-                    onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Master</li>
+                    onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Master Review</li>
               </ul>
             </div>
 
@@ -162,6 +165,7 @@
                 <li data-value="pro" class="dropdown-option px-4 py-2 cursor-pointer transition"
                     onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'"
                     onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Pro_Level</li>
+
 
               </ul>
             </div>
