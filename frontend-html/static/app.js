@@ -324,39 +324,98 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================================
-// 🔸 Dropdown Logic for Genre Selector
+// 🔸 Dropdown Logic for Genre + Subgenre Selector
 // ==========================================================
 document.addEventListener("DOMContentLoaded", () => {
-  const genreButton = document.getElementById("genre-button");
-  const genreOptions = document.getElementById("genre-options");
+  const subgenres = {
+    electronic: ["Techno", "House", "Drum and Bass", "Dubstep", "Trance", "Psytrance", "Electro", "Ambient", "Synthwave", "IDM"],
+    pop: ["Electropop", "Dance Pop", "Indie Pop", "Synthpop", "Teen Pop", "Pop Rock", "K-Pop", "J-Pop", "Art Pop", "Power Pop"],
+    rock: ["Classic Rock", "Alternative Rock", "Hard Rock", "Indie Rock", "Progressive Rock", "Psychedelic Rock", "Garage Rock", "Blues Rock", "Punk Rock", "Grunge"],
+    hiphop: ["Trap", "Boom Bap", "Gangsta Rap", "Lo-fi Hip Hop", "Crunk", "Cloud Rap", "East Coast", "West Coast", "Drill", "Mumble Rap"],
+    indie: ["Indie Rock", "Indie Pop", "Indie Folk", "Indietronica", "Lo-fi Indie", "Dream Pop", "Shoegaze", "Chamber Pop", "Baroque Pop", "Folk Rock"],
+    punk: ["Hardcore Punk", "Post-Punk", "Pop Punk", "Garage Punk", "Oi!", "Skate Punk", "Anarcho-Punk", "Crust Punk", "Street Punk", "Queercore"],
+    metal: ["Heavy Metal", "Death Metal", "Black Metal", "Thrash Metal", "Doom Metal", "Power Metal", "Symphonic Metal", "Progressive Metal", "Metalcore", "Nu Metal"],
+    jazz: ["Smooth Jazz", "Bebop", "Cool Jazz", "Swing", "Fusion", "Free Jazz", "Latin Jazz", "Gypsy Jazz", "Modal Jazz", "Vocal Jazz"],
+    raggae: ["Roots Reggae", "Dancehall", "Dub", "Rocksteady", "Lovers Rock", "Reggaeton", "Ragga", "Ska", "Conscious Reggae", "Digital Reggae"],
+    funk: ["P-Funk", "Funk Rock", "Electro Funk", "Jazz Funk", "Go-Go", "Boogie", "Disco Funk", "Psychedelic Funk", "Afro Funk", "Neo-Funk"],
+    rnb: ["Contemporary R&B", "Neo Soul", "Funk R&B", "Hip Hop Soul", "Quiet Storm", "Alternative R&B", "Classic Soul", "Trap Soul", "New Jack Swing", "Urban R&B"],
+    soul: ["Northern Soul", "Southern Soul", "Neo Soul", "Blue-Eyed Soul", "Motown", "Gospel Soul", "Psychedelic Soul", "Funk Soul", "Contemporary Soul", "Deep Soul"],
+    country: ["Classic Country", "Outlaw Country", "Bluegrass", "Country Pop", "Alt-Country", "Country Rock", "Americana", "Honky Tonk", "Contemporary Country", "Western Swing"],
+    folk: ["Indie Folk", "Folk Rock", "Traditional Folk", "Americana", "Celtic Folk", "Contemporary Folk", "Acoustic Folk", "Folk Pop", "Neo-Folk", "Country Folk"],
+    classic: ["Baroque", "Romantic", "Modern Classical", "Contemporary Classical", "Opera", "Chamber Music", "Minimalism", "Orchestral", "Symphonic", "Choral"]
+  };
+
+  const genreOptionsList = document.getElementById("genre-options");
   const genreInput = document.getElementById("genre-input");
   const genreSelected = document.getElementById("genre-selected");
 
-  // Toggle dropdown visibility on button click
-  genreButton.addEventListener("click", () => {
-    genreOptions.classList.toggle("hidden");
+  const subgenreWrapper = document.getElementById("subgenre-wrapper");
+  const subgenreButton = document.getElementById("subgenre-button");
+  const subgenreOptions = document.getElementById("subgenre-options");
+  const subgenreInput = document.getElementById("subgenre-input");
+  const subgenreSelected = document.getElementById("subgenre-selected");
+
+  // Populate genre list
+  Object.keys(subgenres).forEach(genre => {
+    const li = document.createElement("li");
+    li.setAttribute("data-value", genre);
+    li.className = "dropdown-option px-4 py-2 cursor-pointer transition";
+    li.textContent = genre.charAt(0).toUpperCase() + genre.slice(1);
+    genreOptionsList.appendChild(li);
   });
 
-  // Handle option selection
-  document.querySelectorAll("#genre-options li").forEach((item) => {
-    item.addEventListener("click", () => {
-      const value = item.getAttribute("data-value");
-      const label = item.textContent;
-
-      genreSelected.textContent = label;
-      genreInput.value = value;
-      genreOptions.classList.add("hidden");
-      genreButton.classList.add("selected-field");
-    });
+  // Show genre options
+  document.getElementById("genre-button").addEventListener("click", () => {
+    genreOptionsList.classList.toggle("hidden");
   });
 
-  // Hide dropdown when clicking outside
+  // Handle genre selection
+  genreOptionsList.addEventListener("click", (e) => {
+    if (e.target.tagName === "LI") {
+      const genreKey = e.target.getAttribute("data-value");
+      const genreLabel = e.target.textContent;
+
+      genreSelected.textContent = genreLabel;
+      genreInput.value = genreKey;
+      genreOptionsList.classList.add("hidden");
+
+      // Show subgenre options
+      subgenreOptions.innerHTML = "";
+      subgenres[genreKey].forEach(sub => {
+        const li = document.createElement("li");
+        li.className = "dropdown-option px-4 py-2 cursor-pointer transition";
+        li.textContent = sub;
+        li.setAttribute("data-value", sub.toLowerCase());
+        li.addEventListener("click", () => {
+          subgenreSelected.textContent = sub;
+          subgenreInput.value = sub.toLowerCase();
+          subgenreOptions.classList.add("hidden");
+          subgenreButton.classList.add("selected-field");
+        });
+        subgenreOptions.appendChild(li);
+      });
+
+      subgenreSelected.textContent = "Select Subgenre";
+      subgenreInput.value = "";
+    }
+  });
+
+  subgenreButton.addEventListener("click", () => {
+    subgenreOptions.classList.toggle("hidden");
+  });
+
   document.addEventListener("click", (e) => {
-    if (!genreButton.contains(e.target) && !genreOptions.contains(e.target)) {
-      genreOptions.classList.add("hidden");
+    const genreButton = document.getElementById("genre-button");
+    if (!genreButton.contains(e.target) && !genreOptionsList.contains(e.target)) {
+      genreOptionsList.classList.add("hidden");
+    }
+    if (!subgenreButton.contains(e.target) && !subgenreOptions.contains(e.target)) {
+      subgenreOptions.classList.add("hidden");
     }
   });
 });
+
+
 
 // ==========================================================
 // 🔸 Dropdown Logic for Feedback Profile Selector

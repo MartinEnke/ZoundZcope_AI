@@ -14,16 +14,17 @@ client = OpenAI(
 
 #openai.api_key = os.getenv("OPENAI_API_KEY")
 
-def generate_feedback_prompt(genre: str, type: str, analysis_data: dict, feedback_profile: str) -> str:
+def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data: dict, feedback_profile: str) -> str:
     # Normalize and sanitize inputs
     type = normalize_type(type)
     genre = normalize_genre(genre)
     feedback_profile = normalize_profile(feedback_profile)
+    subgenre = subgenre.strip().title() if subgenre else ""
 
     role_context = {
-        "mixdown": f"You are a professional **mixing engineer reviewing a mixdown** with deep knowledge of {genre} music.",
-        "mastering": f"You are a professional **mastering engineer giving mastering advice** for this mixdown with deep knowledge of {genre} music.",
-        "master": f"You are a professional **mastering engineer reviewing a finished master** to assess its quality with deep knowledge of {genre} music.",
+        "mixdown": f"You are a professional **mixing engineer reviewing a mixdown** with deep knowledge of {genre} music, and especially {subgenre} music.",
+        "mastering": f"You are a professional **mastering engineer giving mastering advice** for this mixdown with deep knowledge of {genre} music, and especially {subgenre} music.",
+        "master": f"You are a professional **mastering engineer reviewing a finished master** to assess its quality with deep knowledge of {genre} music, and especially {subgenre} music.",
     }
 
     profile_guidance = {
@@ -47,7 +48,7 @@ def generate_feedback_prompt(genre: str, type: str, analysis_data: dict, feedbac
         )
     }
 
-    context = role_context.get(type, f"You are an audio engineer for {genre} music.")
+    context = role_context.get(type, f"You are an audio engineer for {genre} music, and especially {subgenre} music.")
     skill_hint = profile_guidance.get(feedback_profile, "")
 
     peak_warning = ""
@@ -78,8 +79,9 @@ def generate_feedback_prompt(genre: str, type: str, analysis_data: dict, feedbac
     {peak_warning}
 
     Your task:
-    Consider ESCPEACIALLY the relatiosnship between role context and genre.
-    Return exactly 2-3 bullet points, each one should:
+    Consider **especially** the relationship between role context and genre/subgenre.
+
+    Return exactly 2–3 bullet points, each one should:
     - Identify 1 issue clearly
     - Give a **concrete, genre-aware** improvement tip
     - Briefly explain **why** this advice helps, referencing the data or genre
@@ -87,6 +89,7 @@ def generate_feedback_prompt(genre: str, type: str, analysis_data: dict, feedbac
 
     Only return the bullet points in a clean, readable format.
     """
+
 
 
 def generate_feedback_response(prompt: str) -> str:
