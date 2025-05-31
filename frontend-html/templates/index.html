@@ -234,8 +234,14 @@
   </div>
   <div id="aiFollowupResponse" class="mt-4 text-white/90 text-sm space-y-2 hidden"></div>
 </div>
+        <div id="waveform-wrapper" class="space-y-2">
 
-        <div id="waveform" style="margin-top: 20px;"></div>
+
+          <div id="waveform" style="margin-top: 20px;"></div>
+
+</div>
+
+
 
 <div id="rms-display">Current RMS: -- dB</div>
 
@@ -259,32 +265,18 @@
   </div>
 </section>
 </main>
+<script>
+  window.trackPath = "{{ track_path }}";  // Make sure this gets rendered dynamically
+</script>
 
 <!-- Load WaveSurfer FIRST -->
 <script src="https://unpkg.com/wavesurfer.js"></script>
 
-<!-- THEN this -->
-<script>
-  const wavesurfer = WaveSurfer.create({
-    container: '#waveform',
-    waveColor: '#a0a0a0',
-    progressColor: '#2196f3',
-    height: 100,
-    responsive: true
-  });
-
-  wavesurfer.on('ready', () => {
-    console.log("✅ WaveSurfer loaded successfully");
-  });
-
-  wavesurfer.on('audioprocess', () => {
-    const rms = wavesurfer.getVolume();
-    document.getElementById('rms-display').innerText = `Current RMS: ${(rms * -20).toFixed(2)} dB`;
-  });
-</script>
-
-<!-- Main app logic (after WaveSurfer) -->
+<!-- Your main app logic -->
 <script src="/static/app.js"></script>
+
+<!-- Your new waveform logic -->
+<script src="/static/waveform-logic.js"></script>
 </body>
 </html>
 
