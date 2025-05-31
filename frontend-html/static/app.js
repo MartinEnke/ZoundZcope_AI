@@ -611,6 +611,9 @@ form.addEventListener("submit", async (e) => {
   const analyzeButton = form.querySelector('button[type="submit"]');
   const formData = new FormData(form);
 
+  const type = document.getElementById("type-input")?.value;
+    console.log("📤 Submitting type:", type);
+ 
   const sessionIdInput = document.getElementById("session_id");
   const newSessionInput = document.getElementById("new-session-input");
   const isNewSession = !newSessionInput.classList.contains("hidden");
@@ -714,14 +717,25 @@ form.addEventListener("submit", async (e) => {
       feedbackBox.classList.add("pulsing-feedback");
 
       const trackType = result.type?.toLowerCase();
-      const subheading = document.createElement("p");
-      subheading.className = trackType === "mixdown"
-        ? "text-pink-400 text-lg font-semibold"
-        : "text-blue-400 text-lg font-semibold";
-      subheading.textContent = trackType === "mixdown"
-        ? "Mixdown Suggestions:"
-        : "Mastering Advice:";
-      feedbackBox.appendChild(subheading);
+console.log("🎯 Received trackType:", trackType);
+
+const subheading = document.createElement("p");
+subheading.className = "text-lg font-semibold";
+
+if (trackType === "mixdown") {
+  subheading.classList.add("text-pink-400");
+  subheading.textContent = "Mixdown Suggestions:";
+} else if (trackType === "mastering") {
+  subheading.classList.add("text-blue-400");
+  subheading.textContent = "Mastering Suggestions:";
+} else if (trackType === "master") {
+  subheading.classList.add("text-blue-400");
+  subheading.textContent = "Master Review:";
+} else {
+  subheading.classList.add("text-white/70");
+  subheading.textContent = "AI Feedback:";
+}
+feedbackBox.appendChild(subheading);
 
       const ul = document.createElement("ul");
       ul.className = "list-disc list-inside mt-2 text-white/90 space-y-1";

@@ -37,7 +37,7 @@ def upload_audio(
     # 🧼 Normalize user input
     genre = normalize_genre(genre)
     subgenre = subgenre.strip() if subgenre else ""
-    type = normalize_type(type)
+    type = type.strip().lower()
     feedback_profile = normalize_profile(feedback_profile)
 
     try:
