@@ -405,7 +405,7 @@ document.addEventListener("DOMContentLoaded", () => {
     pop: ["Electropop", "Dance Pop", "Indie Pop", "Synthpop", "Teen Pop", "Pop Rock", "K-Pop", "J-Pop", "Art Pop", "Power Pop"],
     rock: ["Classic Rock", "Alternative Rock", "Hard Rock", "Indie Rock", "Progressive Rock", "Psychedelic Rock", "Garage Rock", "Blues Rock", "Punk Rock", "Grunge"],
     hiphop: ["Trap", "Boom Bap", "Gangsta Rap", "Lo-fi Hip Hop", "Crunk", "Cloud Rap", "East Coast", "West Coast", "Drill", "Mumble Rap"],
-    indie: ["Indie Rock", "Indie Pop", "Indie Folk", "Indietronica", "Lo-fi Indie", "Dream Pop", "Shoegaze", "Chamber Pop", "Baroque Pop", "Folk Rock"],
+    indie: ["Indie Rock", "Indie Pop", "Indie Folk", "Indietronica", "Lo-fi Indie", "Dream Pop", "Shoegaze", "Chamber Pop", "Baroque Pop"],
     punk: ["Hardcore Punk", "Post-Punk", "Pop Punk", "Garage Punk", "Oi!", "Skate Punk", "Anarcho-Punk", "Crust Punk", "Street Punk", "Queercore"],
     metal: ["Heavy Metal", "Death Metal", "Black Metal", "Thrash Metal", "Doom Metal", "Power Metal", "Symphonic Metal", "Progressive Metal", "Metalcore", "Nu Metal"],
     jazz: ["Smooth Jazz", "Bebop", "Cool Jazz", "Swing", "Fusion", "Free Jazz", "Latin Jazz", "Gypsy Jazz", "Modal Jazz", "Vocal Jazz"],
@@ -427,6 +427,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const subgenreOptions = document.getElementById("subgenre-options");
   const subgenreInput = document.getElementById("subgenre-input");
   const subgenreSelected = document.getElementById("subgenre-selected");
+  const customSubgenreInput = document.getElementById("custom-subgenre-input");
 
   // Populate genre list
   Object.keys(subgenres).forEach(genre => {
@@ -437,12 +438,10 @@ document.addEventListener("DOMContentLoaded", () => {
     genreOptionsList.appendChild(li);
   });
 
-  // Show genre options
   document.getElementById("genre-button").addEventListener("click", () => {
     genreOptionsList.classList.toggle("hidden");
   });
 
-  // Handle genre selection
   genreOptionsList.addEventListener("click", (e) => {
     if (e.target.tagName === "LI") {
       const genreKey = e.target.getAttribute("data-value");
@@ -454,6 +453,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Show subgenre options
       subgenreOptions.innerHTML = "";
+
+      // Add "Enter Subgenre" first
+      const enterSubgenre = document.createElement("li");
+      enterSubgenre.textContent = "Enter Subgenre";
+      enterSubgenre.className = "dropdown-option px-4 py-2 cursor-pointer hover:bg-purple-500/10 transition text-purple-300";
+      enterSubgenre.addEventListener("click", () => {
+        subgenreSelected.textContent = "Custom Subgenre";
+        subgenreInput.value = "";
+        subgenreOptions.classList.add("hidden");
+        customSubgenreInput.classList.remove("hidden");
+      });
+      subgenreOptions.appendChild(enterSubgenre);
+
       subgenres[genreKey].forEach(sub => {
         const li = document.createElement("li");
         li.className = "dropdown-option px-4 py-2 cursor-pointer transition";
@@ -464,12 +476,14 @@ document.addEventListener("DOMContentLoaded", () => {
           subgenreInput.value = sub.toLowerCase();
           subgenreOptions.classList.add("hidden");
           subgenreButton.classList.add("selected-field");
+          customSubgenreInput.classList.add("hidden");
         });
         subgenreOptions.appendChild(li);
       });
 
       subgenreSelected.textContent = "Select Subgenre";
       subgenreInput.value = "";
+      customSubgenreInput.classList.add("hidden");
     }
   });
 
@@ -478,8 +492,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.addEventListener("click", (e) => {
-    const genreButton = document.getElementById("genre-button");
-    if (!genreButton.contains(e.target) && !genreOptionsList.contains(e.target)) {
+    if (!document.getElementById("genre-button").contains(e.target) && !genreOptionsList.contains(e.target)) {
       genreOptionsList.classList.add("hidden");
     }
     if (!subgenreButton.contains(e.target) && !subgenreOptions.contains(e.target)) {
@@ -651,6 +664,19 @@ form.addEventListener("submit", async (e) => {
 
   const feedbackProfile = document.getElementById("profile-input").value;
   const customTrackName = document.getElementById("track_name").value.trim();
+  // Set genre (always from dropdown)
+const selectedGenre = document.getElementById("genre-input").value;
+formData.set("genre", selectedGenre);
+
+// Set subgenre: prefer custom if filled
+const customSubgenre = document.getElementById("custom-subgenre-input").value.trim();
+if (customSubgenre) {
+  formData.set("subgenre", customSubgenre.toLowerCase());
+} else {
+  const selectedSubgenre = document.getElementById("subgenre-input").value;
+  formData.set("subgenre", selectedSubgenre);
+}
+
   const fileInput = document.getElementById("file-upload");
 
   let finalTrackName = customTrackName;
