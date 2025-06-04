@@ -109,8 +109,8 @@ def describe_low_end_profile(ratio: float, genre: str = None) -> str:
             return "Very heavy low-end – could overwhelm mids/highs or translate poorly."
 
 
-def describe_spectral_balance(band_energies: dict) -> str:
-    # Simplify keys for easier math
+def describe_spectral_balance(band_energies: dict, genre: str = "electronic") -> str:
+    # Collapse to simple groups
     sub = band_energies.get("sub", 0)
     low = band_energies.get("low", 0)
     low_mid = band_energies.get("low-mid", 0)
@@ -120,20 +120,42 @@ def describe_spectral_balance(band_energies: dict) -> str:
     air = band_energies.get("air", 0)
 
     lows = sub + low
-    highs = high + air
     mids = low_mid + mid + high_mid
+    highs = high + air
 
-    # Use ratios to describe balance
-    if highs > 0.35 and highs > mids and highs > lows:
-        return "High frequencies dominate. May sound bright or harsh."
-    elif lows > 0.35 and lows > mids and lows > highs:
-        return "Low frequencies dominate. May sound muddy or boomy."
-    elif mids > 0.4 and mids > highs and mids > lows:
-        return "Mid frequencies dominate. May sound boxy or honky."
-    elif 0.25 < highs < 0.35 and 0.25 < lows < 0.35:
-        return "Spectral balance appears fairly even across lows, mids, and highs."
-    else:
-        return "Unusual spectral balance. Further inspection may be needed."
+    genre = genre.lower()
+
+    if genre in {"electronic", "hiphop", "rnb"}:
+        if lows > 0.45:
+            return "Low frequencies are prominent, which is typical for bass-driven genres."
+        elif highs > 0.4:
+            return "Highs are quite prominent. Ensure the brightness doesn't overshadow the bass foundation."
+        elif mids > 0.45:
+            return "Mid frequencies are dominating — could be boxy or nasal for this style."
+        else:
+            return "Spectral balance appears within expected range for bass-heavy styles."
+
+    elif genre in {"pop", "rock", "indie", "reggae", "funk", "soul", "classic"}:
+        if highs > 0.4:
+            return "Highs dominate slightly. Consider if the mix feels overly bright."
+        elif lows > 0.4:
+            return "Lows are quite strong — check for muddiness."
+        elif mids > 0.45:
+            return "Mids are strong. Could sound rich, or slightly congested."
+        else:
+            return "Spectral balance seems fairly even for a balanced genre."
+
+    elif genre in {"punk", "metal", "jazz", "country", "folk"}:
+        if highs > 0.45:
+            return "Highs dominate, which is common in raw or live-sounding genres."
+        elif mids > 0.5:
+            return "Strong midrange presence — possibly boxy, but typical for this style."
+        elif lows > 0.3:
+            return "Low end is notable, which is less typical for this genre."
+        else:
+            return "Spectral balance looks neutral for this genre."
+
+    return "Spectral balance analyzed, but genre could not be matched precisely."
 
 
 def compute_windowed_rms_db(y_mono, sr, window_duration=0.5):
@@ -300,7 +322,7 @@ def analyze_audio(file_path, genre=None):
         bass_profile = "bass heavy"
 
     band_energies = compute_band_energies(S, freqs)
-    spectral_description = describe_spectral_balance(band_energies)
+    spectral_description = describe_spectral_balance(band_energies, genre=genre)
 
     return {
         "peak_db": f"{peak_db:.2f}",
@@ -313,7 +335,6 @@ def analyze_audio(file_path, genre=None):
         "stereo_width_ratio": f"{width_ratio:.2f}",
         "stereo_width": stereo_width_label,
         "low_end_energy_ratio": f"{normalized_low_end:.2f}",
-        "bass_profile": bass_profile,
         "low_end_description": low_end_description,
         "band_energies": json.dumps(band_energies),
         "spectral_balance_description": spectral_description,

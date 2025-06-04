@@ -141,6 +141,8 @@ def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data
 ### Context
 {context}
 
+- **Respect the genre context**. F.e. only suggest reducing bass if clearly excessive relative to the genre’s typical sound.
+
 ### Communication Style
 {communication_style}
 
@@ -154,9 +156,8 @@ def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data
 - Spectral balance note: {analysis_data['spectral_balance_description']}
 - Dynamic range: {analysis_data['dynamic_range']}
 - Stereo width: {analysis_data['stereo_width']}
-- Bass profile: {analysis_data['bass_profile']} ({analysis_data['low_end_energy_ratio']})
-  {analysis_data.get('low_end_description', '')}
-- Band energies: {json.dumps(analysis_data['band_energies'], indent=2)}
+- Bass profile: {analysis_data.get('low_end_description', '')}
+  (Genre: {genre} — please consider if the low-end level suits this genre’s typical sound.)
 {peak_warning}
 
 ### Reasoning Step
