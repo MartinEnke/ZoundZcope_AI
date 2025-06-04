@@ -56,7 +56,7 @@ def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data
 
 
     context = ROLE_CONTEXTS[type].format(genre=genre, subgenre=subgenre)
-    skill_hint = PROFILE_GUIDANCE.get(feedback_profile, "")
+    skill_hint = PROFILE_GUIDANCE[feedback_profile]
 
     peak_warning = ""
     if analysis_data.get("peak_issue_explanation"):
@@ -72,7 +72,6 @@ def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data
 
 ### Track Analysis Data
 - Peak: {analysis_data['peak_db']} dB
-- RMS Avg: {analysis_data['rms_db_avg']} dB
 - RMS Peak: {analysis_data['rms_db_peak']} dB
 - LUFS: {analysis_data['lufs']}
 - Avg Transient Strength: {analysis_data['avg_transient_strength']}
@@ -81,27 +80,38 @@ def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data
 - Spectral balance note: {analysis_data['spectral_balance_description']}
 - Dynamic range: {analysis_data['dynamic_range']}
 - Stereo width: {analysis_data['stereo_width']}
-- Key: {analysis_data['key']}
-- Tempo: {analysis_data['tempo']} BPM
 - Bass profile: {analysis_data['bass_profile']} ({analysis_data['low_end_energy_ratio']})
   {analysis_data.get('low_end_description', '')}
 - Band energies: {json.dumps(analysis_data['band_energies'], indent=2)}
 {peak_warning}
 
-### Instructions
-Return exactly 2–3 bullet points, each of which must:
-- Identify one clear issue
-- Suggest a **genre-aware**, specific improvement
-- Briefly explain **why** the advice is useful, referencing the data or genre
-- Use 2–3 sentences per bullet point
+### Reasoning Step
+Before writing the bullet points, briefly reflect on what stands out from the analysis data.
+Write 2–3 sentences summarizing key characteristics or concerns about the mix (this part will not be shown to the user).
 
-⚠️ Do not include a title, greeting, summary, or closing line.
-### Format
-Each bullet must follow this structure:
-- **Issue**: Clearly state what stands out and why it's important
-- **Improvement**: Offer a specific tip, ideally with plugin/method suggestions
-- Keep each bullet short and focused (2–3 sentences)
+### Bullet Point Feedback
+Now return exactly 2–3 bullet points.
 
+Each bullet must:
+- Begin with **"Issue"**: Describe one specific problem or standout feature
+- Follow with **"Improvement"**: Offer a genre-aware, actionable suggestion (can mention plugins or techniques)
+- Be short and focused (2–3 sentences total)
+- Briefly explain **why** the improvement is helpful, referencing the analysis or genre
+
+⚠️ Do **not** include a title, greeting, summary, or closing line.
+
+#### Example Output:
+- **Issue**: The RMS Level doesn't match the standard for a mixdown of this {genre}.  
+  **Improvement**: Aim for around -15 dB RMS to preserve headroom for mastering. 
+  This helps the final master stay loud and punchy, especially in {subgenre}.
+
+- **Issue**: The low end feels muddy and lacks punch, especially in the kick.  
+  **Improvement**: Try tightening the low-end with a high-pass filter around 30Hz and consider sidechaining the bass. 
+  This enhances clarity, especially for {subgenre}'s fast rhythm sections.
+
+- **Issue**: The stereo field feels too narrow for a typical {genre} track.  
+  **Improvement**: Widen the mix by enhancing stereo imaging on synth layers using mid-side EQ or subtle chorus. 
+  This adds spaciousness common in modern {subgenre} tracks.
 """
 
 

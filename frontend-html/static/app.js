@@ -626,7 +626,7 @@ form.addEventListener("submit", async (e) => {
 
   const type = document.getElementById("type-input")?.value;
     console.log("📤 Submitting type:", type);
- 
+
   const sessionIdInput = document.getElementById("session_id");
   const newSessionInput = document.getElementById("new-session-input");
   const isNewSession = !newSessionInput.classList.contains("hidden");
