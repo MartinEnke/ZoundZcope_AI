@@ -66,7 +66,8 @@ def upload_audio(
         compute_rms_chunks(file_location, json_output_path=str(rms_output_path))
         print("✅ RMS saved to:", rms_output_path)
 
-        analysis = analyze_audio(file_location)
+        analysis = analyze_audio(file_location, genre=genre)
+
 
         db = SessionLocal()
 

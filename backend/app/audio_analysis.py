@@ -59,17 +59,54 @@ def compute_band_energies(S, freqs):
     return band_energies
 
 
-def describe_low_end_profile(ratio):
-    if ratio < 0.05:
-        return "Very light bass presence – the low-end might feel thin."
-    elif ratio < 0.10:
-        return "Light low-end – possibly lacking warmth or weight."
-    elif ratio < 0.20:
-        return "Balanced low-end – generally acceptable for most genres."
-    elif ratio < 0.35:
-        return "Bass-forward – might be powerful but risks mud in dense mixes."
+def describe_low_end_profile(ratio: float, genre: str = None) -> str:
+    genre = (genre or "").lower()
+
+    # Bass-driven genres
+    bass_driven = {"electronic", "hiphop", "rnb"}
+
+    # Balanced genres
+    balanced = {"pop", "rock", "indie", "reggae", "funk", "soul", "classic"}
+
+    # Less bass-driven
+    less_bassy = {"punk", "metal", "jazz", "country", "folk"}
+
+    if genre in bass_driven:
+        if ratio < 0.08:
+            return "Low-end is light for this genre. Consider boosting sub or bass instruments."
+        elif ratio < 0.18:
+            return "Low-end feels balanced for bass-driven music."
+        else:
+            return "Very bass-forward – may be genre-appropriate, but check for muddiness or masking."
+
+    elif genre in balanced:
+        if ratio < 0.05:
+            return "Low-end is light – might sound thin or lacking foundation."
+        elif ratio < 0.12:
+            return "Low-end seems balanced and appropriate."
+        else:
+            return "Heavy low-end – could muddy the mix unless intentionally bass-heavy."
+
+    elif genre in less_bassy:
+        if ratio < 0.03:
+            return "Low-end is very light – could sound thin but may suit this genre."
+        elif ratio < 0.08:
+            return "Low-end seems balanced for this style."
+        else:
+            return "Low-end is heavy for this genre – might overwhelm the mids/highs."
+
+    # Fallback if genre is unknown
     else:
-        return "Very heavy low-end – could overwhelm mids/highs or translate poorly."
+        if ratio < 0.05:
+            return "Very light bass presence – the low-end might feel thin."
+        elif ratio < 0.10:
+            return "Light low-end – possibly lacking warmth or weight."
+        elif ratio < 0.20:
+            return "Balanced low-end – generally acceptable for most genres."
+        elif ratio < 0.35:
+            return "Bass-forward – might be powerful but risks mud in dense mixes."
+        else:
+            return "Very heavy low-end – could overwhelm mids/highs or translate poorly."
 
 
 def describe_spectral_balance(band_energies: dict) -> str:
@@ -179,7 +216,7 @@ def generate_peak_issues_description(peak_db: float):
     return issues, " ".join(explanation_parts)
 
 
-def analyze_audio(file_path):
+def analyze_audio(file_path, genre=None):
     y, sr = librosa.load(file_path, mono=False)
     print(f"y shape: {y.shape}, ndim: {y.ndim}")
 
@@ -253,7 +290,7 @@ def analyze_audio(file_path):
     low_end_mask = freqs <= 150
     low_end_energy = np.sum(S[low_end_mask])
     normalized_low_end = low_end_energy / (total_energy + 1e-9)
-    low_end_description = describe_low_end_profile(normalized_low_end)
+    low_end_description = describe_low_end_profile(normalized_low_end, genre=genre)
 
     if normalized_low_end < 0.1:
         bass_profile = "light"
