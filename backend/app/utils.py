@@ -1,5 +1,6 @@
 import re
 import html
+import os
 
 # Allowed values (adjust as needed)
 ALLOWED_TYPES = {"mixdown", "mastering", "master"}
@@ -14,6 +15,25 @@ def sanitize_input(input_str: str) -> str:
     if not isinstance(input_str, str):
         return ""
     return re.sub(r"\s+", " ", input_str.strip())[:100]
+
+def normalize_session_name(name: str) -> str:
+    """
+    Sanitize user-provided session name:
+    - Trim whitespace
+    - Allow only letters, numbers, spaces, dashes, and underscores
+    - Truncate to 60 characters
+    - Escape HTML for safety in prompts/UI
+    """
+    if not isinstance(name, str):
+        return ""
+    name = name.strip()
+    name = re.sub(r"[^\w\s\-]", "", name)  # Keep alphanumeric, space, dash, underscore
+    name = name[:60]
+    return html.escape(name)
+
+def safe_track_name(name, fallback_filename):
+    name = name.strip() if name else ""
+    return name if name and name.lower() != "string" else os.path.splitext(fallback_filename)[0]
 
 def normalize_type(input_str: str) -> str:
     """Sanitize and validate track type."""

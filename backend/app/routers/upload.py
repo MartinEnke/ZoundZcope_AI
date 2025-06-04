@@ -7,7 +7,7 @@ from app.audio_analysis import analyze_audio
 from typing import Optional
 from fastapi.responses import JSONResponse
 from app.gpt_utils import generate_feedback_prompt, generate_feedback_response
-from app.utils import normalize_type, normalize_profile, normalize_genre
+from app.utils import normalize_session_name, normalize_profile, normalize_genre, normalize_subgenre, safe_track_name
 from app.analysis_rms_chunks import compute_rms_chunks
 import time
 from pathlib import Path
@@ -28,16 +28,19 @@ def get_db():
 def upload_audio(
     file: UploadFile = File(...),
     session_id: str = Form(...),
-    track_name: Optional[str] = Form(default=None, description="Leave blank to use filename"),
+    session_name: Optional[str] = Form(default="Untitled Session"),
+    track_name: Optional[str] = Form(default=None),
     type: str = Form(...),
     genre: str = Form(...),
     subgenre: Optional[str] = Form(default=None),
     feedback_profile: str = Form(...),
 ):
     # 🧼 Normalize user input
-    genre = normalize_genre(genre)
-    subgenre = subgenre.strip() if subgenre else ""
+    session_id = normalize_session_name(session_id)
+    session_name = normalize_session_name(session_name)
     type = type.strip().lower()
+    genre = normalize_genre(genre)
+    subgenre = normalize_subgenre(subgenre) if subgenre else ""
     feedback_profile = normalize_profile(feedback_profile)
 
     try:
@@ -69,13 +72,11 @@ def upload_audio(
 
         existing_session = db.query(UserSession).filter(UserSession.id == session_id).first()
         if not existing_session:
-            new_session = UserSession(id=session_id, user_id=1, session_name="Untitled Session")
+            new_session = UserSession(id=session_id, user_id=1, session_name=session_name)
             db.add(new_session)
             db.commit()
 
-        track_name = track_name.strip() if track_name else None
-        if not track_name or track_name.lower() == "string":
-            track_name = os.path.splitext(file.filename)[0]
+        track_name = safe_track_name(track_name, file.filename)
 
         track = Track(
             session_id=session_id,

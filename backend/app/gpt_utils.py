@@ -41,24 +41,18 @@ PROFILE_GUIDANCE = {
     ),
 }
 
-TONE_REMINDER = {
-    "simple": "Your tone should be friendly and intuitive, like explaining music to a curious beginner.",
-    "detailed": "Your tone should assume basic knowledge of audio production and be slightly technical but still accessible.",
-    "pro": "Your tone should be professional and technical, assuming deep expertise in music production.",
-}
-
 FORMAT_RULES = {
     "simple": """
 Each bullet must:
-- Start with **"Issue"**: Describe in plain language what feels off or unusual in the sound.
-- Follow with **"Improvement"**: Suggest a simple, actionable fix without technical terms.
+- Start with **"Issue"**: Describe in plain but friendly language what feels off or unusual in the sound.
+- Follow with **"Improvement"**: Suggest friendly a simple, actionable fix without technical terms.
 - Use 1–2 short, friendly sentences.
 - Briefly say why the suggestion might help, using intuitive, listener-friendly terms.
 """,
 
     "detailed": """
 Each bullet must:
-- Begin with **"Issue"**: Describe a clear mix/mastering issue using basic production terms.
+- Begin with **"Issue"**: Describe friendly a clear mix/mastering issue using basic production terms.
 - Follow with **"Improvement"**: Suggest an actionable tip (e.g., EQ, reverb, compression) with a short reason why.
 - Use 2–3 clear sentences.
 - Reference analysis data or genre norms when helpful.
@@ -66,9 +60,9 @@ Each bullet must:
 
     "pro": """
 Each bullet must:
-- Start with **"Issue"**: Use technical language to precisely identify the issue.
+- Start with **"Issue"**: Use technical but friendly language to precisely identify the issue.
 - Follow with **"Improvement"**: Provide a targeted, technique-based recommendation (e.g., transient shaping, multiband sidechaining).
-- Keep it sharp and focused: 2–3 dense, information-rich sentences.
+- Keep it sharp and focused: 2–3 dense, information-rich but friendly sentences.
 - Justify the advice based on analysis or genre expectations.
 """
 }
@@ -128,15 +122,16 @@ def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data
     if feedback_profile not in PROFILE_GUIDANCE:
         raise ValueError(f"Unknown feedback_profile: {feedback_profile}")
 
-
-    context = ROLE_CONTEXTS[type].format(genre=genre, subgenre=subgenre)
+    context = ROLE_CONTEXTS[type].format(
+        genre=html.escape(genre),
+        subgenre=html.escape(subgenre)
+    )
     communication_style = PROFILE_GUIDANCE[feedback_profile]
 
     peak_warning = ""
     if analysis_data.get("peak_issue_explanation"):
         peak_warning = f"\n⚠️ Peak warning: {analysis_data['peak_issue_explanation']}\n"
 
-    tone_reminder = TONE_REMINDER.get(feedback_profile, "")
     format_rule = FORMAT_RULES.get(feedback_profile, FORMAT_RULES["detailed"])
 
     example_output = EXAMPLE_OUTPUTS.get(feedback_profile, "")
@@ -195,9 +190,10 @@ def generate_feedback_response(prompt: str) -> str:
 def generate_followup_response(analysis_text: str, feedback_text: str, user_question: str) -> str:
     # Sanitize follow-up question
     user_question = user_question.strip()
-    user_question = user_question.replace("\n", " ")  # avoid prompt injection tricks
-    user_question = re.sub(r"[^\w\s.,!?@&$()\-+=:;\'\"/]", "", user_question)  # scrub suspicious chars
-    user_question = html.escape(user_question)[:300]  # escape HTML and truncate
+    user_question = user_question.replace("\n", " ")  # avoids prompt injection tricks
+    user_question = re.sub(r"[^\w\s.,!?@&$()\-+=:;\'\"/]", "", user_question)  # scrubs suspicious chars
+    user_question = html.escape(user_question)  # Converts characters like <, >, &, " into their HTML-safe equivalents
+    user_question = user_question[:400]  # truncates to 400 chars
 
     combined_prompt = f"""
 You are a helpful and professional **audio engineer assistant**.
