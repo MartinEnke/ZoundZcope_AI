@@ -30,10 +30,14 @@ function typeText(targetElement, text, speed = 10) {
 
 
 // ==========================================================
-// 🔁 Ask AI Follow-Up Logic
+// 🔁 Ask AI Follow-Up Logic with Threading + Summarization
 // ==========================================================
+let followupThread = [];        // Stores current thread of 5 Q&As
+let followupGroupIndex = 0;     // Tracks the group number per analysis
+
 document.getElementById("askAIButton").addEventListener("click", async () => {
-  const question = document.getElementById("customQuestion").value.trim();
+  const questionInput = document.getElementById("customQuestion");
+  const question = questionInput.value.trim();
   const outputBox = document.getElementById("aiFollowupResponse");
 
   if (!question) {
@@ -41,66 +45,97 @@ document.getElementById("askAIButton").addEventListener("click", async () => {
     return;
   }
 
-  // Prepare prompt with existing feedback + question
+  const analysis = document.getElementById("analysisOutput")?.innerText || "";
   const feedback = document.getElementById("gptResponse")?.innerText || "";
-  const metrics = document.getElementById("analysisOutput")?.innerText || "";
 
-  // UI loading state
   outputBox.classList.remove("hidden");
-  outputBox.innerHTML = "<p class='text-white/60 italic'>Thinking...</p>";
+  outputBox.innerHTML += `<p class='text-white/60 italic'>Thinking...</p>`;
 
   try {
     const res = await fetch("/chat/ask-followup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        analysis_text: metrics,
+        analysis_text: analysis,
         feedback_text: feedback,
         user_question: question,
         session_id: document.getElementById("session_id").value,
         track_id: document.getElementById("track-select")?.value || "",
         feedback_profile: document.getElementById("profile-input")?.value || "",
-      }),
+        followup_group: followupGroupIndex
+      })
     });
 
     const data = await res.json();
-    outputBox.innerHTML = `<p>${data.answer}</p>`;
+    const answer = data.answer;
 
-    // ✅ Save follow-up to localStorage
-    localStorage.setItem("zoundzcope_last_followup", outputBox.innerHTML);
+    // Display Q&A
+    outputBox.innerHTML += `<p><strong>Q:</strong> ${question}<br><strong>A:</strong> ${answer}</p>`;
 
+    // Track current thread
+    followupThread.push({ question, answer });
+
+    // Save to localStorage history
     try {
-  const raw = localStorage.getItem("zoundzcope_history") || "[]";
-  const history = JSON.parse(raw);
-
-  if (history.length > 0) {
-    // Ensure followup is an array
-    if (!Array.isArray(history[0].followup)) {
-      history[0].followup = history[0].followup
-        ? [history[0].followup]
-        : [];
+      const raw = localStorage.getItem("zoundzcope_history") || "[]";
+      const history = JSON.parse(raw);
+      if (history.length > 0) {
+        if (!Array.isArray(history[0].followup)) {
+          history[0].followup = history[0].followup ? [history[0].followup] : [];
+        }
+        history[0].followup.push(`<p><strong>Q:</strong> ${question}<br><strong>A:</strong> ${answer}</p>`);
+        localStorage.setItem("zoundzcope_history", JSON.stringify(history));
+      }
+    } catch (err) {
+      console.error("❌ Failed to store follow-up in history:", err);
     }
 
-    // Add the new follow-up if it's not already in
-    if (!history[0].followup.includes(outputBox.innerHTML)) {
-      history[0].followup.push(outputBox.innerHTML);
+    // Check if it's time to summarize
+    if (followupThread.length >= 5) {
+      await summarizeFollowupThread();
+      followupThread = [];
+      followupGroupIndex++;
     }
 
-    localStorage.setItem("zoundzcope_history", JSON.stringify(history));
-  }
-} catch (err) {
-  console.error("❌ Failed to store follow-up in history:", err);
-}
-
-
-    // ✅ Save follow-up to localStorage
+    // Clear input
+    questionInput.value = "";
     localStorage.setItem("zoundzcope_last_followup", outputBox.innerHTML);
-
   } catch (err) {
-    console.error("Follow-up failed:", err);
-    outputBox.innerHTML = "<p class='text-red-400'>Something went wrong. Try again.</p>";
+    console.error("❌ Follow-up failed:", err);
+    outputBox.innerHTML += `<p class='text-red-400'>Something went wrong. Try again.</p>`;
   }
 });
+
+// ==========================================================
+// 🧠 Summarize Last 5 Follow-Ups
+// ==========================================================
+async function summarizeFollowupThread() {
+  try {
+    const res = await fetch("/chat/summarize-thread", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_id: document.getElementById("session_id").value,
+        track_id: document.getElementById("track-select")?.value || "",
+        followup_group: followupGroupIndex
+      })
+    });
+
+    const data = await res.json();
+    const summary = data.summary;
+
+    const summaryEl = document.createElement("div");
+    summaryEl.className = "bg-white/10 text-white/90 p-4 rounded-lg mt-4";
+    summaryEl.innerHTML = `<p><strong>Thread Summary:</strong></p><p>${summary}</p>`;
+
+    document.getElementById("aiFollowupResponse").appendChild(summaryEl);
+
+    // Optionally save summary in localStorage
+    localStorage.setItem("zoundzcope_last_followup_summary", summaryEl.outerHTML);
+  } catch (err) {
+    console.error("❌ Failed to summarize follow-up thread:", err);
+  }
+}
 
 // ==========================================================
 // 💡 Smart Predefined Follow-Up Buttons (Based on Context)

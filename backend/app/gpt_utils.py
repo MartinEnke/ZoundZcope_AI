@@ -189,16 +189,19 @@ def generate_feedback_response(prompt: str) -> str:
     return response.choices[0].message.content.strip()
 
 
-def generate_followup_response(analysis_text: str, feedback_text: str, user_question: str) -> str:
+def generate_followup_response(analysis_text: str, feedback_text: str, user_question: str, thread_summary: str = "") -> str:
     # Sanitize follow-up question
     user_question = user_question.strip()
-    user_question = user_question.replace("\n", " ")  # avoids prompt injection tricks
-    user_question = re.sub(r"[^\w\s.,!?@&$()\-+=:;\'\"/]", "", user_question)  # scrubs suspicious chars
-    user_question = html.escape(user_question)  # Converts characters like <, >, &, " into their HTML-safe equivalents
-    user_question = user_question[:400]  # truncates to 400 chars
+    user_question = user_question.replace("\n", " ")
+    user_question = re.sub(r"[^\w\s.,!?@&$()\-+=:;\'\"/]", "", user_question)
+    user_question = html.escape(user_question)
+    user_question = user_question[:400]
 
+    # Compose full prompt with optional thread summary
     combined_prompt = f"""
 You are a helpful and professional **audio engineer assistant**.
+
+{"### Summary of Previous Conversation\n" + thread_summary + "\n" if thread_summary else ""}
 
 ### Track Analysis
 {analysis_text}
@@ -210,18 +213,19 @@ You are a helpful and professional **audio engineer assistant**.
 "{user_question}"
 
 ### Instructions
-- Use the analysis and feedback above as context.
-- Answer the user's follow-up clearly and concisely.
+- Use the analysis, feedback, and summary above as context.
 - Do **not** repeat the full analysis or feedback.
-- If the question is unclear, do your best to interpret it based on the feedback and analysis.
+- Answer the follow-up clearly and concisely.
+- Stay on topic and be technically helpful.
+- If the question is vague, use the existing context to infer intent.
 
 Respond below:
 """
+
     print("💬 Sending follow-up prompt:\n", combined_prompt)
 
     response = client.chat.completions.create(
-        model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+        model="gpt-4o-mini",
         messages=[{"role": "user", "content": combined_prompt}]
     )
     return response.choices[0].message.content.strip()
-
