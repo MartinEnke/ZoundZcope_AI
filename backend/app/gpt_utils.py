@@ -190,15 +190,14 @@ def generate_feedback_response(prompt: str) -> str:
 
 
 def generate_followup_response(analysis_text: str, feedback_text: str, user_question: str, thread_summary: str = "") -> str:
-    # Sanitize follow-up question
-    user_question = user_question.strip()
-    user_question = user_question.replace("\n", " ")
-    user_question = re.sub(r"[^\w\s.,!?@&$()\-+=:;\'\"/]", "", user_question)
-    user_question = html.escape(user_question)
-    user_question = user_question[:400]
+    prompt = build_followup_prompt(analysis_text, feedback_text, user_question, thread_summary)
+    return generate_feedback_response(prompt)
 
-    # Compose full prompt with optional thread summary
-    combined_prompt = f"""
+
+def build_followup_prompt(analysis_text: str, feedback_text: str, user_question: str, thread_summary: str = "") -> str:
+    user_question = re.sub(r"[^\w\s.,!?@&$()\-+=:;\'\"/]", "", user_question.strip())[:400]
+    user_question = html.escape(user_question)
+    return f"""
 You are a helpful and professional **audio engineer assistant**.
 
 {"### Summary of Previous Conversation\n" + thread_summary + "\n" if thread_summary else ""}
@@ -221,11 +220,3 @@ You are a helpful and professional **audio engineer assistant**.
 
 Respond below:
 """
-
-    print("💬 Sending follow-up prompt:\n", combined_prompt)
-
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": combined_prompt}]
-    )
-    return response.choices[0].message.content.strip()

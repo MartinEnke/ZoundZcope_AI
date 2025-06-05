@@ -2,7 +2,7 @@ from fastapi import APIRouter, Form, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import Track, AnalysisResult, ChatMessage
-from app.gpt_utils import generate_feedback_prompt, generate_feedback_response, generate_followup_response
+from app.gpt_utils import generate_feedback_prompt, generate_feedback_response, build_followup_prompt
 import json
 from pydantic import BaseModel
 from app.utils import normalize_type, normalize_genre, normalize_profile
@@ -115,12 +115,13 @@ Please respond concisely and helpfully, based on the previous context.
 """
 
     try:
-        ai_response = generate_followup_response(
+        prompt = build_followup_prompt(
             analysis_text=req.analysis_text,
             feedback_text=req.feedback_text,
             user_question=user_question,
-            thread_summary=summary_text  # <- now context-aware
+            thread_summary=summary_text
         )
+        ai_response = generate_feedback_response(prompt)
     except Exception as e:
         print("❌ GPT call failed:", e)
         raise HTTPException(status_code=500, detail="AI follow-up failed")
