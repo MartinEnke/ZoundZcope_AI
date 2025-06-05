@@ -79,7 +79,7 @@ def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
     profile = normalize_profile(req.feedback_profile)
     user_question = req.user_question.strip()
 
-    # 🔍 Include previous thread summary if this is not the first group
+    # 🔍 Include summary from previous thread if applicable
     summary_text = ""
     if req.followup_group > 0:
         summary_msg = (
@@ -97,36 +97,21 @@ def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
         if summary_msg:
             summary_text = summary_msg.message
 
-    # 🧠 Build AI prompt with summary + original analysis + feedback + user question
-    combined_prompt = f"""
-You are an intelligent audio assistant helping a mastering engineer.
-
-{"Here is a summary of the previous conversation:\n" + summary_text + "\n\n" if summary_text else ""}
-This is the original track analysis:
-{req.analysis_text}
-
-This was the first feedback:
-{req.feedback_text}
-
-User's follow-up question:
-"{user_question}"
-
-Please respond concisely and helpfully, based on the previous context.
-"""
+    # ✅ Use shared builder + response generator
+    prompt = build_followup_prompt(
+        analysis_text=req.analysis_text,
+        feedback_text=req.feedback_text,
+        user_question=user_question,
+        thread_summary=summary_text
+    )
 
     try:
-        prompt = build_followup_prompt(
-            analysis_text=req.analysis_text,
-            feedback_text=req.feedback_text,
-            user_question=user_question,
-            thread_summary=summary_text
-        )
         ai_response = generate_feedback_response(prompt)
     except Exception as e:
         print("❌ GPT call failed:", e)
         raise HTTPException(status_code=500, detail="AI follow-up failed")
 
-    # Save user question
+    # Save user message
     user_msg = ChatMessage(
         session_id=req.session_id,
         track_id=req.track_id,
@@ -137,7 +122,7 @@ Please respond concisely and helpfully, based on the previous context.
     )
     db.add(user_msg)
 
-    # Save assistant answer
+    # Save AI response
     assistant_msg = ChatMessage(
         session_id=req.session_id,
         track_id=req.track_id,
