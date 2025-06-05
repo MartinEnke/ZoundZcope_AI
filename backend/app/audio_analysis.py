@@ -62,51 +62,53 @@ def compute_band_energies(S, freqs):
 def describe_low_end_profile(ratio: float, genre: str = None) -> str:
     genre = (genre or "").lower()
 
-    # Bass-driven genres
     bass_driven = {"electronic", "hiphop", "rnb"}
-
-    # Balanced genres
     balanced = {"pop", "rock", "indie", "reggae", "funk", "soul", "classic"}
-
-    # Less bass-driven
     less_bassy = {"punk", "metal", "jazz", "country", "folk"}
 
     if genre in bass_driven:
         if ratio < 0.08:
-            return "Low-end is light for this genre. Consider boosting sub or bass instruments."
-        elif ratio < 0.18:
-            return "Low-end feels balanced for bass-driven music."
+            return f"Low-end is light for {genre}. Consider boosting the bass or sub for fullness."
+        elif ratio < 0.28:
+            return f"Low-end feels balanced for bass-driven music."
+        elif ratio < 0.45:
+            return f"Low-end is elevated — still genre-typical. No changes needed unless masking is audible."
         else:
-            return "Very bass-forward – may be genre-appropriate, but check for muddiness or masking."
+            return f"Low-end is very strong — double-check clarity in the sub region."
 
     elif genre in balanced:
         if ratio < 0.05:
-            return "Low-end is light – might sound thin or lacking foundation."
-        elif ratio < 0.12:
-            return "Low-end seems balanced and appropriate."
+            return f"Low-end is light — may sound thin or underpowered for {genre}."
+        elif ratio < 0.20:
+            return f"Low-end feels appropriate and balanced for this style."
+        elif ratio < 0.35:
+            return f"Low-end is strong — possibly a stylistic choice, but check for mud or masking."
         else:
-            return "Heavy low-end – could muddy the mix unless intentionally bass-heavy."
+            return f"Low-end is very heavy — could overwhelm mids or make the mix feel boomy."
 
     elif genre in less_bassy:
         if ratio < 0.03:
-            return "Low-end is very light – could sound thin but may suit this genre."
-        elif ratio < 0.08:
-            return "Low-end seems balanced for this style."
+            return f"Low-end is very light — likely appropriate for {genre}."
+        elif ratio < 0.12:
+            return f"Low-end feels balanced and controlled for this genre."
+        elif ratio < 0.25:
+            return f"Low-end is on the heavier side — may still work, but ensure it doesn't obscure midrange clarity."
         else:
-            return "Low-end is heavy for this genre – might overwhelm the mids/highs."
+            return f"Low-end is unusually strong for {genre} — might overpower vocals or acoustic instruments."
 
-    # Fallback if genre is unknown
     else:
+        # Fallback for unknown genres
         if ratio < 0.05:
-            return "Very light bass presence – the low-end might feel thin."
-        elif ratio < 0.10:
-            return "Light low-end – possibly lacking warmth or weight."
-        elif ratio < 0.20:
-            return "Balanced low-end – generally acceptable for most genres."
-        elif ratio < 0.35:
-            return "Bass-forward – might be powerful but risks mud in dense mixes."
+            return "Low-end is very light — might feel thin unless intentional."
+        elif ratio < 0.15:
+            return "Low-end is on the light side, but may be fine for minimal or acoustic styles."
+        elif ratio < 0.30:
+            return "Low-end appears balanced — acceptable for many genres."
+        elif ratio < 0.45:
+            return "Low-end is strong — stylistic, but check for muddiness."
         else:
-            return "Very heavy low-end – could overwhelm mids/highs or translate poorly."
+            return "Low-end is very dominant — could overwhelm mids or cause translation issues."
+
 
 
 def describe_spectral_balance(band_energies: dict, genre: str = "electronic") -> str:
@@ -126,34 +128,38 @@ def describe_spectral_balance(band_energies: dict, genre: str = "electronic") ->
     genre = genre.lower()
 
     if genre in {"electronic", "hiphop", "rnb"}:
-        if lows > 0.45:
-            return "Low frequencies are prominent, which is typical for bass-driven genres."
-        elif highs > 0.4:
-            return "Highs are quite prominent. Ensure the brightness doesn't overshadow the bass foundation."
-        elif mids > 0.45:
-            return "Mid frequencies are dominating — could be boxy or nasal for this style."
+        if lows > 0.75:
+            return "Low-end is very strong — often genre-typical, but worth a clarity check."
+        elif lows > 0.55:
+            return "Low end is prominent, which is typical for this genre. No action needed unless masking is audible."
+        elif mids > 0.5:
+            return "Mid frequencies dominate — may sound boxy or congested for this genre."
+        elif highs > 0.35:
+            return "Highs are bright — ensure they don’t make the mix feel harsh or distract from the bass foundation."
         else:
-            return "Spectral balance appears within expected range for bass-heavy styles."
+            return "Spectral balance appears well suited for a bass-driven style."
 
     elif genre in {"pop", "rock", "indie", "reggae", "funk", "soul", "classic"}:
-        if highs > 0.4:
-            return "Highs dominate slightly. Consider if the mix feels overly bright."
-        elif lows > 0.4:
-            return "Lows are quite strong — check for muddiness."
-        elif mids > 0.45:
-            return "Mids are strong. Could sound rich, or slightly congested."
+        if lows > 0.6:
+            return "Low end is strong — may be stylistic, but check for any mud or masking."
+        elif lows > 0.45:
+            return "Low end is moderately elevated — still acceptable depending on artistic intent."
+        elif mids > 0.5:
+            return "Midrange is quite strong — might sound rich, or a bit crowded."
+        elif highs > 0.45:
+            return "Highs are crisp — could add brilliance, or cause sharpness if overdone."
         else:
-            return "Spectral balance seems fairly even for a balanced genre."
+            return "Spectral balance is fairly even and typical for a balanced genre."
 
     elif genre in {"punk", "metal", "jazz", "country", "folk"}:
-        if highs > 0.45:
-            return "Highs dominate, which is common in raw or live-sounding genres."
-        elif mids > 0.5:
-            return "Strong midrange presence — possibly boxy, but typical for this style."
-        elif lows > 0.3:
-            return "Low end is notable, which is less typical for this genre."
+        if lows > 0.50:
+            return "Low end is elevated — uncommon in this genre, so check for rumble or mud."
+        elif mids > 0.55:
+            return "Midrange is dominant — can sound raw or aggressive, which fits this style."
+        elif highs > 0.5:
+            return "Highs are very pronounced — this can be typical but may fatigue the ear."
         else:
-            return "Spectral balance looks neutral for this genre."
+            return "Spectral balance looks appropriate for a mid/high-forward genre."
 
     return "Spectral balance analyzed, but genre could not be matched precisely."
 

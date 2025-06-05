@@ -153,6 +153,7 @@ def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data
 - Avg Transient Strength: {analysis_data['avg_transient_strength']}
 - Max Transient Strength: {analysis_data['max_transient_strength']}
 - Transients: {analysis_data['transient_description']}
+🎵 If low-end is flagged as strong but typical for the genre, do NOT treat it as a problem unless masking, muddiness, or translation concerns are clearly implied.
 - Spectral balance note: {analysis_data['spectral_balance_description']}
 - Dynamic range: {analysis_data['dynamic_range']}
 - Stereo width: {analysis_data['stereo_width']}

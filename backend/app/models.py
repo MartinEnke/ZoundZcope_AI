@@ -55,7 +55,7 @@ class AnalysisResult(Base):
 
     low_end_energy_ratio = Column(Float)
     low_end_description = Column(String)
-    bass_profile = Column(String)
+
     band_energies = Column(String)  # JSON string like '{"low": 10.1, ...}'
     spectral_balance_description = Column(String)
     issues = Column(Text)  # JSON string like '["clipping", "bass masking"]'

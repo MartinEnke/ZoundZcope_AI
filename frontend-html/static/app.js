@@ -730,7 +730,6 @@ if (customSubgenre) {
     <p><strong>LUFS:</strong> ${r(a.lufs)} LUFS</p>
     <p><strong>Dynamic Range:</strong> ${r(a.dynamic_range)} dB</p>
     <p><strong>Stereo Width:</strong> ${a.stereo_width}</p>
-    <p><strong>Bass Profile:</strong> ${a.bass_profile}</p>
     <p class="md:col-span-2"><strong>Low-End:</strong> ${a.low_end_description}</p>
     <p class="md:col-span-2"><strong>Spectral Balance:</strong> ${a.spectral_balance_description}</p>
     <div class="md:col-span-2">
