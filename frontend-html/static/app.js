@@ -49,7 +49,10 @@ document.getElementById("askAIButton").addEventListener("click", async () => {
   const feedback = document.getElementById("gptResponse")?.innerText || "";
 
   outputBox.classList.remove("hidden");
-  outputBox.innerHTML += `<p class='text-white/60 italic'>Thinking...</p>`;
+  const thinkingEl = document.createElement("p");
+thinkingEl.className = "mt-4 italic text-pink-400 text-opacity-80 animate-pulse";
+thinkingEl.textContent = "Thinking...";
+outputBox.appendChild(thinkingEl);
 
   try {
     const res = await fetch("/chat/ask-followup", {
@@ -68,7 +71,8 @@ document.getElementById("askAIButton").addEventListener("click", async () => {
 
     const data = await res.json();
     const answer = data.answer;
-
+    thinkingEl.classList.remove("animate-pulse");
+    thinkingEl.innerHTML = `<span class="text-blue-400 text-lg">➤</span>`;
     // Display Q&A
     outputBox.innerHTML += `<p><strong>Q:</strong> ${question}<br><strong>A:</strong> ${answer}</p>`;
 
@@ -91,7 +95,7 @@ document.getElementById("askAIButton").addEventListener("click", async () => {
     }
 
     // Check if it's time to summarize
-    if (followupThread.length >= 5) {
+    if (followupThread.length >= 3) {
       await summarizeFollowupThread();
       followupThread = [];
       followupGroupIndex++;
@@ -126,7 +130,14 @@ async function summarizeFollowupThread() {
 
     const summaryEl = document.createElement("div");
     summaryEl.className = "bg-white/10 text-white/90 p-4 rounded-lg mt-4";
-    summaryEl.innerHTML = `<p><strong>Thread Summary:</strong></p><p>${summary}</p>`;
+    summaryEl.innerHTML = `
+  <p class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 font-bold text-lg mb-2">
+    Thread Summary
+  </p>
+  <p class="text-white text-base leading-relaxed">
+    ${summary}
+  </p>
+`;
 
     document.getElementById("aiFollowupResponse").appendChild(summaryEl);
 

@@ -9,10 +9,10 @@ import re
 
 
 print("DEBUG: ENV KEY =", os.getenv("OPENAI_API_KEY"))
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-# client = OpenAI(
-#     base_url="https://api.together.xyz/v1",  # You can still use Together
-# )
+# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(
+    base_url="https://api.together.xyz/v1",  # You can still use Together
+)
 
 #openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -178,14 +178,14 @@ Now return exactly 2–3 bullet points.
 
 def generate_feedback_response(prompt: str) -> str:
     print("🔍 Prompt being sent to GPT:\n", prompt)
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}]
-    )
     # response = client.chat.completions.create(
-    #     model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+    #     model="gpt-4o-mini",
     #     messages=[{"role": "user", "content": prompt}]
     # )
+    response = client.chat.completions.create(
+        model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+        messages=[{"role": "user", "content": prompt}]
+    )
     return response.choices[0].message.content.strip()
 
 
