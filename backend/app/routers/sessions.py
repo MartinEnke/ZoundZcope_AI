@@ -62,75 +62,83 @@ def get_tracks_for_session(
     sort_order: str = Query(default="desc", enum=["asc", "desc"]),
     db: Session = Depends(get_db)
 ):
-    print("Fetching tracks for session ID:", id)
-    session = db.query(UserSession).filter(UserSession.id == id).first()
-    if not session:
-        print("⚠️ No session found!")
-        raise HTTPException(status_code=404, detail="Session not found")
+    try:
+        print(f"🟡 Looking up session ID: {id}")
+        session = db.query(UserSession).filter(UserSession.id == id).first()
+        if not session:
+            print("⚠️ No session found for that ID.")
+            raise HTTPException(status_code=404, detail="Session not found")
 
-    # ✅ FIX: Use correct ID for feedback query
-    feedback_lookup = {
-        msg.track_id: msg.message
-        for msg in db.query(ChatMessage)
-        .filter(ChatMessage.session_id == id, ChatMessage.sender == "assistant", ChatMessage.track_id != None)
-        .order_by(ChatMessage.timestamp.desc())
-        .all()
-    }
 
-    query = db.query(Track).filter(Track.session_id == id)
+        # ✅ FIX: Use correct ID for feedback query
+        feedback_lookup = {
+            msg.track_id: msg.message
+            for msg in db.query(ChatMessage)
+            .filter(ChatMessage.session_id == id, ChatMessage.sender == "assistant", ChatMessage.track_id != None)
+            .order_by(ChatMessage.timestamp.desc())
+            .all()
+        }
 
-    if type:
-        query = query.filter(Track.type.ilike(type))
-    if track_name:
-        query = query.filter(Track.track_name.ilike(f"%{track_name}%"))
+        query = db.query(Track).filter(Track.session_id == id)
 
-    if sort_by == "uploaded_at":
-        query = query.order_by(Track.uploaded_at.desc() if sort_order == "desc" else Track.uploaded_at.asc())
-    else:
-        query = query.order_by(Track.track_name.desc() if sort_order == "desc" else Track.track_name.asc())
+        if type:
+            query = query.filter(Track.type.ilike(type))
+        if track_name:
+            query = query.filter(Track.track_name.ilike(f"%{track_name}%"))
 
-    tracks = query.all()
+        if sort_by == "uploaded_at":
+            query = query.order_by(Track.uploaded_at.desc() if sort_order == "desc" else Track.uploaded_at.asc())
+        else:
+            query = query.order_by(Track.track_name.desc() if sort_order == "desc" else Track.track_name.asc())
 
-    result = []
-    for track in tracks:
-        analysis_data = None
-        if track.analysis:
-            try:
-                band_energies = json.loads(track.analysis.band_energies)
-            except:
-                band_energies = {}
+        tracks = query.all()
 
-            try:
-                issues = json.loads(track.analysis.issues)
-            except:
-                issues = []
+        result = []
+        for track in tracks:
+            band_energies = {}
+            issues = []
+            analysis_data = None
 
-            analysis_data = {
-                "peak_db": track.analysis.peak_db,
-                "rms_db": track.analysis.rms_db_peak,
-                "lufs": track.analysis.lufs,
-                "dynamic_range": track.analysis.dynamic_range,
-                "stereo_width_ratio": track.analysis.stereo_width_ratio,
-                "stereo_width": track.analysis.stereo_width,
-                "key": track.analysis.key,
-                "tempo": track.analysis.tempo,
-                "low_end_energy_ratio": track.analysis.low_end_energy_ratio,
-                "bass_profile": track.analysis.bass_profile,
-                "band_energies": band_energies,
-                "issues": issues
-            }
+            if track.analysis:
+                try:
+                    band_energies = json.loads(track.analysis.band_energies or "{}")
+                except Exception as e:
+                    print(f"⚠️ Failed to parse band_energies for track {track.id}: {e}")
 
-        result.append({
-            "id": track.id,
-            "track_name": track.track_name,
-            "type": track.type,
-            "file_path": track.file_path,
-            "uploaded_at": track.uploaded_at,
-            "analysis": analysis_data,
-            "feedback": feedback_lookup.get(track.id, "")
-        })
+                try:
+                    issues = json.loads(track.analysis.issues or "[]")
+                except Exception as e:
+                    print(f"⚠️ Failed to parse issues for track {track.id}: {e}")
 
-    return result
+                analysis_data = {
+                    "peak_db": track.analysis.peak_db,
+                    "rms_db": track.analysis.rms_db_peak,
+                    "lufs": track.analysis.lufs,
+                    "dynamic_range": track.analysis.dynamic_range,
+                    "stereo_width_ratio": track.analysis.stereo_width_ratio,
+                    "stereo_width": track.analysis.stereo_width,
+                    "key": track.analysis.key,
+                    "tempo": track.analysis.tempo,
+                    "low_end_energy_ratio": track.analysis.low_end_energy_ratio,
+                    "band_energies": band_energies,
+                    "issues": issues,
+                }
+
+            result.append({
+                "id": track.id,
+                "track_name": track.track_name,
+                "type": track.type,
+                "file_path": track.file_path,
+                "uploaded_at": track.uploaded_at,
+                "analysis": analysis_data,
+                "feedback": feedback_lookup.get(track.id, "")
+            })
+
+        return result
+
+    except Exception as e:
+        print("❌ INTERNAL ERROR in /sessions/{id}/tracks:", e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.put("/{id}")

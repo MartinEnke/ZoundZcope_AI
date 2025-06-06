@@ -40,11 +40,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       trackDropdown.innerHTML = '<option value="">Choose Track</option>';
       tracks.forEach(track => {
-        const opt = document.createElement("option");
-        opt.value = track.id;
-        opt.textContent = track.track_name || "Untitled Track";
-        trackDropdown.appendChild(opt);
-      });
+  const opt = document.createElement("option");
+  opt.value = track.id;
+  opt.textContent = track.track_name || "Unnamed Track";
+  opt.dataset.track = JSON.stringify(track); // ✅ required for chat display
+  trackDropdown.appendChild(opt); // ✅ FIXED
+});
 
       trackDropdown.disabled = false;
     } catch (err) {
@@ -86,12 +87,12 @@ async function loadSessionTracks(sessionId) {
     } else {
       dropdown.innerHTML = `<option value="">Select a track...</option>`;
       tracks.forEach(track => {
-        const opt = document.createElement("option");
-        opt.value = track.id;
-        opt.textContent = track.track_name || "Unnamed Track";
-        opt.dataset.track = JSON.stringify(track); // ✅ required for chat display
-        trackDropdown.appendChild(opt);
-      });
+  const opt = document.createElement("option");
+  opt.value = track.id;
+  opt.textContent = track.track_name || "Unnamed Track";
+  opt.dataset.track = JSON.stringify(track); // ✅ required for chat display
+  dropdown.appendChild(opt); // ✅ FIXED
+});
     }
 
     dropdownContainer.classList.remove("hidden");
@@ -449,100 +450,128 @@ async function loadManageSection() {
       sessionHeader.append(sessionTitleWrap, sessionControls);
       sessionDiv.appendChild(sessionHeader);
 
+
+
+
+
+
+
+
+
+
+
+
+
       const trackList = document.createElement("ul");
-      trackList.className = "ml-4 space-y-1 text-sm";
+  trackList.className = "ml-4 space-y-1 text-sm";
 
-      const isOpen = openSessionIds.includes(String(session.id));
-
-if (isOpen) {
-  trackList.classList.remove("hidden");
-  arrow.classList.add("rotate-90");
-} else {
-  trackList.classList.add("hidden");
-  arrow.classList.remove("rotate-90");
-}
-
-
-      sessionTitleWrap.addEventListener("click", () => {
-  if (justClosedDropdown) return;
-
-  const currentlyOpen = !trackList.classList.contains("hidden");
-  const sessionIdStr = String(session.id);
-  let updatedList;
-
-  if (currentlyOpen) {
+  const isOpen = openSessionIds.includes(String(session.id));
+  if (isOpen) {
+    trackList.classList.remove("hidden");
+    arrow.classList.add("rotate-90");
+  } else {
     trackList.classList.add("hidden");
     arrow.classList.remove("rotate-90");
-    updatedList = openSessionIds.filter(id => String(id) !== sessionIdStr);
+  }
+
+  // 🟡 Load tracks for this session
+  let tracks = [];
+  try {
+    const trackRes = await fetch(`/sessions/${session.id}/tracks`);
+    const raw = await trackRes.text();
+    try {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) throw new Error("Not an array");
+      tracks = parsed;
+    } catch (err) {
+      console.error(`💥 Error parsing tracks for session ${session.id}:`, err, raw);
+      continue; // Skip this session
+    }
+  } catch (fetchErr) {
+    console.error(`❌ Network error fetching tracks for session ${session.id}:`, fetchErr);
+    continue; // Skip this session
+  }
+
+  // ✅ Now tracks is a safe array
+  for (const track of tracks) {
+    const trackItem = document.createElement("li");
+    trackItem.className = "track-hover-row flex items-center justify-between px-2 py-1 relative z-10 rounded-md";
+    trackItem.setAttribute("data-track-item", track.id);
+
+    const trackName = document.createElement("span");
+    trackName.className = "track-name";
+    trackName.textContent = track.track_name;
+
+    // ✏️ Rename button
+    const trackRenameBtn = document.createElement("button");
+    trackRenameBtn.textContent = "Edit";
+    trackRenameBtn.className = "track-edit-btn hidden md:block px-2 py-0.5 text-xs rounded-full text-white bg-white/10 border border-white/20 hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
+    trackRenameBtn.addEventListener("mouseenter", () => trackName.classList.add("text-green-400"));
+    trackRenameBtn.addEventListener("mouseleave", () => trackName.classList.remove("text-green-400"));
+    trackRenameBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const newName = prompt("Rename track:", track.track_name);
+      if (newName) renameTrack(track.id, newName, track.type);
+    });
+
+    // ❌ Delete button
+    const trackDeleteBtn = document.createElement("button");
+    trackDeleteBtn.textContent = "−";
+    trackDeleteBtn.className = "flex w-6 h-6 items-center justify-center rounded-full text-white bg-white/10 border border-white/20 hover:border-red-500 hover:bg-red-500/10 hover:text-white transition-all duration-200";
+    trackDeleteBtn.addEventListener("mouseenter", () => {
+      trackName.classList.remove("text-green-400");
+      trackName.classList.add("text-red-400", "red-hover");
+      trackItem.classList.add("suppress-edit-hover");
+    });
+    trackDeleteBtn.addEventListener("mouseleave", () => {
+      trackName.classList.remove("text-red-400", "red-hover");
+      trackItem.classList.remove("suppress-edit-hover");
+    });
+    trackDeleteBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (confirm("Delete this track?")) deleteTrack(track.id);
+    });
+
+    const trackControls = document.createElement("div");
+    trackControls.className = "flex items-center gap-2";
+    trackControls.append(trackRenameBtn, trackDeleteBtn);
+
+    trackItem.append(trackName, trackControls);
+    trackList.appendChild(trackItem);
+
+    trackItem.addEventListener("click", (e) => {
+      const isDelete = e.target.closest("button")?.textContent.trim() === "−";
+      const isMobileMenu = e.target.closest(".relative.md\\:hidden");
+      if (isDelete || isMobileMenu) return;
+
+      const newName = prompt("Rename track:", track.track_name);
+      if (newName) renameTrack(track.id, newName, track.type);
+    });
+  }
+
+  sessionDiv.appendChild(trackList);
+  container.appendChild(sessionDiv);
+
+  // After appending sessionDiv to container
+sessionTitleWrap.addEventListener("click", () => {
+  const isOpen = !trackList.classList.contains("hidden");
+  const openSessionIds = getOpenSessions();
+
+  if (isOpen) {
+    trackList.classList.add("hidden");
+    arrow.classList.remove("rotate-90");
+    saveOpenSessions(openSessionIds.filter(id => id !== String(session.id)));
   } else {
     trackList.classList.remove("hidden");
     arrow.classList.add("rotate-90");
-    updatedList = [...new Set([...openSessionIds.map(String), sessionIdStr])];
+    if (!openSessionIds.includes(String(session.id))) {
+      openSessionIds.push(String(session.id));
+    }
+    saveOpenSessions(openSessionIds);
   }
-
-  saveOpenSessions(updatedList);
 });
 
-      const tracksRes = await fetch(`/sessions/${session.id}/tracks`);
-      const tracks = await tracksRes.json();
-
-      for (const track of tracks) {
-        const trackItem = document.createElement("li");
-        trackItem.className = "track-hover-row flex items-center justify-between px-2 py-1 relative z-10 rounded-md";
-        trackItem.setAttribute("data-track-item", track.id);
-
-        const trackName = document.createElement("span");
-        trackName.className = "track-name";
-        trackName.textContent = track.track_name;
-
-        const trackRenameBtn = document.createElement("button");
-        trackRenameBtn.textContent = "Edit";
-        trackRenameBtn.className = "track-edit-btn hidden md:block px-2 py-0.5 text-xs rounded-full text-white bg-white/10 border border-white/20 hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
-        trackRenameBtn.addEventListener("mouseenter", () => trackName.classList.add("text-green-400"));
-        trackRenameBtn.addEventListener("mouseleave", () => trackName.classList.remove("text-green-400"));
-        trackRenameBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const newName = prompt("Rename track:", track.track_name);
-          if (newName) renameTrack(track.id, newName, track.type);
-        });
-
-        const trackDeleteBtn = document.createElement("button");
-        trackDeleteBtn.textContent = "−";
-        trackDeleteBtn.className = "flex w-6 h-6 items-center justify-center rounded-full text-white bg-white/10 border border-white/20 hover:border-red-500 hover:bg-red-500/10 hover:text-white transition-all duration-200";
-        trackDeleteBtn.addEventListener("mouseenter", () => {
-          trackName.classList.remove("text-green-400");
-          trackName.classList.add("text-red-400", "red-hover");
-          trackItem.classList.add("suppress-edit-hover");
-        });
-        trackDeleteBtn.addEventListener("mouseleave", () => {
-          trackName.classList.remove("text-red-400", "red-hover");
-          trackItem.classList.remove("suppress-edit-hover");
-        });
-        trackDeleteBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          if (confirm("Delete this track?")) deleteTrack(track.id);
-        });
-
-        const trackControls = document.createElement("div");
-        trackControls.className = "flex items-center gap-2";
-        trackControls.append(trackRenameBtn, trackDeleteBtn);
-
-        trackItem.append(trackName, trackControls);
-        trackList.appendChild(trackItem);
-
-        trackItem.addEventListener("click", (e) => {
-          const isDelete = e.target.closest("button")?.textContent.trim() === "−";
-          const isMobileMenu = e.target.closest(".relative.md\\:hidden");
-          if (isDelete || isMobileMenu) return;
-
-          const newName = prompt("Rename track:", track.track_name);
-          if (newName) renameTrack(track.id, newName, track.type);
-        });
-      }
-
-      sessionDiv.appendChild(trackList);
-      container.appendChild(sessionDiv);
-    }
+}
   } catch (err) {
     console.error("Failed to load manage section:", err);
   }
