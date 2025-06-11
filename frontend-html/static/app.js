@@ -95,11 +95,10 @@ outputBox.appendChild(thinkingEl);
     }
 
     // Check if it's time to summarize
-    if (followupThread.length >= 3) {
-      await summarizeFollowupThread();
-      followupThread = [];
-      followupGroupIndex++;
-    }
+    if (followupThread.length >= 4) {
+  followupGroupIndex++;
+  followupThread = [];  // No auto-summarize, just reset
+}
 
     // Clear input
     questionInput.value = "";
@@ -147,6 +146,48 @@ async function summarizeFollowupThread() {
     console.error("❌ Failed to summarize follow-up thread:", err);
   }
 }
+
+
+// ==========================================================
+// Manual Summarizer
+// ==========================================================
+document.getElementById("manualSummarizeBtn").addEventListener("click", async () => {
+  try {
+    const res = await fetch("/chat/summarize-thread", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_id: document.getElementById("session_id").value,
+        track_id: document.getElementById("track-select")?.value || "",
+        followup_group: followupGroupIndex
+      })
+    });
+
+    const data = await res.json();
+    const summary = data.summary;
+
+    const summaryEl = document.createElement("div");
+    summaryEl.className = "bg-white/10 text-white/90 p-4 rounded-lg mt-4";
+    summaryEl.innerHTML = `
+      <p class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 font-bold text-lg mb-2">
+        Thread Summary
+      </p>
+      <p class="text-white text-base leading-relaxed">
+        ${summary}
+      </p>
+    `;
+
+    document.getElementById("aiFollowupResponse").appendChild(summaryEl);
+    localStorage.setItem("zoundzcope_last_followup_summary", summaryEl.outerHTML);
+
+    // ✅ Reset thread after manual summary
+    followupGroupIndex++;
+    followupThread = [];
+
+  } catch (err) {
+    console.error("❌ Failed to summarize follow-up thread:", err);
+  }
+});
 
 // ==========================================================
 // 💡 Smart Predefined Follow-Up Buttons (Based on Context)

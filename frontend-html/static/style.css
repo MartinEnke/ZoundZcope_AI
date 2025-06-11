@@ -393,3 +393,41 @@ select.custom-dropdown:focus {
 }
 
 
+.summarize-thread-btn {
+  background: linear-gradient(90deg, #ff91cc, #91cfff);  /* pink to blue */
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  font-weight: 400;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0.5rem 1rem;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  margin-bottom: 0.25rem; /* 👈 tiny extra space below */
+}
+
+.summarize-thread-btn::before {
+  content: attr(data-text); /* duplicate text content */
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  color: #91cfff; /* blue */
+  background: none;
+  clip-path: inset(0 100% 0 0); /* fully hidden initially */
+  transition: clip-path 0.5s ease;
+  font-weight: inherit;
+  padding: 0.5rem 1rem;
+}
+
+.summarize-thread-btn:hover::before {
+  clip-path: inset(0 0 0 0); /* reveals from right to left */
+}
+
+.summarize-thread-btn:hover {
+  transform: scale(1.03);
+}
