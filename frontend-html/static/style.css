@@ -431,3 +431,19 @@ select.custom-dropdown:focus {
 .summarize-thread-btn:hover {
   transform: scale(1.03);
 }
+
+.pulsing {
+  animation: pulseGlow 1s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0% {
+    text-shadow: 0 0 4px #91cfff, 0 0 8px #ff91cc;
+  }
+  50% {
+    text-shadow: 0 0 10px #91cfff, 0 0 16px #ff91cc;
+  }
+  100% {
+    text-shadow: 0 0 4px #91cfff, 0 0 8px #ff91cc;
+  }
+}

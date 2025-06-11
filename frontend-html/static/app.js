@@ -35,6 +35,14 @@ function typeText(targetElement, text, speed = 10) {
 let followupThread = [];        // Stores current thread of 5 Q&As
 let followupGroupIndex = 0;     // Tracks the group number per analysis
 
+// ENTER TRIGGER
+document.getElementById("customQuestion").addEventListener("keydown", function (event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    document.getElementById("askAIButton").click();
+  }
+});
+
 document.getElementById("askAIButton").addEventListener("click", async () => {
   const questionInput = document.getElementById("customQuestion");
   const question = questionInput.value.trim();
@@ -152,6 +160,9 @@ async function summarizeFollowupThread() {
 // Manual Summarizer
 // ==========================================================
 document.getElementById("manualSummarizeBtn").addEventListener("click", async () => {
+  const button = document.getElementById("manualSummarizeBtn");
+  button.classList.add("pulsing"); // Start pulsing while loading
+
   try {
     const res = await fetch("/chat/summarize-thread", {
       method: "POST",
@@ -180,14 +191,17 @@ document.getElementById("manualSummarizeBtn").addEventListener("click", async ()
     document.getElementById("aiFollowupResponse").appendChild(summaryEl);
     localStorage.setItem("zoundzcope_last_followup_summary", summaryEl.outerHTML);
 
-    // ✅ Reset thread after manual summary
+    // ✅ Reset thread
     followupGroupIndex++;
     followupThread = [];
 
   } catch (err) {
     console.error("❌ Failed to summarize follow-up thread:", err);
+  } finally {
+    button.classList.remove("pulsing"); // Stop pulsing
   }
 });
+
 
 // ==========================================================
 // 💡 Smart Predefined Follow-Up Buttons (Based on Context)
@@ -704,6 +718,18 @@ const form = document.getElementById("uploadForm");
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  // 🔁 Immediately reset old waveform to avoid showing it during wait
+  const waveformDiv = document.getElementById("waveform");
+  if (waveformDiv) {
+    waveformDiv.innerHTML = "";
+    waveformDiv.classList.remove("waveform-playing");
+  }
+
+  if (window.wavesurfer) {
+    window.wavesurfer.destroy();
+    window.wavesurfer = null;
+  }
+
   localStorage.removeItem("zoundzcope_last_analysis");
   localStorage.removeItem("zoundzcope_last_feedback");
   localStorage.removeItem("zoundzcope_last_followup");
@@ -906,13 +932,7 @@ feedbackBox.appendChild(subheading);
 
 
       // 🎵 Load the newly uploaded track into WaveSurfer
-const waveformDiv = document.getElementById("waveform");
-waveformDiv.innerHTML = "";  // Clear previous waveform (if needed)
 
-// Destroy the old WaveSurfer instance if it exists
-if (window.wavesurfer) {
-  window.wavesurfer.destroy();
-}
 
 // Create new WaveSurfer instance globally
 window.wavesurfer = WaveSurfer.create({
@@ -949,6 +969,18 @@ fetch(result.rms_path)
 
 window.wavesurfer.on('ready', () => {
   console.log("✅ New track loaded into WaveSurfer");
+
+  const rmsDisplay = document.getElementById("rms-display");
+
+  // ✅ Now that waveform + RMS are ready, show initial RMS value
+  if (rmsChunks.length > 0) {
+    updateRMSDisplayAtTime(0); // Start at beginning
+  }
+
+  // ✅ Optional: show the RMS display if it's hidden
+  if (rmsDisplay) {
+    rmsDisplay.classList.remove("hidden");
+  }
 });
 
 
