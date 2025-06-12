@@ -447,3 +447,7 @@ select.custom-dropdown:focus {
     text-shadow: 0 0 4px #91cfff, 0 0 8px #ff91cc;
   }
 }
+
+.z-60 {
+  z-index: 60;
+}
