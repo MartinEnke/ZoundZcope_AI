@@ -673,12 +673,17 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================================
 // 🔸 File Upload Filename Preview
 // ==========================================================
-const fileInput = document.getElementById('file-upload');
-const fileNameSpan = document.getElementById('file-name');
-fileInput.addEventListener('change', () => {
-  fileNameSpan.textContent = fileInput.files.length > 0
-    ? fileInput.files[0].name
-    : 'Click to upload your track';
+document.addEventListener("DOMContentLoaded", () => {
+  const fileInput = document.getElementById("file-upload");
+  const fileNameSpan = document.getElementById("file-name");
+
+  if (fileInput && fileNameSpan) {
+    fileInput.addEventListener("change", () => {
+      fileNameSpan.textContent = fileInput.files.length > 0
+        ? fileInput.files[0].name
+        : "Click to upload your track";
+    });
+  }
 });
 
 // ==========================================================
@@ -777,7 +782,6 @@ form.addEventListener("submit", async (e) => {
   formData.set("session_id", sessionId);
 
   const feedbackProfile = document.getElementById("profile-input").value;
-  const customTrackName = document.getElementById("track_name").value.trim();
   // Set genre (always from dropdown)
 const selectedGenre = document.getElementById("genre-input").value;
 formData.set("genre", selectedGenre);
@@ -793,15 +797,16 @@ if (customSubgenre) {
 
   const fileInput = document.getElementById("file-upload");
 
-  let finalTrackName = customTrackName;
+  let finalTrackName = "Untitled Track";
 
-  if (!finalTrackName && fileInput && fileInput.files.length > 0) {
-    const fullName = fileInput.files[0].name;
-    finalTrackName = fullName.replace(/\.[^/.]+$/, "");
-  }
+if (fileInput && fileInput.files.length > 0) {
+  const fullName = fileInput.files[0].name;
+  finalTrackName = fullName.replace(/\.[^/.]+$/, "");
+}
 
+formData.set("track_name", finalTrackName);
   formData.set("feedback_profile", feedbackProfile);
-  formData.set("track_name", finalTrackName || "Untitled Track");
+
 
   try {
     const response = await fetch("/upload/", {

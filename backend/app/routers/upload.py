@@ -77,7 +77,8 @@ def upload_audio(
             db.add(new_session)
             db.commit()
 
-        track_name = safe_track_name(track_name, file.filename)
+        filename_without_ext = os.path.splitext(file.filename)[0]
+        track_name = safe_track_name(filename_without_ext, file.filename)
 
         track = Track(
             session_id=session_id,
