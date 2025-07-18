@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Form, Depends
+from fastapi import APIRouter, UploadFile, File, Form
 from sqlalchemy.orm import Session
 import shutil, os
 from app.database import SessionLocal
@@ -17,13 +17,6 @@ router = APIRouter()
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
 @router.post("/")
 def upload_audio(
     file: UploadFile = File(...),
@@ -36,7 +29,7 @@ def upload_audio(
     subgenre: Optional[str] = Form(default=None),
     feedback_profile: str = Form(...),
 ):
-    # 🧼 Normalize user input
+    # Normalize inputs
     session_id = normalize_session_name(session_id)
     session_name = normalize_session_name(session_name)
     type = type.strip().lower()
@@ -54,21 +47,28 @@ def upload_audio(
             "feedback_profile": feedback_profile
         })
 
+        # Save original track
         ext = os.path.splitext(file.filename)[1]
         timestamped_name = f"{int(time.time())}_{file.filename}"
         file_location = os.path.join(UPLOAD_FOLDER, timestamped_name)
-
         with open(file_location, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-            # Save reference track file if uploaded
-            ref_file_location = None
-            if ref_file:
-                ref_ext = os.path.splitext(ref_file.filename)[1]
-                ref_timestamped_name = f"{int(time.time())}_ref_{ref_file.filename}"
-                ref_file_location = os.path.join(UPLOAD_FOLDER, ref_timestamped_name)
-                with open(ref_file_location, "wb") as buffer:
-                    shutil.copyfileobj(ref_file.file, buffer)
+        # Save reference track if uploaded (temporary for analysis)
+        ref_file_location = None
+        ref_analysis = None
+        if ref_file:
+            ref_ext = os.path.splitext(ref_file.filename)[1]
+            ref_timestamped_name = f"{int(time.time())}_ref_{ref_file.filename}"
+            ref_file_location = os.path.join(UPLOAD_FOLDER, ref_timestamped_name)
+            with open(ref_file_location, "wb") as buffer:
+                shutil.copyfileobj(ref_file.file, buffer)
+
+            # Analyze reference track
+            ref_analysis = analyze_audio(ref_file_location, genre=genre)
+
+            # Optional: delete reference file after analysis if you don't want to keep it on disk
+            # os.remove(ref_file_location)
 
         BASE_DIR = Path(__file__).resolve().parents[3]
         rms_filename = f"{timestamped_name}_rms.json"
@@ -76,9 +76,10 @@ def upload_audio(
         compute_rms_chunks(file_location, json_output_path=str(rms_output_path))
         print("✅ RMS saved to:", rms_output_path)
 
+        # Analyze original track
         analysis = analyze_audio(file_location, genre=genre)
 
-
+        # Database operations
         db = SessionLocal()
 
         existing_session = db.query(UserSession).filter(UserSession.id == session_id).first()
@@ -88,7 +89,8 @@ def upload_audio(
             db.commit()
 
         filename_without_ext = os.path.splitext(file.filename)[0]
-        track_name = safe_track_name(filename_without_ext, file.filename)
+        safe_name = safe_track_name(filename_without_ext, file.filename)
+        track_name = track_name or safe_name
 
         track = Track(
             session_id=session_id,
@@ -104,15 +106,22 @@ def upload_audio(
         db.add(result)
         db.commit()
 
-        # Generate GPT feedback with full genre context
+        print("Analysis data for main track:", analysis)
+        if ref_file_location:
+            ref_analysis = analyze_audio(ref_file_location, genre=genre)
+            print("Reference track analysis data:", ref_analysis)
+        else:
+            ref_analysis = None
+
+        # Generate GPT feedback with both original and ref analysis
         prompt = generate_feedback_prompt(
             genre=genre,
             subgenre=subgenre,
             type=type,
             analysis_data=analysis,
-            feedback_profile=feedback_profile
+            feedback_profile=feedback_profile,
+            ref_analysis_data=ref_analysis  # pass ref analysis here
         )
-
 
         feedback = generate_feedback_response(prompt)
 
@@ -133,6 +142,7 @@ def upload_audio(
             "subgenre": subgenre,
             "type": type,
             "analysis": analysis,
+            "ref_analysis": ref_analysis,  # included in response
             "feedback": feedback,
             "track_path": f"/uploads/{timestamped_name}",
             "ref_track_path": f"/uploads/{ref_timestamped_name}" if ref_file else None,

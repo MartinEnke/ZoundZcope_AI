@@ -17,6 +17,9 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 #openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
+REFERENCE_TRACK_INSTRUCTION = """You will be provided with analysis data of both the submitted track and a professionally produced reference track. 
+                     "Carefully compare the submitted track to the reference track. 
+                     Prioritize highlighting differences and give concrete, actionable improvements grounded in these differences."""
 ROLE_CONTEXTS = {
     "mixdown": "You are a professional **mixing engineer reviewing a mixdown** with deep knowledge of {genre}, especially {subgenre}.",
     "mastering": "You are a professional **mastering engineer giving mastering advice** for this mixdown with deep knowledge of {genre}, especially {subgenre}.",
@@ -44,24 +47,24 @@ PROFILE_GUIDANCE = {
 FORMAT_RULES = {
     "simple": """
 Each bullet must:
-- Start with **"Issue"**: Describe in plain but friendly language what feels off or unusual in the sound.
-- Follow with **"Improvement"**: Suggest friendly a simple, actionable fix without technical terms.
+- Start with "ISSUE": Describe in plain but friendly language what feels off or unusual in the sound.
+- Follow with "IMPROVEMENT": Suggest friendly a simple, actionable fix without technical terms.
 - Use 1–2 short, friendly sentences.
 - Briefly say why the suggestion might help, using intuitive, listener-friendly terms.
 """,
 
     "detailed": """
 Each bullet must:
-- Begin with **"Issue"**: Describe friendly a clear mix/mastering issue using basic production terms.
-- Follow with **"Improvement"**: Suggest an actionable tip (e.g., EQ, reverb, compression) with a short reason why.
+- Begin with "ISSUE": Describe friendly a clear mix/mastering issue using basic production terms.
+- Follow with "IMPROVEMENT": Suggest an actionable tip (e.g., EQ, reverb, compression) with a short reason why.
 - Use 2–3 clear sentences.
 - Reference analysis data or genre norms when helpful.
 """,
 
     "pro": """
 Each bullet must:
-- Start with **"Issue"**: Use technical but friendly language to precisely identify the issue.
-- Follow with **"Improvement"**: Provide a targeted, technique-based recommendation (e.g., transient shaping, multiband sidechaining).
+- Start with "ISSUE": Use technical but friendly language to precisely identify the issue.
+- Follow with "IMPROVEMENT": Provide a targeted, technique-based recommendation (e.g., transient shaping, multiband sidechaining).
 - Keep it sharp and focused: 2–3 dense, information-rich but friendly sentences.
 - Justify the advice based on analysis or genre expectations.
 """
@@ -70,7 +73,7 @@ Each bullet must:
 EXAMPLE_OUTPUTS = {
     "simple": """
 #### Example Output:
-- **Issue**: The bass is too loud and makes the track feel heavy.
+- **Issue**: Compared to the reference track the bass is too loud and makes the track feel heavy.
   **Improvement**: Turn the bass down a little and check how it sounds with vocals. 
   This will help make everything clearer.
 
@@ -81,7 +84,7 @@ EXAMPLE_OUTPUTS = {
 
     "detailed": """
 #### Example Output:
-- **Issue**: The RMS Level doesn't match the standard for a mixdown of this {genre}.  
+- **Issue**: Compared to the reference track the RMS Level doesn't match the standard for a mixdown of this {genre}.  
   **Improvement**: Aim for around -15 dB RMS to preserve headroom for mastering. 
   This helps the final master stay loud and punchy, especially in {subgenre}.
   
@@ -95,9 +98,8 @@ EXAMPLE_OUTPUTS = {
 
     "pro": """
 #### Example Output:
-- **Issue**: The RMS Level doesn't match the standard for a master of this {genre}.  
-  **Improvement**: Aim for around -8 dB RMS to achieve {genre} typical loudness. 
-  This helps the final master stay loud and punchy, especially in {subgenre}.
+- - **Issue**: Compared to the reference track, your low-end feels less controlled and slightly muddy.
+  **Improvement**: Try applying a dynamic EQ to tighten the sub frequencies, similar to the clean bass in the reference track.
   
 - **Issue**: Excessive buildup around 100Hz is causing low-end smearing.
   **Improvement**: Use a dynamic EQ or sidechain-triggered low-shelf cut on the bass. 
@@ -110,7 +112,8 @@ EXAMPLE_OUTPUTS = {
 }
 
 
-def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data: dict, feedback_profile: str) -> str:
+def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data: dict, feedback_profile: str, ref_analysis_data: dict = None) -> str:
+
     type = normalize_type(type)
     if type not in ROLE_CONTEXTS:
         raise ValueError(f"Unknown type: {type}")
@@ -122,11 +125,28 @@ def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data
     if feedback_profile not in PROFILE_GUIDANCE:
         raise ValueError(f"Unknown feedback_profile: {feedback_profile}")
 
-    context = ROLE_CONTEXTS[type].format(
+    context = (
+            REFERENCE_TRACK_INSTRUCTION + "\n\n" + ROLE_CONTEXTS[type].format(
         genre=html.escape(genre),
         subgenre=html.escape(subgenre)
     )
+    )
     communication_style = PROFILE_GUIDANCE[feedback_profile]
+
+    # Add reference track data section if available
+    ref_section = ""
+    if ref_analysis_data:
+        ref_section = f"""
+    ### Reference Track Analysis (for comparison)
+    - Peak: {ref_analysis_data['peak_db']} dB
+    - RMS Peak: {ref_analysis_data['rms_db_peak']} dB
+    - LUFS: {ref_analysis_data['lufs']}
+    - Transients: {ref_analysis_data['transient_description']}
+    - Spectral balance note: {ref_analysis_data['spectral_balance_description']}
+    - Dynamic range: {ref_analysis_data['dynamic_range']}
+    - Stereo width: {ref_analysis_data['stereo_width']}
+    - Bass profile: {ref_analysis_data.get('low_end_description', '')}
+    """
 
     peak_warning = ""
     if analysis_data.get("peak_issue_explanation"):
@@ -159,9 +179,15 @@ def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data
 - Stereo width: {analysis_data['stereo_width']}
 - Bass profile: {analysis_data.get('low_end_description', '')}
   (Genre: {genre} — please consider if the low-end level suits this genre’s typical sound.)
+
+### REFERENCE TRACK
+Here is analysis data for the reference track. Use this data to inform your feedback and compare where appropriate.
+{ref_section}
+
 {peak_warning}
 
 ### Reasoning Step
+Use the reference track when provided as a benchmark to guide specific suggestions even when not typical for genre etc..
 Before writing the bullet points, briefly reflect on what stands out from the analysis data.
 Write 2–3 sentences summarizing key characteristics or concerns about the mix (this part will not be shown to the user).
 
