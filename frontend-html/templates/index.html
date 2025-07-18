@@ -59,6 +59,14 @@
               <input id="file-upload" name="file" type="file" accept="audio/*" class="hidden" required />
             </label>
 
+            <!-- Reference Track Upload -->
+<div class="mt-4">
+  <label for="ref-file-upload" class="milky-input flex items-center justify-between cursor-pointer transition hover:bg-white/20 hover:backdrop-blur-lg py-2">
+    <span id="ref-file-name" class="text-white/90 text-base">Choose Reference Track</span>
+    <input id="ref-file-upload" name="ref_file" type="file" accept="audio/*" class="hidden" />
+  </label>
+</div>
+
 
             <div id="session-dropdown-wrapper" class="relative">
   <input type="hidden" name="session_id" id="session_id">
@@ -237,9 +245,11 @@
   </div>
 </div>
         <div id="waveform-wrapper" class="space-y-2">
-
-
           <div id="waveform" style="margin-top: 20px;"></div>
+          <!-- Reference Track Waveform -->
+<div id="ref-waveform-wrapper" class="mt-2">
+  <div id="ref-waveform" style="height: 100px;"></div>
+</div>
 
 </div>
 

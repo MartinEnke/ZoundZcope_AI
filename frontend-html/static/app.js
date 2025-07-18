@@ -1,9 +1,71 @@
 // ✅ Cleaned version of your app.js with separate flat DOMContentLoaded blocks
 let rmsChunks = [];  // 👈 declare it globally
 const chunkDuration = 0.5;
+let refWavesurfer = null;
+let focusedWaveform = "main"; // "main" or "ref"
 
+// Your existing loadReferenceWaveform function here
+function loadReferenceWaveform() {
+  const refFileInput = document.getElementById("ref-file-upload");
+  const refWaveformContainer = document.getElementById("ref-waveform");
 
-console.log("✅ app.js loaded");
+  if (!refFileInput || !refWaveformContainer) return;
+
+  if (refFileInput.files.length === 0) {
+    if (refWavesurfer) {
+      refWavesurfer.destroy();
+      refWavesurfer = null;
+    }
+    refWaveformContainer.innerHTML = "";
+    return;
+  }
+
+  const file = refFileInput.files[0];
+  const fileURL = URL.createObjectURL(file);
+
+  if (refWavesurfer) {
+    refWavesurfer.destroy();
+  }
+
+  refWavesurfer = WaveSurfer.create({
+    container: "#ref-waveform",
+    waveColor: "#888",
+    progressColor: "#6b46c1",
+    height: 100,
+    responsive: true,
+  });
+
+  refWavesurfer.load(fileURL);
+
+  refWavesurfer.on("ready", () => {
+    console.log("✅ Reference track waveform loaded");
+
+    focusedWaveform = "ref";
+  console.log("Focused waveform set to reference (loadReferenceWaveform)");
+  });
+
+  // Pause main waveform if playing when ref starts playing
+  refWavesurfer.on("play", () => {
+    if (window.wavesurfer && window.wavesurfer.isPlaying()) {
+      window.wavesurfer.pause();
+    }
+    if (refWaveformContainer) {
+      refWaveformContainer.classList.add("waveform-playing");
+    }
+  });
+
+  refWavesurfer.on("pause", () => {
+    if (refWaveformContainer) {
+      refWaveformContainer.classList.remove("waveform-playing");
+    }
+  });
+
+  refWavesurfer.on("finish", () => {
+    if (refWaveformContainer) {
+      refWaveformContainer.classList.remove("waveform-playing");
+    }
+  });
+}
 
 // ==========================================================
 // 🔠 Text Animation: Type letter-by-letter
@@ -686,6 +748,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  const refFileInput = document.getElementById("ref-file-upload");
+  const refFileNameSpan = document.getElementById("ref-file-name");
+
+  if (refFileInput && refFileNameSpan) {
+    refFileInput.addEventListener("change", () => {
+      refFileNameSpan.textContent = refFileInput.files.length > 0
+        ? refFileInput.files[0].name
+        : "Choose Reference Track";
+      loadReferenceWaveform();
+    });
+  }
+});
 // ==========================================================
 // 🔁 Helper: Load Session Tracks After Upload
 // ==========================================================
@@ -806,6 +881,12 @@ if (fileInput && fileInput.files.length > 0) {
 
 formData.set("track_name", finalTrackName);
   formData.set("feedback_profile", feedbackProfile);
+
+  // **NEW: append reference track file if any**
+const refFileInput = document.getElementById("ref-file-upload");
+if (refFileInput && refFileInput.files.length > 0) {
+  formData.append("ref_file", refFileInput.files[0]);
+}
 
 
   try {
@@ -937,8 +1018,6 @@ feedbackBox.appendChild(subheading);
 
 
       // 🎵 Load the newly uploaded track into WaveSurfer
-
-
 // Create new WaveSurfer instance globally
 window.wavesurfer = WaveSurfer.create({
   container: '#waveform',
@@ -951,6 +1030,9 @@ window.wavesurfer = WaveSurfer.create({
 // Add cache-busting timestamp to avoid browser cache issues
 const trackUrl = result.track_path + `?t=${Date.now()}`;
 window.wavesurfer.load(trackUrl);
+
+focusedWaveform = "main";
+console.log("Focused waveform set to main (upload handler)");
 
 document.getElementById("waveform").addEventListener("click", () => {
   const time = window.wavesurfer.getCurrentTime();
@@ -1058,7 +1140,53 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  const mainWaveformContainer = document.getElementById("waveform");
+  const refWaveformContainer = document.getElementById("ref-waveform");
 
+  if (mainWaveformContainer) {
+    mainWaveformContainer.addEventListener("click", () => {
+      focusedWaveform = "main";
+      console.log("Focused waveform set to main");
+    });
+  }
+
+  if (refWaveformContainer) {
+    refWaveformContainer.addEventListener("click", () => {
+      focusedWaveform = "ref";
+      console.log("Focused waveform set to reference");
+    });
+  }
+});
+
+
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space" && !e.repeat) {
+    e.preventDefault(); // prevent page scroll
+
+    if (focusedWaveform === "main" && window.wavesurfer) {
+      if (window.wavesurfer.isPlaying()) {
+        window.wavesurfer.pause();
+      } else {
+        // Pause ref if playing
+        if (refWavesurfer && refWavesurfer.isPlaying()) {
+          refWavesurfer.pause();
+        }
+        window.wavesurfer.play();
+      }
+    } else if (focusedWaveform === "ref" && refWavesurfer) {
+      if (refWavesurfer.isPlaying()) {
+        refWavesurfer.pause();
+      } else {
+        // Pause main if playing
+        if (window.wavesurfer && window.wavesurfer.isPlaying()) {
+          window.wavesurfer.pause();
+        }
+        refWavesurfer.play();
+      }
+    }
+  }
+});
 // ==========================================================
 // 🔸 Session Creation via Backend
 // ==========================================================
@@ -1336,3 +1464,71 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// ======= Near the bottom of your JS file =======
+
+// 1) Click listeners to update focusedWaveform:
+document.addEventListener("DOMContentLoaded", () => {
+  const mainWaveformContainer = document.getElementById("waveform");
+  const refWaveformContainer = document.getElementById("ref-waveform");
+
+  if (mainWaveformContainer) {
+    mainWaveformContainer.addEventListener("click", () => {
+      focusedWaveform = "main";
+      console.log("Focused waveform set to main");
+    });
+  }
+
+  if (refWaveformContainer) {
+    refWaveformContainer.addEventListener("click", () => {
+      focusedWaveform = "ref";
+      console.log("Focused waveform set to reference (clicked)");
+
+      if (refWavesurfer) {
+        if (refWavesurfer.isPlaying()) {
+          refWavesurfer.pause();
+          console.log("Reference waveform paused");
+        } else {
+          refWavesurfer.play();
+          console.log("Reference waveform playing");
+        }
+      } else {
+        console.warn("refWavesurfer is not initialized yet");
+      }
+    });
+  }
+});
+
+
+// 2) Global spacebar listener to toggle play/pause on focused waveform:
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space" && !e.repeat) {
+    e.preventDefault();
+
+    let wavesurferToControl = null;
+
+    if (focusedWaveform === "main") {
+      wavesurferToControl = window.wavesurfer;
+      if (refWavesurfer && refWavesurfer.isPlaying()) refWavesurfer.pause();
+    } else if (focusedWaveform === "ref") {
+      wavesurferToControl = refWavesurfer;
+      if (window.wavesurfer && window.wavesurfer.isPlaying()) window.wavesurfer.pause();
+    }
+
+    if (!wavesurferToControl) {
+      console.warn("No wavesurfer to control!");
+      return;
+    }
+
+    if (wavesurferToControl.isPlaying()) {
+      wavesurferToControl.pause();
+      console.log(`${focusedWaveform} paused`);
+    } else {
+      wavesurferToControl.play();
+      console.log(`${focusedWaveform} playing`);
+
+      setTimeout(() => {
+        console.log(`${focusedWaveform} isPlaying after play():`, wavesurferToControl.isPlaying());
+      }, 100);
+    }
+  }
+});

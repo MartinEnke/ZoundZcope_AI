@@ -27,6 +27,7 @@ def get_db():
 @router.post("/")
 def upload_audio(
     file: UploadFile = File(...),
+    ref_file: Optional[UploadFile] = File(None),
     session_id: str = Form(...),
     session_name: Optional[str] = Form(default="Untitled Session"),
     track_name: Optional[str] = Form(default=None),
@@ -59,6 +60,15 @@ def upload_audio(
 
         with open(file_location, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+
+            # Save reference track file if uploaded
+            ref_file_location = None
+            if ref_file:
+                ref_ext = os.path.splitext(ref_file.filename)[1]
+                ref_timestamped_name = f"{int(time.time())}_ref_{ref_file.filename}"
+                ref_file_location = os.path.join(UPLOAD_FOLDER, ref_timestamped_name)
+                with open(ref_file_location, "wb") as buffer:
+                    shutil.copyfileobj(ref_file.file, buffer)
 
         BASE_DIR = Path(__file__).resolve().parents[3]
         rms_filename = f"{timestamped_name}_rms.json"
@@ -125,6 +135,7 @@ def upload_audio(
             "analysis": analysis,
             "feedback": feedback,
             "track_path": f"/uploads/{timestamped_name}",
+            "ref_track_path": f"/uploads/{ref_timestamped_name}" if ref_file else None,
             "rms_path": f"/static/analysis/{rms_filename}"
         }
 
