@@ -29,3 +29,13 @@ def compute_rms_chunks(file_path, chunk_duration=0.5, json_output_path=None):
 
     return rms_chunks
 
+
+def process_reference_track(ref_track_path, rms_json_output_dir):
+    # Define output JSON path (e.g., alongside ref track)
+    json_output_path = Path(rms_json_output_dir) / (Path(ref_track_path).stem + "_rms.json")
+
+    # Compute RMS chunks using your function
+    rms_chunks = compute_rms_chunks(str(ref_track_path), chunk_duration=0.5, json_output_path=str(json_output_path))
+
+    print(f"Reference track RMS JSON saved at: {json_output_path}")
+    return json_output_path

@@ -71,6 +71,7 @@ function loadReferenceWaveform() {
   });
 }
 
+
 // ==========================================================
 // 🔠 Text Animation: Type letter-by-letter
 // ==========================================================
@@ -761,7 +762,6 @@ document.addEventListener("DOMContentLoaded", () => {
       refFileNameSpan.textContent = refFileInput.files.length > 0
         ? refFileInput.files[0].name
         : "Choose Reference Track";
-      loadReferenceWaveform();
     });
   }
 });
@@ -983,6 +983,7 @@ feedbackBox.appendChild(subheading);
         await typeText(li, line, 5);
       }
 
+      loadReferenceWaveform();
       document.getElementById("custom-ai-section")?.classList.remove("hidden");
 
       const type = document.getElementById("type-input")?.value;
