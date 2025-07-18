@@ -8,17 +8,23 @@ let focusedWaveform = "main"; // "main" or "ref"
 function loadReferenceWaveform() {
   const refFileInput = document.getElementById("ref-file-upload");
   const refWaveformContainer = document.getElementById("ref-waveform");
+  const refWrapper = document.getElementById("ref-waveform-wrapper");
 
-  if (!refFileInput || !refWaveformContainer) return;
+  if (!refFileInput || !refWaveformContainer || !refWrapper) return;
 
   if (refFileInput.files.length === 0) {
     if (refWavesurfer) {
       refWavesurfer.destroy();
       refWavesurfer = null;
     }
+    // Hide the entire wrapper when no ref file
+    refWrapper.style.display = "none";
     refWaveformContainer.innerHTML = "";
     return;
   }
+
+  // Show the wrapper when loading a ref track
+  refWrapper.style.display = "inline-block"; // or "block"
 
   const file = refFileInput.files[0];
   const fileURL = URL.createObjectURL(file);
@@ -39,9 +45,7 @@ function loadReferenceWaveform() {
 
   refWavesurfer.on("ready", () => {
     console.log("✅ Reference track waveform loaded");
-
     focusedWaveform = "ref";
-  console.log("Focused waveform set to reference (loadReferenceWaveform)");
   });
 
   // Pause main waveform if playing when ref starts playing
