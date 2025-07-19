@@ -6,6 +6,8 @@ from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 load_dotenv()
 import os
+from app.routers import export  # import your new router
+
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -50,6 +52,7 @@ app.include_router(chat.router, prefix="/chat", tags=["Chat"])
 app.include_router(sessions.router)
 app.include_router(tracks.router, prefix="/tracks", tags=["Tracks"])
 app.include_router(chat.router)
+app.include_router(export.router, prefix="/export", tags=["Export"])
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 print("Connected to DB at:", engine.url)

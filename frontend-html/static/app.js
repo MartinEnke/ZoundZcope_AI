@@ -1300,6 +1300,57 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+// === Add new export button listener here ===
+document.addEventListener("DOMContentLoaded", () => {
+  const exportBtn = document.getElementById("exportFeedbackBtn");
+  if (!exportBtn) return;
+
+  exportBtn.addEventListener("click", async () => {
+  console.log("Export button clicked");
+    const sessionId = document.getElementById("session_id").value;
+    const trackId = document.getElementById("track-select")?.value || "";
+
+    if (!sessionId || !trackId) {
+      alert("Please select a session and a track before exporting.");
+      return;
+    }
+
+    exportBtn.disabled = true;
+    exportBtn.textContent = "Exporting...";
+    console.log(`Fetching PDF for session ${sessionId} and track ${trackId}`);
+
+    try {
+      const response = await fetch(`/export/export-feedback-presets?session_id=${encodeURIComponent(sessionId)}&track_id=${encodeURIComponent(trackId)}`, {
+  method: "GET",
+  headers: {
+    "Accept": "application/pdf"
+  }
+});
+
+      if (!response.ok) {
+        throw new Error("Failed to export feedback and presets.");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `feedback_presets_${sessionId}_${trackId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Error exporting feedback and presets: " + err.message);
+      console.error(err);
+    } finally {
+      exportBtn.disabled = false;
+      exportBtn.textContent = "Export Feedback & Presets";
+    }
+  });
+});
 
 // ==========================================================
 // 🔁 Restore Last Analysis, Feedback & Follow-up (incl. browser back nav)
@@ -1537,3 +1588,6 @@ document.addEventListener("keydown", (e) => {
     }
   }
 });
+
+
+
