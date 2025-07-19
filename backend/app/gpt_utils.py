@@ -17,9 +17,11 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 #openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
-REFERENCE_TRACK_INSTRUCTION = """You will be provided with analysis data of both the submitted track and a professionally produced reference track. 
-                     "Carefully compare the submitted track to the reference track. 
-                     Prioritize highlighting differences and give concrete, actionable improvements grounded in these differences."""
+REFERENCE_TRACK_INSTRUCTION = (
+    "If a reference track analysis is provided, compare the submitted track's analysis with the reference track's data. "
+    "Give specific feedback on differences and how to improve the submitted track based on the comparison. "
+    "If no reference track is provided, provide feedback solely on the submitted track's analysis."
+)
 ROLE_CONTEXTS = {
     "mixdown": "You are a professional **mixing engineer reviewing a mixdown** with deep knowledge of {genre}, especially {subgenre}.",
     "mastering": "You are a professional **mastering engineer giving mastering advice** for this mixdown with deep knowledge of {genre}, especially {subgenre}.",
@@ -73,40 +75,40 @@ Each bullet must:
 EXAMPLE_OUTPUTS = {
     "simple": """
 #### Example Output:
-- **Issue**: Compared to the reference track the bass is too loud and makes the track feel heavy.
-  **Improvement**: Turn the bass down a little and check how it sounds with vocals. 
+- ISSUE: Compared to the reference track the bass is too loud and makes the track feel heavy.
+  IMPROVEMENT: Turn the bass down a little and check how it sounds with vocals. 
   This will help make everything clearer.
 
-- **Issue**: The sound is too crowded.
-  **Improvement**: Try making some sounds quieter or move them left and right. 
+- ISSUE: The sound is too crowded.
+  IMPROVEMENT: Try making some sounds quieter or move them left and right. 
   This can make the track feel more open.
 """,
 
     "detailed": """
 #### Example Output:
-- **Issue**: Compared to the reference track the RMS Level doesn't match the standard for a mixdown of this {genre}.  
-  **Improvement**: Aim for around -15 dB RMS to preserve headroom for mastering. 
+- ISSUE: Compared to the reference track the RMS Level doesn't match the standard for a mixdown of this {genre}.  
+  IMPROVEMENT: Aim for around -15 dB RMS to preserve headroom for mastering. 
   This helps the final master stay loud and punchy, especially in {subgenre}.
   
-- **Issue**: The kick and bass are clashing in the low end.
-  **Improvement**: Use EQ to reduce overlapping frequencies and sidechain the bass to the kick. 
+- ISSUE: The kick and bass are clashing in the low end.
+  IMPROVEMENT: Use EQ to reduce overlapping frequencies and sidechain the bass to the kick. 
   This adds clarity to your low end.
 
-- **Issue**: The vocals feel buried in the mix.
-  **Improvement**: Add light compression and EQ boost around 2-4 kHz to bring them forward without sounding harsh.
+- ISSUE: The vocals feel buried in the mix.
+  IMPROVEMENT: Add light compression and EQ boost around 2-4 kHz to bring them forward without sounding harsh.
 """,
 
     "pro": """
 #### Example Output:
-- - **Issue**: Compared to the reference track, your low-end feels less controlled and slightly muddy.
-  **Improvement**: Try applying a dynamic EQ to tighten the sub frequencies, similar to the clean bass in the reference track.
+- - ISSUE: Compared to the reference track, your low-end feels less controlled and slightly muddy.
+  IMPROVEMENT: Try applying a dynamic EQ to tighten the sub frequencies, similar to the clean bass in the reference track.
   
-- **Issue**: Excessive buildup around 100Hz is causing low-end smearing.
-  **Improvement**: Use a dynamic EQ or sidechain-triggered low-shelf cut on the bass. 
+- ISSUE: Excessive buildup around 100Hz is causing low-end smearing.
+  IMPROVEMENT: Use a dynamic EQ or sidechain-triggered low-shelf cut on the bass. 
   This maintains punch while improving definition.
 
-- **Issue**: The stereo image collapses in the high-mids.
-  **Improvement**: Use mid-side EQ or widening tools (e.g. MicroShift) to open up the 2–6 kHz range. 
+- ISSUE: The stereo image collapses in the high-mids.
+  IMPROVEMENT: Use mid-side EQ or widening tools (e.g. MicroShift) to open up the 2–6 kHz range. 
   Essential for clarity in {subgenre} arrangements.
 """
 }
@@ -173,7 +175,7 @@ def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data
 - Avg Transient Strength: {analysis_data['avg_transient_strength']}
 - Max Transient Strength: {analysis_data['max_transient_strength']}
 - Transients: {analysis_data['transient_description']}
-🎵 If low-end is flagged as strong but typical for the genre, do NOT treat it as a problem unless masking, muddiness, or translation concerns are clearly implied.
+If low-end is flagged as strong but typical for the genre, do NOT treat it as a problem unless masking, muddiness, or translation concerns are clearly implied.
 - Spectral balance note: {analysis_data['spectral_balance_description']}
 - Dynamic range: {analysis_data['dynamic_range']}
 - Stereo width: {analysis_data['stereo_width']}
@@ -246,3 +248,5 @@ You are a helpful and professional **audio engineer assistant**.
 
 Respond below:
 """
+
+

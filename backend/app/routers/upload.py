@@ -54,18 +54,24 @@ def upload_audio(
         with open(file_location, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        # Save reference track if uploaded (temporary for analysis)
+        # Save reference track if uploaded
         ref_file_location = None
         ref_analysis = None
-        if ref_file:
+        ref_timestamped_name = None
+
+        if ref_file and ref_file.filename:
             ref_ext = os.path.splitext(ref_file.filename)[1]
             ref_timestamped_name = f"{int(time.time())}_ref_{ref_file.filename}"
             ref_file_location = os.path.join(UPLOAD_FOLDER, ref_timestamped_name)
             with open(ref_file_location, "wb") as buffer:
                 shutil.copyfileobj(ref_file.file, buffer)
 
-            # Analyze reference track
             ref_analysis = analyze_audio(ref_file_location, genre=genre)
+        else:
+            ref_file_location = None
+            ref_analysis = None
+
+        print("Passing ref_analysis to prompt:", ref_analysis is not None)
 
             # Optional: delete reference file after analysis if you don't want to keep it on disk
             # os.remove(ref_file_location)
@@ -113,6 +119,8 @@ def upload_audio(
         else:
             ref_analysis = None
 
+        print("Passing ref_analysis to prompt:", ref_analysis is not None)
+
         # Generate GPT feedback with both original and ref analysis
         prompt = generate_feedback_prompt(
             genre=genre,
@@ -145,10 +153,13 @@ def upload_audio(
             "ref_analysis": ref_analysis,  # included in response
             "feedback": feedback,
             "track_path": f"/uploads/{timestamped_name}",
-            "ref_track_path": f"/uploads/{ref_timestamped_name}" if ref_file else None,
+            "ref_track_path": f"/uploads/{ref_timestamped_name}" if ref_timestamped_name else None,
             "rms_path": f"/static/analysis/{rms_filename}"
         }
 
+
     except Exception as e:
+        import traceback
+        traceback.print_exc()  # prints full stack trace in console
         print("UPLOAD ERROR:", e)
         return JSONResponse(status_code=500, content={"detail": str(e)})
