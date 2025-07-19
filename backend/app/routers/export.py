@@ -4,9 +4,12 @@ from app.database import SessionLocal
 from app.models import ChatMessage
 from app.gpt_utils import generate_feedback_response
 from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 from io import BytesIO
 from fastapi.responses import StreamingResponse
+from reportlab.lib.utils import simpleSplit
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+
 
 router = APIRouter()
 
@@ -29,82 +32,125 @@ def get_feedback_text(session_id: str, track_id: str, db: Session) -> str:
 
 def generate_preset_text_from_feedback(feedback_text: str) -> str:
     prompt = f"""
-You are an experienced audio engineer helping a user improve their mix/master.
 
-Here is the AI feedback you previously generated for their track:
+Here is the AI feedback you generated previously:
 
 \"\"\"
 {feedback_text}
 \"\"\"
 
-Based solely on this feedback, please provide recommended parameter adjustments for the following Ableton devices:
+Please use this feedback and generate a report. Include this Feedbakc as it is and suggest adjustments via 
+Ableton EQ8 and Ableton Glue Compressor. No further other text or duplications.
 
-1. EQ8 — specify gain adjustments, frequency bands, filter types (e.g., low shelf, bell) clearly.
-2. Glue Compressor — specify threshold, ratio, attack, release, and makeup gain.
+---
+Format the text like this using appropriate bold style and headline sizes:
+Example output (comments in () are instructions for you) :
 
-Format your response exactly like this:
+Zoundzcope AI 
+
+Mixing & Mastering Feedback and Presets Report 
+
+AI Feedback: 
+
+- ISSUE: 
+  [describe issue clearly]
+- IMPROVEMENT: 
+  [describe improvement clearly]
+
+- ISSUE:
+  [next issue]
+- IMPROVEMENT:
+  [next improvement]
+
+
+Recommended Ableton Preset Parameters: 
+
+(Based on this feedback, provide detailed and precise parameter recommendations for common Ableton devices like EQ8, 
+Compressor or Glue Compressor, Limiter, Multiband Dynamics, Utility.
+Format your response exactly like this example:)
 
 EQ8:
-- Band 1: Gain -3dB at 100Hz, Low Shelf
-- Band 2: Gain +2dB at 2kHz, Bell
-- Band 3: Bypass
+- Band 1: Parameters, FQ etc
+- Band 2: ...
 
-Glue Compressor:
-- Threshold: -18 dB
-- Ratio: 4:1
-- Attack: 10 ms
-- Release: 150 ms
-- Makeup Gain: 2 dB
+Compressor:
+- Threshold: -20 dB 
+- Ratio: 3:1
+- Attack: 15 ms
+- Release: 100 ms
+- Makeup Gain: 4 dB
 
-Only list the parameters and values, no extra explanation.
+(Only output these parameter settings related to the feedback; no generic defaults or extra explanations.)
 """
     return generate_feedback_response(prompt)
 
 
-def create_pdf(feedback_text: str, preset_text: str) -> BytesIO:
+
+
+def draw_wrapped_text(p, text, x, y, max_width, line_height=14):
+    lines = simpleSplit(text, "Helvetica", 10, max_width)
+    for line in lines:
+        if y < 50:
+            p.showPage()
+            y = letter[1] - 40
+            p.setFont("Helvetica", 10)
+        p.drawString(x, y, line)
+        y -= line_height
+    return y
+
+
+def create_pdf(full_report_text: str) -> BytesIO:
     buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter
-    margin = 40
-    y = height - margin
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                            rightMargin=40, leftMargin=40,
+                            topMargin=40, bottomMargin=40)
 
-    p.setFont("Helvetica-Bold", 16)
-    p.drawString(margin, y, "AI Mixing & Mastering Feedback and Presets Export")
-    y -= 30
+    styles = getSampleStyleSheet()
+    normal_style = styles['Normal']
+    normal_style.fontName = 'Helvetica'
+    normal_style.fontSize = 10
+    normal_style.leading = 14
 
-    p.setFont("Helvetica-Bold", 12)
-    p.drawString(margin, y, "AI Feedback:")
-    y -= 20
+    bold_style = styles['Heading3']
+    bold_style.fontName = 'Helvetica-Bold'
+    bold_style.leading = 16
 
-    p.setFont("Helvetica", 10)
-    for line in feedback_text.split("\n"):
-        if y < 50:
-            p.showPage()
-            y = height - margin
-            p.setFont("Helvetica", 10)
-        p.drawString(margin, y, line)
-        y -= 14
+    elements = []
 
-    y -= 20
-    p.setFont("Helvetica-Bold", 12)
-    if y < 80:
-        p.showPage()
-        y = height - margin
-    p.drawString(margin, y, "Recommended Ableton Preset Parameters:")
-    y -= 20
+    # Split the full report into lines for processing
+    lines = full_report_text.strip().split("\n")
 
-    p.setFont("Helvetica", 10)
-    for line in preset_text.split("\n"):
-        if y < 50:
-            p.showPage()
-            y = height - margin
-            p.setFont("Helvetica", 10)
-        p.drawString(margin, y, line)
-        y -= 14
+    for line in lines:
+        line = line.strip()
 
-    p.save()
+        # Handle headlines/subheadings by keywords
+        if line.startswith("Zoundzcope"):
+            elements.append(Paragraph(line, styles['Heading1']))
+            elements.append(Spacer(1, 12))
+        elif "Feedback and Presets Report" in line:
+            elements.append(Paragraph(line, styles['Heading2']))
+            elements.append(Spacer(1, 12))
+        elif line.endswith(":") and len(line) < 30:
+            # Treat short lines ending with ':' as section headers
+            elements.append(Paragraph(line, bold_style))
+            elements.append(Spacer(1, 8))
+        elif line.startswith("- "):
+            # Bullet points
+            # We'll gather consecutive bullet points in a ListFlowable
+            # But for simplicity, add as paragraphs with bullet char
+            bullet_line = line[2:].strip()
+            elements.append(Paragraph(f"• {bullet_line}", normal_style))
+        elif line == "":
+            # Blank line -> spacer
+            elements.append(Spacer(1, 8))
+        else:
+            # Normal paragraph line
+            elements.append(Paragraph(line, normal_style))
+
+    doc.build(elements)
     buffer.seek(0)
     return buffer
+
 
 @router.get("/export-feedback-presets")
 def export_feedback_presets(
@@ -112,12 +158,16 @@ def export_feedback_presets(
     track_id: str = Query(...),
     db: Session = Depends(get_db)
 ):
+    print(f"Export request received for session {session_id}, track {track_id}")
     feedback_text = get_feedback_text(session_id, track_id, db)
     if not feedback_text:
         raise HTTPException(status_code=404, detail="No feedback found for this session and track")
 
-    preset_text = generate_preset_text_from_feedback(feedback_text)
-    pdf_buffer = create_pdf(feedback_text, preset_text)
+    # Generate the full formatted report (feedback + presets) from GPT
+    full_report = generate_preset_text_from_feedback(feedback_text)
+
+    # Create PDF with only the full GPT report text
+    pdf_buffer = create_pdf(full_report)
 
     return StreamingResponse(
         pdf_buffer,

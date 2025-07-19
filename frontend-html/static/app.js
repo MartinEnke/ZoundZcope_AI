@@ -788,11 +788,13 @@ async function loadSessionTracks(sessionId) {
       });
       trackSelect.value = latestTrack?.id || "";
     }
+
+    return tracks;
   } catch (err) {
     console.error("❌ Error loading session tracks:", err);
+    return [];
   }
 }
-console.log("loadSessionTracks is", loadSessionTracks);
 
 
 // ==========================================================
@@ -903,7 +905,13 @@ if (refFileInput && refFileInput.files.length > 0) {
     const result = JSON.parse(raw);
 
     if (response.ok) {
-      await loadSessionTracks(sessionId);
+
+      const tracks = await loadSessionTracks(sessionId);
+      console.log("Tracks loaded after upload:", tracks);
+console.log("Setting window.lastTrackId to:", tracks[0]?.id);
+
+      window.lastSessionId = sessionId;
+      window.lastTrackId = tracks[0]?.id || "";
 
       const resultsEl = document.getElementById("results");
       const feedbackEl = document.getElementById("feedback");
@@ -985,6 +993,58 @@ feedbackBox.appendChild(subheading);
 
       loadReferenceWaveform();
       document.getElementById("custom-ai-section")?.classList.remove("hidden");
+
+      const exportBtn = document.getElementById("exportFeedbackBtn");
+if (exportBtn && !exportBtn.dataset.listenerAdded) {
+  exportBtn.addEventListener("click", async () => {
+    console.log("Export button clicked");
+
+    const sessionId = window.lastSessionId || "";
+    const trackId = window.lastTrackId || "";
+
+    if (!sessionId || !trackId) {
+      alert("No session or track available to export. Please analyze first.");
+      return;
+    }
+
+    exportBtn.disabled = true;
+    exportBtn.textContent = "Exporting...";
+
+    try {
+      const response = await fetch(`/export/export-feedback-presets?session_id=${encodeURIComponent(sessionId)}&track_id=${encodeURIComponent(trackId)}`, {
+        method: "GET",
+        headers: {
+          "Accept": "application/pdf"
+        }
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to export feedback and presets.");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `feedback_presets_${sessionId}_${trackId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+    } catch (err) {
+      alert("Error exporting feedback and presets: " + err.message);
+      console.error(err);
+    } finally {
+      exportBtn.disabled = false;
+      exportBtn.textContent = "Export Feedback & Presets";
+    }
+  });
+
+  exportBtn.dataset.listenerAdded = "true"; // mark listener added so you don’t add again
+}
+
 
       const type = document.getElementById("type-input")?.value;
       const genre = document.getElementById("genre-input")?.value;
@@ -1302,54 +1362,58 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // === Add new export button listener here ===
 document.addEventListener("DOMContentLoaded", () => {
+console.log("DOMContentLoaded event fired for export button setup");
   const exportBtn = document.getElementById("exportFeedbackBtn");
+  console.log("Export button found:", exportBtn);
   if (!exportBtn) return;
 
   exportBtn.addEventListener("click", async () => {
   console.log("Export button clicked");
-    const sessionId = document.getElementById("session_id").value;
-    const trackId = document.getElementById("track-select")?.value || "";
 
-    if (!sessionId || !trackId) {
-      alert("Please select a session and a track before exporting.");
-      return;
+  const sessionId = window.lastSessionId || "";
+  const trackId = window.lastTrackId || "";
+
+  if (!sessionId || !trackId) {
+  console.log("Export blocked — missing session or track:", { sessionId, trackId });
+    alert("No session or track available to export. Please analyze first.");
+    return;
+  }
+
+  exportBtn.disabled = true;
+  exportBtn.textContent = "Exporting...";
+  console.log(`Fetching PDF for session ${sessionId} and track ${trackId}`);
+
+  try {
+    const response = await fetch(`/export/export-feedback-presets?session_id=${encodeURIComponent(sessionId)}&track_id=${encodeURIComponent(trackId)}`, {
+      method: "GET",
+      headers: {
+        "Accept": "application/pdf"
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to export feedback and presets.");
     }
 
-    exportBtn.disabled = true;
-    exportBtn.textContent = "Exporting...";
-    console.log(`Fetching PDF for session ${sessionId} and track ${trackId}`);
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
 
-    try {
-      const response = await fetch(`/export/export-feedback-presets?session_id=${encodeURIComponent(sessionId)}&track_id=${encodeURIComponent(trackId)}`, {
-  method: "GET",
-  headers: {
-    "Accept": "application/pdf"
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `feedback_presets_${sessionId}_${trackId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    alert("Error exporting feedback and presets: " + err.message);
+    console.error(err);
+  } finally {
+    exportBtn.disabled = false;
+    exportBtn.textContent = "Export Feedback & Presets";
   }
 });
-
-      if (!response.ok) {
-        throw new Error("Failed to export feedback and presets.");
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `feedback_presets_${sessionId}_${trackId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      alert("Error exporting feedback and presets: " + err.message);
-      console.error(err);
-    } finally {
-      exportBtn.disabled = false;
-      exportBtn.textContent = "Export Feedback & Presets";
-    }
-  });
 });
 
 // ==========================================================
