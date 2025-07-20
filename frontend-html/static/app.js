@@ -710,14 +710,35 @@ document.addEventListener("DOMContentLoaded", () => {
 // 📥 File Input Handling + Placeholder Logic
 // ==========================================================
 document.addEventListener("DOMContentLoaded", () => {
+  // Original track input and filename span
   const fileInput = document.getElementById("file-upload");
   const fileNameSpan = document.getElementById("file-name");
 
   if (fileInput && fileNameSpan) {
     fileInput.addEventListener("change", () => {
-      fileNameSpan.textContent = fileInput.files.length > 0
-        ? fileInput.files[0].name
-        : "Click to upload your track";
+      if (fileInput.files.length > 0) {
+        fileNameSpan.textContent = fileInput.files[0].name;
+        fileNameSpan.style.color = "#2196f3";  // blue tone for original track
+      } else {
+        fileNameSpan.textContent = "Click to upload your track";
+        fileNameSpan.style.color = ""; // reset color to default
+      }
+    });
+  }
+
+  // Reference track input and filename span
+  const refFileInput = document.getElementById("ref-file-upload");
+  const refFileNameSpan = document.getElementById("ref-file-name");
+
+  if (refFileInput && refFileNameSpan) {
+    refFileInput.addEventListener("change", () => {
+      if (refFileInput.files.length > 0) {
+        refFileNameSpan.textContent = refFileInput.files[0].name;
+        refFileNameSpan.style.color = "#8b5cf6";  // violet tone for reference track (Tailwind purple-600)
+      } else {
+        refFileNameSpan.textContent = "Choose Reference Track";
+        refFileNameSpan.style.color = ""; // reset color to default
+      }
     });
   }
 
