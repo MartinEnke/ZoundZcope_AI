@@ -2,7 +2,8 @@
 let rmsChunks = [];  // 👈 declare it globally
 const chunkDuration = 0.5;
 let refWavesurfer = null;
-let focusedWaveform = "main"; // "main" or "ref"
+let refWaveformReady = false; // "main" or "ref"
+let focusedWaveform = "main";
 
 // Your existing loadReferenceWaveform function here
 function loadReferenceWaveform() {
@@ -29,9 +30,7 @@ function loadReferenceWaveform() {
   const file = refFileInput.files[0];
   const fileURL = URL.createObjectURL(file);
 
-  if (refWavesurfer) {
-    refWavesurfer.destroy();
-  }
+  if (refWavesurfer) refWavesurfer.destroy();
 
   refWavesurfer = WaveSurfer.create({
     container: "#ref-waveform",
@@ -41,10 +40,13 @@ function loadReferenceWaveform() {
     responsive: true,
   });
 
+  refWaveformReady = false;
+
   refWavesurfer.load(fileURL);
 
   refWavesurfer.on("ready", () => {
     console.log("✅ Reference track waveform loaded");
+    refWaveformReady = true;
     focusedWaveform = "ref";
   });
 
@@ -1230,31 +1232,96 @@ document.addEventListener("DOMContentLoaded", () => {
   const mainWaveformContainer = document.getElementById("waveform");
   const refWaveformContainer = document.getElementById("ref-waveform");
 
+  async function toggleWaveformPlayPause(wavesurferToToggle, otherWavesurfer, name) {
+  if (!wavesurferToToggle) {
+    console.warn(`${name} wavesurfer instance not ready`);
+    return;
+  }
+  if (wavesurferToToggle.isPlaying()) {
+    wavesurferToToggle.pause();
+    console.log(`${name} waveform paused`);
+  } else {
+    if (otherWavesurfer && otherWavesurfer.isPlaying()) {
+      otherWavesurfer.pause();
+      console.log(`Other waveform paused before playing ${name}`);
+    }
+    try {
+      await wavesurferToToggle.play();
+      console.log(`${name} waveform playing`);
+    } catch (e) {
+      console.warn(`${name} play() interrupted:`, e);
+    }
+  }
+}
+
   if (mainWaveformContainer) {
     mainWaveformContainer.addEventListener("click", () => {
       focusedWaveform = "main";
-      console.log("Focused waveform set to main");
+      toggleWaveformPlayPause(window.wavesurfer, refWavesurfer, "Main");
     });
   }
 
   if (refWaveformContainer) {
     refWaveformContainer.addEventListener("click", () => {
+  focusedWaveform = "ref";
+  console.log("Ref waveform clicked — focusedWaveform set to:", focusedWaveform);
+  if (refClickCooldown) {
+    console.log("Ignoring click - cooldown active");
+    return;
+  }
+  refClickCooldown = true;
+  setTimeout(() => {
+    refClickCooldown = false;
+  }, 300); // 300ms cooldown - adjust if needed
+
       focusedWaveform = "ref";
-      console.log("Focused waveform set to reference");
+      if (!refWaveformReady) {
+        console.warn("Reference waveform not ready yet");
+        return;
+      }
+      toggleWaveformPlayPause(refWavesurfer, window.wavesurfer, "Reference");
     });
   }
 });
 
 
+
+
 document.addEventListener("keydown", (e) => {
   if (e.code === "Space" && !e.repeat) {
-    e.preventDefault(); // prevent page scroll
+    const active = document.activeElement;
+    const isTyping =
+      active &&
+      (
+        active.tagName === "INPUT" ||
+        active.tagName === "TEXTAREA" ||
+        active.isContentEditable
+      );
+
+    if (isTyping) {
+      // User is typing — do NOT trigger play/pause or prevent default
+      return;  // <--- return immediately here!
+    }
+
+    console.log("Spacebar pressed — focusedWaveform is:", focusedWaveform);
+
+    if (focusedWaveform === "ref" && refWavesurfer) {
+      console.log("Attempting to toggle ref waveform");
+      if (refWavesurfer.isPlaying()) {
+        refWavesurfer.pause();
+        console.log("Ref waveform paused");
+      } else {
+        refWavesurfer.play();
+        console.log("Ref waveform playing");
+      }
+    }
+    // Only prevent default and toggle playback if NOT typing
+    e.preventDefault();
 
     if (focusedWaveform === "main" && window.wavesurfer) {
       if (window.wavesurfer.isPlaying()) {
         window.wavesurfer.pause();
       } else {
-        // Pause ref if playing
         if (refWavesurfer && refWavesurfer.isPlaying()) {
           refWavesurfer.pause();
         }
@@ -1264,7 +1331,6 @@ document.addEventListener("keydown", (e) => {
       if (refWavesurfer.isPlaying()) {
         refWavesurfer.pause();
       } else {
-        // Pause main if playing
         if (window.wavesurfer && window.wavesurfer.isPlaying()) {
           window.wavesurfer.pause();
         }
@@ -1643,6 +1709,20 @@ document.addEventListener("DOMContentLoaded", () => {
 // 2) Global spacebar listener to toggle play/pause on focused waveform:
 document.addEventListener("keydown", (e) => {
   if (e.code === "Space" && !e.repeat) {
+    const active = document.activeElement;
+    const isTyping =
+      active &&
+      (
+        active.tagName === "INPUT" ||
+        active.tagName === "TEXTAREA" ||
+        active.isContentEditable
+      );
+
+    if (isTyping) {
+      // Allow spacebar to work normally in text inputs
+      return;
+    }
+
     e.preventDefault();
 
     let wavesurferToControl = null;
