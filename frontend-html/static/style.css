@@ -476,3 +476,67 @@ select.custom-dropdown:focus {
   width: 100%;
   height: 100px; /* or your waveform height */
 }
+
+
+/* Background: white with 10% opacity */
+.analyze-btn {
+  background-color: rgba(255, 255, 255, 0.10);
+  border: 2px solid rgba(236, 72, 153, 0.3);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  overflow: hidden;
+
+  /* Flex container for horizontal and vertical centering */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* Fixed height for vertical consistency */
+  height: 2.75rem;  /* ~44px */
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+
+  /* Hide original text */
+  color: transparent;
+  font-weight: 600;
+  line-height: 1; /* prevent extra spacing */
+  position: relative;
+  font-size: 1rem;
+}
+
+.analyze-btn::before {
+  content: "Analyze";
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(90deg, #ec4899, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  font-weight: 600;
+  padding-left: 3.2rem;
+  padding-right: 0;
+  display: inline-block;
+
+  /* Remove block display and width 100% */
+  display: inline-block;
+  /* Remove width */
+  /* Use flexbox centering from parent */
+}
+
+.analyze-btn {
+  box-shadow:
+    0 0 6px rgba(236, 72, 153, 0.4),
+    0 0 8px rgba(59, 130, 246, 0.4);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.analyze-btn:hover {
+  box-shadow:
+    0 0 10px rgba(236, 72, 153, 0.6),
+    0 0 14px rgba(59, 130, 246, 0.6);
+  border-color: rgba(59, 130, 246, 0.6);
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+
