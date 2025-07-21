@@ -12,11 +12,17 @@
   <title>ZoundZcope AI</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="static/style.css">
+  <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
+<link rel="shortcut icon" href="/static/favicon/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="ZZ AI" />
+<link rel="manifest" href="/static/favicon/site.webmanifest" />
 </head>
 
 <body class="text-white">
   <div class="fixed inset-0 z-0 opacity-10 bg-no-repeat bg-center pointer-events-none"
-       style="background-image: url('/static/logo.png'); background-size: 1800px; background-position: center -450px;"></div>
+       style="background-image: url('/static/logo old.png'); background-size: 1800px; background-position: center -450px;"></div>
 
   <header class="fixed inset-x-0 top-0 z-50 bg-black bg-opacity-75 backdrop-filter backdrop-blur-sm border-b-2 border-white border-opacity-80 shadow-md flex items-center justify-between p-4">
   <!-- Left: Logo -->
@@ -25,25 +31,29 @@
     <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
   </a>
 
-  <!-- Desktop: Feedback History Link -->
+  <!-- Desktop: Info + Feedback History Links -->
   <nav class="hidden md:flex items-center gap-6">
+    <a href="info.html" class="link-sweep-pinkblue text-lg font-medium">
+      <span>Info</span>
+    </a>
     <a href="/feedback_history.html" class="link-sweep-pinkblue text-lg font-medium">
       <span>Feedback History</span>
     </a>
   </nav>
 
   <!-- Mobile: ⋮ Menu -->
-  <!-- MOBILE MENU (Hidden on md and up) -->
-<div class="relative md:hidden">
-  <button id="mobile-menu-button" class="text-white text-2xl px-2 py-1 rounded hover:bg-white/10">
-    ⋮
-  </button>
-  <div id="mobile-menu-dropdown"
-       class="milky-dropdown absolute right-0 mt-2 w-48 text-sm text-white z-50 hidden space-y-1">
-    <a href="/feedback_history.html" class="block px-4 py-2 hover:bg-white/10 rounded">Feedback History</a>
+  <div class="relative md:hidden">
+    <button id="mobile-menu-button" class="text-white text-2xl px-2 py-1 rounded hover:bg-white/10">
+      ⋮
+    </button>
+    <div id="mobile-menu-dropdown"
+         class="milky-dropdown absolute right-0 mt-2 w-48 text-sm text-white z-50 hidden space-y-1">
+      <a href="/info.html" class="block px-4 py-2 hover:bg-white/10 rounded">Info</a>
+      <a href="/feedback_history.html" class="block px-4 py-2 hover:bg-white/10 rounded">Feedback History</a>
+    </div>
   </div>
-</div>
 </header>
+
 
   <main class="relative z-10 pt-28 max-w-6xl mx-auto px-3">
     <div class="flex flex-col lg:flex-row lg:items-start lg:space-x-20">

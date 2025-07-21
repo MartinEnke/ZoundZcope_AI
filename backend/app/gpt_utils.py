@@ -18,9 +18,9 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 REFERENCE_TRACK_INSTRUCTION = (
-    "If a reference track analysis is provided, compare the submitted track's analysis with the reference track's data. "
-    "Give specific feedback on differences and how to improve the submitted track based on the comparison. "
-    "If no reference track is provided, provide feedback solely on the submitted track's analysis."
+    "If a reference track analysis is provided, you MUST compare the submitted track's analysis with the reference track's data."
+    "Give specific feedback on differences and how to improve the submitted track based on the comparison."
+    "If no reference data is available, Do NOT mention, assume, or imply any reference track in the feedback."
 )
 ROLE_CONTEXTS = {
     "mixdown": "You are a professional **mixing engineer reviewing a mixdown** with deep knowledge of {genre}, especially {subgenre}.",

@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from app.routers import upload, chat, sessions, tracks
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import Base, engine
-from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 load_dotenv()
 import os
@@ -78,6 +77,11 @@ async def serve_frontend(request: Request):
         "request": request,
         "track_path": track_path
     })
+
+
+@app.get("/info.html", response_class=HTMLResponse)
+async def serve_info(request: Request):
+    return templates.TemplateResponse("info.html", {"request": request})
 
 
 @app.get("/feedback_history.html", response_class=HTMLResponse)
