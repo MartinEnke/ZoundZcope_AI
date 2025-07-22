@@ -5,7 +5,14 @@ from app.database import Base, engine
 from dotenv import load_dotenv
 load_dotenv()
 import os
-from app.routers import export  # import your new router
+from app.routers import export
+import asyncio
+from app.cleanup import cleanup_old_uploads
+import logging
+
+app = FastAPI()
+
+logger = logging.getLogger("uvicorn.error")
 
 
 
@@ -87,5 +94,20 @@ async def serve_info(request: Request):
 @app.get("/feedback_history.html", response_class=HTMLResponse)
 async def serve_feedback_history(request: Request):
     return templates.TemplateResponse("feedback_history.html", {"request": request})
+
+
+
+async def periodic_cleanup_task():
+    while True:
+        try:
+            logger.info("Running periodic cleanup task...")
+            cleanup_old_uploads()
+        except Exception as e:
+            logger.error(f"Periodic cleanup error: {e}")
+        await asyncio.sleep(6 * 60 * 60)  # Run every 6 hours
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(periodic_cleanup_task())
 
 

@@ -88,6 +88,17 @@ def upload_audio(
         # Database operations
         db = SessionLocal()
 
+        # Cleanup old main track files for the same session before saving new upload
+        old_tracks = db.query(Track).filter(Track.session_id == session_id).all()
+        for old_track in old_tracks:
+            # Delete audio file
+            try:
+                if old_track.file_path and os.path.exists(old_track.file_path):
+                    os.remove(old_track.file_path)
+                    print(f"Deleted old main track file: {old_track.file_path}")
+            except Exception as e:
+                print(f"Error deleting old main track file {old_track.file_path}: {e}")
+
         existing_session = db.query(UserSession).filter(UserSession.id == session_id).first()
         if not existing_session:
             new_session = UserSession(id=session_id, user_id=1, session_name=session_name)
