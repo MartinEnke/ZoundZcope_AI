@@ -32,6 +32,7 @@ class Track(Base):
     file_path = Column(String)
     type = Column(String)
     uploaded_at = Column(DateTime(timezone=True), server_default=func.now())
+    upload_group_id = Column(String, nullable=False, default=lambda: str(uuid.uuid4()))
 
     session = relationship("Session", back_populates="tracks")
     analysis = relationship("AnalysisResult", back_populates="track", uselist=False)

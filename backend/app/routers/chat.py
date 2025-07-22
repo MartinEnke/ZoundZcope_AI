@@ -74,10 +74,42 @@ class FollowUpRequest(BaseModel):
     feedback_profile: str
     followup_group: int = 0
 
+
 @router.post("/ask-followup")
 def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
+    print("ask_followup called with request:", req)
     profile = normalize_profile(req.feedback_profile)
     user_question = req.user_question.strip()
+
+    # 1. Fetch main track
+    main_track = db.query(Track).filter(Track.id == req.track_id).first()
+    if not main_track:
+        raise HTTPException(status_code=404, detail="Main track not found")
+
+    # 2. Fetch reference track by upload_group_id
+    ref_track = (
+        db.query(Track)
+        .filter(
+            Track.upload_group_id == main_track.upload_group_id,
+            Track.type == "reference"
+        )
+        .order_by(Track.uploaded_at.desc())
+        .first()
+    )
+
+    ref_analysis = None
+    if ref_track and ref_track.analysis:
+        ref_analysis = {
+            "peak_db": ref_track.analysis.peak_db,
+            "rms_db_peak": ref_track.analysis.rms_db_peak,
+            "lufs": ref_track.analysis.lufs,
+            "transient_description": ref_track.analysis.transient_description,
+            "spectral_balance_description": ref_track.analysis.spectral_balance_description,
+            "dynamic_range": ref_track.analysis.dynamic_range,
+            "stereo_width": ref_track.analysis.stereo_width,
+            "low_end_description": ref_track.analysis.low_end_description,
+            # add other needed fields...
+        }
 
     # 🔍 Include summary from previous thread if applicable
     summary_text = ""
@@ -97,16 +129,18 @@ def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
         if summary_msg:
             summary_text = summary_msg.message
 
-    # ✅ Use shared builder + response generator
+    # 3. Build prompt including ref_analysis data
     prompt = build_followup_prompt(
         analysis_text=req.analysis_text,
         feedback_text=req.feedback_text,
         user_question=user_question,
-        thread_summary=summary_text
+        thread_summary=summary_text,
+        ref_analysis_data=ref_analysis  # <-- add this param and adjust function accordingly
     )
 
     try:
         ai_response = generate_feedback_response(prompt)
+        print("GPT response:", ai_response)  # <-- add this
     except Exception as e:
         print("❌ GPT call failed:", e)
         raise HTTPException(status_code=500, detail="AI follow-up failed")
@@ -134,7 +168,9 @@ def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
     db.add(assistant_msg)
     db.commit()
 
+    print("Prompt sent to GPT:", prompt)
     return {"answer": ai_response}
+
 
 
 @router.get("/tracks/{track_id}/messages")

@@ -468,15 +468,13 @@ btn.style.fontSize = "0.825rem";
 }
 
 
-// ==========================================================
-// 🔁 Session Dropdown Logic (Populate + Toggle New Input)
-// ==========================================================
-document.addEventListener("DOMContentLoaded", () => {
+/document.addEventListener("DOMContentLoaded", () => {
   const button = document.getElementById("session-dropdown-button");
   const options = document.getElementById("session-dropdown-options");
   const label = document.getElementById("session-dropdown-label");
   const input = document.getElementById("new-session-input");
   const hiddenInput = document.getElementById("session_id");
+  const trackSelect = document.getElementById("track-select"); // Add this to update tracks
 
   async function populateSessionDropdown() {
     const res = await fetch("/sessions");
@@ -494,6 +492,10 @@ document.addEventListener("DOMContentLoaded", () => {
       hiddenInput.value = "";
       input.classList.remove("hidden");
       options.classList.add("hidden");
+      // Clear track dropdown when new session selected
+      if (trackSelect) {
+        trackSelect.innerHTML = '<option value="">Choose Track</option>';
+      }
     });
     options.appendChild(createNew);
 
@@ -503,11 +505,21 @@ document.addEventListener("DOMContentLoaded", () => {
       li.className =
         "dropdown-option px-4 py-2 cursor-pointer hover:bg-white/10 transition";
       li.textContent = session.session_name;
-      li.addEventListener("click", () => {
+      li.addEventListener("click", async () => {
         label.textContent = session.session_name;
         hiddenInput.value = session.id;
         input.classList.add("hidden");
         options.classList.add("hidden");
+
+        // NEW: Load tracks for this session and update track dropdown
+        if (trackSelect) {
+          try {
+            await loadSessionTracks(session.id);
+          } catch (err) {
+            console.error("Failed to load tracks for session:", err);
+            // Optionally show user feedback
+          }
+        }
       });
       options.appendChild(li);
     });

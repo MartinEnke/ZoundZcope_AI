@@ -222,9 +222,35 @@ def generate_followup_response(analysis_text: str, feedback_text: str, user_ques
     return generate_feedback_response(prompt)
 
 
-def build_followup_prompt(analysis_text: str, feedback_text: str, user_question: str, thread_summary: str = "") -> str:
+def build_followup_prompt(
+    analysis_text: str,
+    feedback_text: str,
+    user_question: str,
+    thread_summary: str = "",
+    ref_analysis_data: dict = None,   # NEW parameter
+) -> str:
+    import html
+    import re
+
+    # Clean and escape user question
     user_question = re.sub(r"[^\w\s.,!?@&$()\-+=:;\'\"/]", "", user_question.strip())[:400]
     user_question = html.escape(user_question)
+
+    # Build ref analysis section if available
+    ref_section = ""
+    if ref_analysis_data:
+        ref_section = f"""
+    ### Reference Track Analysis (for comparison)
+    - Peak: {ref_analysis_data.get('peak_db', 'N/A')} dB
+    - RMS Peak: {ref_analysis_data.get('rms_db_peak', 'N/A')} dB
+    - LUFS: {ref_analysis_data.get('lufs', 'N/A')}
+    - Transients: {ref_analysis_data.get('transient_description', 'N/A')}
+    - Spectral balance note: {ref_analysis_data.get('spectral_balance_description', 'N/A')}
+    - Dynamic range: {ref_analysis_data.get('dynamic_range', 'N/A')}
+    - Stereo width: {ref_analysis_data.get('stereo_width', 'N/A')}
+    - Bass profile: {ref_analysis_data.get('low_end_description', '')}
+    """
+
     return f"""
 You are a helpful and professional **audio engineer assistant**.
 
@@ -232,6 +258,8 @@ You are a helpful and professional **audio engineer assistant**.
 
 ### Track Analysis
 {analysis_text}
+
+{ref_section}
 
 ### Prior Feedback
 {feedback_text}
@@ -248,5 +276,6 @@ You are a helpful and professional **audio engineer assistant**.
 
 Respond below:
 """
+
 
 

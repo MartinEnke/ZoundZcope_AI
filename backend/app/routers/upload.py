@@ -11,6 +11,7 @@ from app.utils import normalize_session_name, normalize_profile, normalize_genre
 from app.analysis_rms_chunks import compute_rms_chunks
 import time
 from pathlib import Path
+import uuid
 
 router = APIRouter()
 
@@ -36,6 +37,7 @@ def upload_audio(
     genre = normalize_genre(genre)
     subgenre = normalize_subgenre(subgenre) if subgenre else ""
     feedback_profile = normalize_profile(feedback_profile)
+    group_id = str(uuid.uuid4())
 
     try:
         print("Incoming upload:", {
@@ -113,7 +115,8 @@ def upload_audio(
             session_id=session_id,
             track_name=track_name,
             file_path=file_location,
-            type=type.lower()
+            type=type.lower(),
+            upload_group_id = group_id
         )
         db.add(track)
         db.commit()
@@ -125,8 +128,27 @@ def upload_audio(
 
         print("Analysis data for main track:", analysis)
         if ref_file_location:
+            # Analyze reference track first
             ref_analysis = analyze_audio(ref_file_location, genre=genre)
             print("Reference track analysis data:", ref_analysis)
+
+            # Create the reference track in DB with same upload_group_id
+            ref_track_name = f"{track_name} (Reference)"
+            ref_track = Track(
+                session_id=session_id,
+                track_name=ref_track_name,
+                file_path=ref_file_location,
+                type="reference",
+                upload_group_id=group_id  # assign the same group id here!
+            )
+            db.add(ref_track)
+            db.commit()
+            db.refresh(ref_track)
+
+            # Save analysis result for reference track
+            ref_result = AnalysisResult(track_id=ref_track.id, **ref_analysis)
+            db.add(ref_result)
+            db.commit()
         else:
             ref_analysis = None
 
