@@ -21,6 +21,7 @@ def cleanup_old_uploads():
     now = time.time()
     db = SessionLocal()
     try:
+        # Delete old audio files tracked in DB
         old_tracks = db.query(Track).all()
         for track in old_tracks:
             file_path = track.file_path
@@ -31,24 +32,30 @@ def cleanup_old_uploads():
                         os.remove(file_path)
                         logger.info(f"Deleted old track file: {file_path}")
 
+                        # Also delete associated RMS file if exists
                         basename = os.path.basename(file_path)
                         rms_filename = f"{basename}_rms.json"
                         rms_file_path = RMS_ANALYSIS_FOLDER / rms_filename
-                        print(f"Looking for RMS file at: {rms_file_path}")
                         if rms_file_path.exists():
                             try:
                                 rms_file_path.unlink()
-                                print(f"Deleted RMS file: {rms_file_path}")
+                                logger.info(f"Deleted RMS file: {rms_file_path}")
                             except Exception as e:
-                                print(f"Error deleting RMS file {rms_file_path}: {e}")
-                        else:
-                            print(f"RMS file not found at: {rms_file_path}")
-                        logger.debug(f"Checking RMS file for deletion: {rms_file_path}")
-                        if rms_file_path.exists():
-                            rms_file_path.unlink()
-                            logger.info(f"Deleted old RMS chunk file: {rms_file_path}")
+                                logger.error(f"Error deleting RMS file {rms_file_path}: {e}")
+
                     except Exception as e:
                         logger.error(f"Error deleting files for {file_path}: {e}")
+
+        # Now delete ALL old RMS JSON files in the RMS_ANALYSIS_FOLDER (cleanup orphan RMS files)
+        for rms_file in RMS_ANALYSIS_FOLDER.glob("*.json"):
+            file_age = now - rms_file.stat().st_mtime
+            if file_age > MAX_FILE_AGE_SECONDS:
+                try:
+                    rms_file.unlink()
+                    logger.info(f"Deleted orphan RMS JSON file: {rms_file}")
+                except Exception as e:
+                    logger.error(f"Error deleting orphan RMS file {rms_file}: {e}")
+
     finally:
         db.close()
     logger.info("Cleanup finished.")
