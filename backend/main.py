@@ -10,7 +10,23 @@ import asyncio
 from app.cleanup import cleanup_old_uploads
 import logging
 
-app = FastAPI()
+from contextlib import asynccontextmanager
+
+from fastapi.routing import APIRoute
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Registered routes:")
+    for route in app.routes:
+        if isinstance(route, APIRoute):
+            print(route.path, route.methods)
+        else:
+            # For Mount or others just print the path
+            print(route.path, "(mount or other)")
+    yield
+
+
+app = FastAPI(title="ZoundZcope API", lifespan=lifespan)
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -36,11 +52,9 @@ from fastapi.responses import HTMLResponse
 Base.metadata.create_all(bind=engine)
 
 
-app = FastAPI(title="ZoundZcope API")
-
 #/=====config for frontend-html======/#
 # Serve static files like your logo
-app.mount("/static", StaticFiles(directory="../frontend-html/static"), name="static")
+
 # Jinja2 template support
 templates = Jinja2Templates(directory="../frontend-html/templates")
 
@@ -55,12 +69,14 @@ app.add_middleware(
 
 app.include_router(upload.router, prefix="/upload", tags=["Upload"])
 app.include_router(chat.router, prefix="/chat", tags=["Chat"])
+print("Chat router included")
 app.include_router(sessions.router)
 app.include_router(tracks.router, prefix="/tracks", tags=["Tracks"])
 app.include_router(export.router, prefix="/export", tags=["Export"])
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 print("Connected to DB at:", engine.url)
+
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -105,8 +121,5 @@ async def periodic_cleanup_task():
             logger.error(f"Periodic cleanup error: {e}")
         await asyncio.sleep(6 * 60 * 60)  # Run every 6 hours
 
-@app.on_event("startup")
-async def startup_event():
-    asyncio.create_task(periodic_cleanup_task())
 
 

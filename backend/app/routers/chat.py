@@ -6,6 +6,7 @@ from app.gpt_utils import generate_feedback_prompt, generate_feedback_response, 
 import json
 from pydantic import BaseModel
 from app.utils import normalize_type, normalize_genre, normalize_profile
+from typing import Optional, Dict, Any
 
 router = APIRouter()
 
@@ -73,10 +74,12 @@ class FollowUpRequest(BaseModel):
     track_id: str
     feedback_profile: str
     followup_group: int = 0
+    ref_analysis_data: Optional[Dict[str, Any]] = None
 
 
 @router.post("/ask-followup")
 def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
+    print("ask_followup called with request:", req.dict())
     print("ask_followup called with request:", req)
     profile = normalize_profile(req.feedback_profile)
     user_question = req.user_question.strip()
@@ -135,8 +138,9 @@ def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
         feedback_text=req.feedback_text,
         user_question=user_question,
         thread_summary=summary_text,
-        ref_analysis_data=ref_analysis  # <-- add this param and adjust function accordingly
+        ref_analysis_data=req.ref_analysis_data
     )
+    print("Built prompt for GPT:\n", prompt)
 
     try:
         ai_response = generate_feedback_response(prompt)
@@ -203,7 +207,8 @@ class SummarizeRequest(BaseModel):
     track_id: str
     followup_group: int
 
-@router.post("/chat/summarize-thread")
+
+@router.post("/summarize-thread")
 def summarize_thread(req: SummarizeRequest, db: Session = Depends(get_db)):
     messages = (
         db.query(ChatMessage)
@@ -211,6 +216,9 @@ def summarize_thread(req: SummarizeRequest, db: Session = Depends(get_db)):
         .order_by(ChatMessage.timestamp)
         .all()
     )
+
+    print(f"Summarizing thread for session={req.session_id}, track={req.track_id}, group={req.followup_group}")
+    print(f"Found {len(messages)} messages")
 
     thread = []
     for msg in messages:
@@ -220,6 +228,10 @@ def summarize_thread(req: SummarizeRequest, db: Session = Depends(get_db)):
             thread.append({"role": "assistant", "content": msg.message})
 
     conversation = "\n".join([f"{m['role'].capitalize()}: {m['content']}" for m in thread])
+    print(f"Conversation for summarization:\n{conversation}")
+
+    if not conversation.strip():
+        return {"summary": "No follow-up messages found for this thread to summarize."}
 
     prompt = f"""
 Summarize this follow-up thread (5 user questions with assistant responses) into a concise overall improvement strategy:
@@ -231,3 +243,6 @@ Summarize this follow-up thread (5 user questions with assistant responses) into
     return {"summary": summary}
 
 
+@router.get("/test")
+def test():
+    return {"message": "Chat router works"}

@@ -236,20 +236,21 @@ def build_followup_prompt(
     user_question = re.sub(r"[^\w\s.,!?@&$()\-+=:;\'\"/]", "", user_question.strip())[:400]
     user_question = html.escape(user_question)
 
-    # Build ref analysis section if available
     ref_section = ""
-    if ref_analysis_data:
+    if ref_analysis_data and isinstance(ref_analysis_data, dict):
         ref_section = f"""
-    ### Reference Track Analysis (for comparison)
-    - Peak: {ref_analysis_data.get('peak_db', 'N/A')} dB
-    - RMS Peak: {ref_analysis_data.get('rms_db_peak', 'N/A')} dB
-    - LUFS: {ref_analysis_data.get('lufs', 'N/A')}
-    - Transients: {ref_analysis_data.get('transient_description', 'N/A')}
-    - Spectral balance note: {ref_analysis_data.get('spectral_balance_description', 'N/A')}
-    - Dynamic range: {ref_analysis_data.get('dynamic_range', 'N/A')}
-    - Stereo width: {ref_analysis_data.get('stereo_width', 'N/A')}
-    - Bass profile: {ref_analysis_data.get('low_end_description', '')}
-    """
+        ### Reference Track Analysis (for comparison)
+        - Peak: {ref_analysis_data.get('peak_db', 'N/A')} dB
+        - RMS Peak: {ref_analysis_data.get('rms_db_peak', 'N/A')} dB
+        - LUFS: {ref_analysis_data.get('lufs', 'N/A')}
+        - Transients: {ref_analysis_data.get('transient_description', 'N/A')}
+        - Spectral balance note: {ref_analysis_data.get('spectral_balance_description', 'N/A')}
+        - Dynamic range: {ref_analysis_data.get('dynamic_range', 'N/A')}
+        - Stereo width: {ref_analysis_data.get('stereo_width', 'N/A')}
+        - Bass profile: {ref_analysis_data.get('low_end_description', '')}
+        """
+    else:
+        print("Warning: ref_analysis_data missing or invalid:", ref_analysis_data)
 
     return f"""
 You are a helpful and professional **audio engineer assistant**.
