@@ -7,14 +7,10 @@ from app.utils import normalize_type, normalize_profile, normalize_genre, ALLOWE
 import html
 import re
 
-
-print("DEBUG: ENV KEY =", os.getenv("OPENAI_API_KEY"))
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # client = OpenAI(
 #     base_url="https://api.together.xyz/v1",  # You can still use Together
 # )
-
-#openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 REFERENCE_TRACK_INSTRUCTION = (
@@ -115,7 +111,6 @@ EXAMPLE_OUTPUTS = {
 
 
 def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data: dict, feedback_profile: str, ref_analysis_data: dict = None) -> str:
-
     type = normalize_type(type)
     if type not in ROLE_CONTEXTS:
         raise ValueError(f"Unknown type: {type}")
@@ -205,7 +200,6 @@ Now return exactly 2–3 bullet points.
 
 
 def generate_feedback_response(prompt: str) -> str:
-    print("🔍 Prompt being sent to GPT:\n", prompt)
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}]

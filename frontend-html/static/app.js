@@ -218,7 +218,7 @@ document.getElementById("askAIButton").addEventListener("click", async () => {
 
 
 // ==========================================================
-// 🧠 Summarize Last 5 Follow-Ups
+// 🧠 Summarize Last 4 Follow-Ups
 // ==========================================================
 async function summarizeFollowupThread() {
   try {
@@ -230,7 +230,10 @@ async function summarizeFollowupThread() {
       return;
     }
 
-    console.log("Summarizing follow-up thread for session:", sessionId, "track:", trackId, "group:", followupGroupIndex);
+    // Use previous group if current thread is empty
+    const groupToSummarize = followupThread.length === 0 ? Math.max(followupGroupIndex - 1, 0) : followupGroupIndex;
+
+    console.log("Summarizing follow-up thread for session:", sessionId, "track:", trackId, "group:", groupToSummarize);
 
     const res = await fetch("/chat/summarize-thread", {
       method: "POST",
@@ -238,7 +241,7 @@ async function summarizeFollowupThread() {
       body: JSON.stringify({
         session_id: sessionId,
         track_id: trackId,
-        followup_group: followupGroupIndex
+        followup_group: groupToSummarize
       })
     });
 
@@ -277,13 +280,23 @@ document.getElementById("manualSummarizeBtn").addEventListener("click", async ()
   const button = document.getElementById("manualSummarizeBtn");
   button.classList.add("pulsing"); // Start pulsing while loading
 
+  // Get the track ID to use
+  const trackIdToUse = window.lastTrackId || document.getElementById("track-select")?.value;
+
+  // If no track ID, alert and stop
+  if (!trackIdToUse) {
+    alert("Please select or analyze a track first.");
+    button.classList.remove("pulsing"); // Remove pulsing since we're not continuing
+    return;
+  }
+
   try {
     const res = await fetch("/chat/summarize-thread", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         session_id: document.getElementById("session_id").value,
-        track_id: document.getElementById("track-select")?.value || "",
+        track_id: trackIdToUse,
         followup_group: followupGroupIndex
       })
     });

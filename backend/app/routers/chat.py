@@ -79,8 +79,6 @@ class FollowUpRequest(BaseModel):
 
 @router.post("/ask-followup")
 def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
-    print("ask_followup called with request:", req.dict())
-    print("ask_followup called with request:", req)
     profile = normalize_profile(req.feedback_profile)
     user_question = req.user_question.strip()
 
@@ -129,10 +127,11 @@ def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
             .order_by(ChatMessage.timestamp.desc())
             .first()
         )
+        print(f"Previous summary message for group {req.followup_group - 1}: {summary_msg.message if summary_msg else 'None'}")
         if summary_msg:
             summary_text = summary_msg.message
 
-    # 3. Build prompt including ref_analysis data
+    # 3. Build prompt including ref_analysis data and summary
     prompt = build_followup_prompt(
         analysis_text=req.analysis_text,
         feedback_text=req.feedback_text,
@@ -140,11 +139,10 @@ def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
         thread_summary=summary_text,
         ref_analysis_data=req.ref_analysis_data
     )
-    print("Built prompt for GPT:\n", prompt)
 
     try:
         ai_response = generate_feedback_response(prompt)
-        print("GPT response:", ai_response)  # <-- add this
+        print("GPT response:", ai_response)
     except Exception as e:
         print("❌ GPT call failed:", e)
         raise HTTPException(status_code=500, detail="AI follow-up failed")
@@ -160,7 +158,7 @@ def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
     )
     db.add(user_msg)
 
-    # Save AI response
+    # Save AI assistant response
     assistant_msg = ChatMessage(
         session_id=req.session_id,
         track_id=req.track_id,
@@ -172,9 +170,64 @@ def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
     db.add(assistant_msg)
     db.commit()
 
-    print("Prompt sent to GPT:", prompt)
-    return {"answer": ai_response}
+    # --- Automatic summary creation after 4 user follow-ups ---
+    user_msgs_count = (
+        db.query(ChatMessage)
+        .filter_by(
+            session_id=req.session_id,
+            track_id=req.track_id,
+            followup_group=req.followup_group,
+            sender="user"
+        )
+        .count()
+    )
 
+    if user_msgs_count >= 2:
+        # Fetch all messages in this group (user + assistant)
+        msgs = (
+            db.query(ChatMessage)
+            .filter_by(
+                session_id=req.session_id,
+                track_id=req.track_id,
+                followup_group=req.followup_group,
+            )
+            .order_by(ChatMessage.timestamp)
+            .all()
+        )
+
+        conversation = "\n".join(
+            f"{'User' if msg.sender == 'user' else 'Assistant'}: {msg.message}"
+            for msg in msgs
+        )
+
+        summary_prompt = f"""
+Summarize this follow-up thread (up to 4 user questions and assistant responses) into a concise overall improvement strategy:
+
+{conversation}
+"""
+
+        print(f"Generating summary for followup_group {req.followup_group} with conversation:\n{conversation}")
+
+        summary_text = generate_feedback_response(summary_prompt)
+
+        print(f"✅ Auto summary saved for followup_group {req.followup_group}")
+        print(f"Summary content:\n{summary_text}\n{'-' * 40}")
+
+        summary_msg = ChatMessage(
+            session_id=req.session_id,
+            track_id=req.track_id,
+            sender="assistant",
+            message=summary_text,
+            feedback_profile="summary",
+            followup_group=req.followup_group
+        )
+        db.add(summary_msg)
+        db.commit()
+
+        print(f"✅ Auto summary saved for followup_group {req.followup_group}")
+
+
+    return {"answer": ai_response}
 
 
 @router.get("/tracks/{track_id}/messages")
@@ -216,9 +269,6 @@ def summarize_thread(req: SummarizeRequest, db: Session = Depends(get_db)):
         .order_by(ChatMessage.timestamp)
         .all()
     )
-
-    print(f"Summarizing thread for session={req.session_id}, track={req.track_id}, group={req.followup_group}")
-    print(f"Found {len(messages)} messages")
 
     thread = []
     for msg in messages:
