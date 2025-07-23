@@ -16,6 +16,17 @@ def sanitize_input(input_str: str) -> str:
         return ""
     return re.sub(r"\s+", " ", input_str.strip())[:100]
 
+
+def sanitize_user_question(text: str) -> str:
+    if not isinstance(text, str):
+        return ""
+    # Remove unwanted characters (allow common punctuation)
+    cleaned = re.sub(r"[^\w\s.,!?@&$()\-+=:;\'\"/]", "", text.strip())
+    # Limit length to 400 chars (adjust as needed)
+    cleaned = cleaned[:400]
+    # Escape HTML entities to prevent injection
+    return html.escape(cleaned)
+
 def normalize_session_name(name: str) -> str:
     """
     Sanitize user-provided session name:

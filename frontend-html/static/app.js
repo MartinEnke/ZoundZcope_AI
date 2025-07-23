@@ -185,14 +185,18 @@ if (data.summary_created) {
 thinkingEl.classList.remove("animate-pulse");
 thinkingEl.innerHTML = `<span class="text-blue-400 text-lg">➤</span>`;
 
-// Convert markdown answer to HTML
-const formattedAnswer = marked.parse(answer);
+// Create safe Q paragraph
+    const questionP = document.createElement("p");
+    const strongQ = document.createElement("strong");
+    strongQ.textContent = "Q:";
+    questionP.appendChild(strongQ);
+    questionP.appendChild(document.createTextNode(" " + question));
+    outputBox.appendChild(questionP);
 
-// Append the Q&A with formatted answer
-outputBox.innerHTML += `
-  <p><strong>Q:</strong> ${question}</p>
-  <div><strong>A:</strong> ${formattedAnswer}</div>
-`;
+    // Create div for formatted answer
+    const answerDiv = document.createElement("div");
+    answerDiv.innerHTML = marked.parse(answer);
+    outputBox.appendChild(answerDiv);
 
     // Track current thread
     followupThread.push({ question, answer });

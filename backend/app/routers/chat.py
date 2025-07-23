@@ -5,7 +5,7 @@ from app.models import Track, AnalysisResult, ChatMessage
 from app.gpt_utils import generate_feedback_prompt, generate_feedback_response, build_followup_prompt
 import json
 from pydantic import BaseModel
-from app.utils import normalize_type, normalize_genre, normalize_profile
+from app.utils import normalize_type, normalize_genre, normalize_profile, sanitize_user_question
 from typing import Optional, Dict, Any
 
 router = APIRouter()
@@ -80,7 +80,7 @@ class FollowUpRequest(BaseModel):
 @router.post("/ask-followup")
 def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
     profile = normalize_profile(req.feedback_profile)
-    user_question = req.user_question.strip()
+    user_question = sanitize_user_question(req.user_question)
 
     # 1. Fetch main track
     main_track = db.query(Track).filter(Track.id == req.track_id).first()
@@ -152,7 +152,7 @@ def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
         session_id=req.session_id,
         track_id=req.track_id,
         sender="user",
-        message=req.user_question,
+        message=user_question,
         feedback_profile=profile,
         followup_group=req.followup_group
     )
