@@ -619,3 +619,41 @@ select.custom-dropdown:focus {
 .summary-block {
   margin-top: 10rem; /* 48px */
 }
+
+/* Container for the feedback box */
+#feedback {
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #e0e0e0;
+  /* background: #1e1e2f;  dark background */
+  padding: 1rem 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(33, 150, 243, 0.3);
+  max-width: 700px;
+  margin: 1rem auto;
+  line-height: 1.5;
+}
+
+/* Subheading styles */
+#feedback p.text-lg.font-semibold {
+  font-weight: 700;
+  font-size: 1.25rem;
+  margin-bottom: 0.8rem;
+  color: #2196f3; /* blue for mastering, adjust dynamically */
+  padding-bottom: 0.25rem;
+}
+
+#feedback ul {
+  list-style-type: none;  /* remove bullet dots */
+  padding-left: 0;  /* keep left padding for indentation */
+  margin-top: 0;
+  margin-bottom: 1rem;    /* spacing below list */
+}
+
+#feedback ul li {
+  position: relative;
+  margin-bottom: 0.75rem;
+  padding-left: 0; /* no extra padding needed */
+  color: #e0e0e0;
+  line-height: 1.5;
+}
+

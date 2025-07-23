@@ -1123,24 +1123,39 @@ if (trackType === "mixdown") {
 feedbackBox.appendChild(subheading);
 
       const ul = document.createElement("ul");
-      ul.className = "list-disc list-inside mt-2 text-white/90 space-y-1";
-      feedbackBox.appendChild(ul);
+ul.className = "list-disc list-inside mt-2 text-white/90 space-y-1";
+feedbackBox.appendChild(ul);
 
-      const lines = result.feedback
-        .split("\n")
-        .map(line => line.replace(/^[-•\s]+/, "").trim())
-        .filter(Boolean);
+const lines = result.feedback
+  .split("\n")
+  .map(line => line.replace(/^[-•\s]+/, "").trim())
+  .filter(Boolean);
 
-      for (const [index, line] of lines.entries()) {
-        const li = document.createElement("li");
-        li.style.display = "list-item";
-        if (index > 0) li.style.marginTop = "0.75rem";
-        ul.appendChild(li);
-        await typeText(li, line, 5);
-      }
+for (const [index, line] of lines.entries()) {
+  const li = document.createElement("li");
+  li.style.display = "list-item";
+  if (index > 0) li.style.marginTop = "0.75rem";
 
-      loadReferenceWaveform();
-      document.getElementById("custom-ai-section")?.classList.remove("hidden");
+  const issueMatch = line.match(/ISSUE:\s*([\s\S]*?)(?:IMPROVEMENT:\s*([\s\S]*))?$/i);
+  if (issueMatch) {
+    const issueText = issueMatch[1].trim();
+    const improvementText = issueMatch[2] ? issueMatch[2].replace(/^IMPROVEMENT:\s*/i, '').trim() : "";
+
+    li.innerHTML = `
+      <strong class="issue-label">ISSUE:</strong>
+      <span class="issue-text">${issueText}</span>
+      ${improvementText ? `<br><strong class="improvement-label">IMPROVEMENT:</strong> <span class="improvement-text">${improvementText}</span>` : ''}
+    `;
+  } else {
+    li.textContent = line;
+  }
+
+  ul.appendChild(li);
+}
+
+// After all bullets are appended:
+loadReferenceWaveform();
+document.getElementById("custom-ai-section")?.classList.remove("hidden");
 
       const exportBtn = document.getElementById("exportFeedbackBtn");
 if (exportBtn && !exportBtn.dataset.listenerAdded) {
