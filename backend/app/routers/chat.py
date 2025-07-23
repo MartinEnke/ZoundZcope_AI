@@ -196,7 +196,7 @@ def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
         .first()
     )
 
-    if user_msgs_count >= 4 and not existing_summary:
+    if user_msgs_count >= 2 and not existing_summary:
         # Fetch all messages in this group (user + assistant)
         msgs = (
             db.query(ChatMessage)
@@ -283,6 +283,11 @@ def summarize_thread(req: SummarizeRequest, db: Session = Depends(get_db)):
         .order_by(ChatMessage.timestamp)
         .all()
     )
+    # Count only user messages as "follow-up" messages
+    user_msgs = [msg for msg in messages if msg.sender == "user"]
+
+    if not user_msgs:
+        return {"summary": "No follow-up messages found for this thread to summarize."}
 
     thread = []
     for msg in messages:

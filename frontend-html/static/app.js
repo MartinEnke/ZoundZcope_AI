@@ -5,6 +5,7 @@ let refWavesurfer = null;
 let refWaveformReady = false; // "main" or "ref"
 let focusedWaveform = "main";
 let refTrackAnalysisData = null;
+let lastManualSummaryGroup = -1;  // track last manual summary group
 
 
 // Your existing loadReferenceWaveform function here
@@ -301,17 +302,22 @@ async function summarizeFollowupThread() {
 // ==========================================================
 document.getElementById("manualSummarizeBtn").addEventListener("click", async () => {
   const button = document.getElementById("manualSummarizeBtn");
-  button.classList.add("pulsing"); // Start pulsing while loading
 
-  const trackIdToUse = window.lastTrackId || document.getElementById("track-select")?.value;
-
-  if (!trackIdToUse) {
-    alert("Please select or analyze a track first.");
-    button.classList.remove("pulsing");
+  if (followupGroupIndex === lastManualSummaryGroup) {
+    alert("This group has already been manually summarized.");
     return;
   }
 
+  button.classList.add("pulsing");
+
   try {
+    const trackIdToUse = window.lastTrackId || document.getElementById("track-select")?.value;
+    if (!trackIdToUse) {
+      alert("Please select or analyze a track first.");
+      button.classList.remove("pulsing");
+      return;
+    }
+
     const res = await fetch("/chat/summarize-thread", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -322,20 +328,20 @@ document.getElementById("manualSummarizeBtn").addEventListener("click", async ()
       })
     });
 
-    if (!res.ok) throw new Error(`Server error: ${res.status} ${res.statusText}`);
+    if (!res.ok) {
+      throw new Error(`Server error: ${res.status} ${res.statusText}`);
+    }
 
     const data = await res.json();
     const summary = data.summary;
 
-    if (!summary) {
-      console.warn("No summary returned from backend");
-      return;
-    }
-
     const htmlSummary = marked.parse(summary);
 
+    const outputBox = document.getElementById("aiFollowupResponse");
+
+    // Append summary block in the main Q&A container
     const summaryEl = document.createElement("div");
-    summaryEl.className = "bg-white/10 text-white/90 p-4 rounded-lg mt-4";
+    summaryEl.className = "summary-block bg-white/10 text-white/90 p-4 rounded-lg mt-4";
     summaryEl.innerHTML = `
       <p class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 font-bold text-lg mb-2">
         Thread Summary
@@ -344,10 +350,20 @@ document.getElementById("manualSummarizeBtn").addEventListener("click", async ()
         ${htmlSummary}
       </div>
     `;
+    outputBox.appendChild(summaryEl);
 
-    document.getElementById("aiFollowupResponse").appendChild(summaryEl);
+    // Optional: show a separate summary container if you want (or remove this part)
+    /*
+    const summaryContainer = document.getElementById("aiSummaryResponse");
+    summaryContainer.classList.remove("hidden");
+    summaryContainer.appendChild(summaryEl);
+    */
+
     localStorage.setItem("zoundzcope_last_followup_summary", summaryEl.outerHTML);
 
+    lastManualSummaryGroup = followupGroupIndex;
+
+    // Optionally reset or advance thread state here:
     followupGroupIndex++;
     followupThread = [];
 
