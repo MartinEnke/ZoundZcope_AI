@@ -96,7 +96,7 @@ EXAMPLE_OUTPUTS = {
 
     "pro": """
 #### Example Output:
-- - ISSUE: Compared to the reference track, your low-end feels less controlled and slightly muddy.
+- ISSUE: Compared to the reference track, your low-end feels less controlled and slightly muddy.
   IMPROVEMENT: Try applying a dynamic EQ to tighten the sub frequencies, similar to the clean bass in the reference track.
   
 - ISSUE: Excessive buildup around 100Hz is causing low-end smearing.

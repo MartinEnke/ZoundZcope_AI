@@ -101,6 +101,7 @@ function typeText(targetElement, text, speed = 10) {
 
 
 
+
 // ==========================================================
 // 🔁 Ask AI Follow-Up Logic with Threading + Summarization
 // ==========================================================
@@ -198,6 +199,12 @@ thinkingEl.innerHTML = `<span class="text-blue-400 text-lg">➤</span>`;
     const answerDiv = document.createElement("div");
     answerDiv.innerHTML = marked.parse(answer);
     outputBox.appendChild(answerDiv);
+
+    // *** SHOW THE MANUAL SUMMARIZE BUTTON HERE IF HIDDEN ***
+const manualSummarizeBtn = document.getElementById("manualSummarizeBtn");
+if (manualSummarizeBtn.style.display === "none") {
+  manualSummarizeBtn.style.display = "inline-block";  // or "block"
+}
 
     // Track current thread
     followupThread.push({ question, answer });

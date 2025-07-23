@@ -615,3 +615,7 @@ select.custom-dropdown:focus {
   padding: 1rem;
   font-style: italic;
 }
+
+.summary-block {
+  margin-top: 10rem; /* 48px */
+}
