@@ -657,3 +657,19 @@ select.custom-dropdown:focus {
   line-height: 1.5;
 }
 
+
+
+.quick-followup-button {
+  /* Existing styles */
+  px-4 py-1 rounded-full
+  bg-white/5 hover:bg-white/10
+  text-white text-[0.75rem]
+
+  backdrop-blur-sm transition-all duration-150
+}
+
+/* Add milky white hover effect */
+.quick-followup-button:hover {
+  background-color: rgba(255, 255, 255, 0.15); /* milky white translucent */
+
+}

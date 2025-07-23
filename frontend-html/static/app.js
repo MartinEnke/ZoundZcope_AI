@@ -557,12 +557,14 @@ function loadQuickFollowupButtons(type, genre, profile) {
     const btn = document.createElement("button");
     btn.textContent = q;
     btn.className = `
+  quick-followup-button
   px-4 py-1 rounded-full
-  bg-white/5 hover:bg-white/10
+  bg-white/5
   text-white text-[0.75rem]
-  shadow-sm hover:shadow-md
-  border border-white/10 hover:border-white/20
-  backdrop-blur-sm transition-all duration-150
+  shadow-sm
+  border border-white/10
+  backdrop-blur-sm
+  transition-all duration-150
 `;
 btn.style.fontSize = "0.78rem";
 
