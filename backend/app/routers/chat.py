@@ -182,7 +182,21 @@ def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
         .count()
     )
 
-    if user_msgs_count >= 2:
+    response_data = {"answer": ai_response}
+
+    existing_summary = (
+        db.query(ChatMessage)
+        .filter_by(
+            session_id=req.session_id,
+            track_id=req.track_id,
+            followup_group=req.followup_group,
+            sender="assistant",
+            feedback_profile="summary"
+        )
+        .first()
+    )
+
+    if user_msgs_count >= 4 and not existing_summary:
         # Fetch all messages in this group (user + assistant)
         msgs = (
             db.query(ChatMessage)
@@ -211,7 +225,7 @@ Summarize this follow-up thread (up to 4 user questions and assistant responses)
         summary_text = generate_feedback_response(summary_prompt)
 
         print(f"✅ Auto summary saved for followup_group {req.followup_group}")
-        print(f"Summary content:\n{summary_text}\n{'-' * 40}")
+        print(f"Summary content:\n{summary_text}\n{'-'*40}")
 
         summary_msg = ChatMessage(
             session_id=req.session_id,
@@ -224,10 +238,10 @@ Summarize this follow-up thread (up to 4 user questions and assistant responses)
         db.add(summary_msg)
         db.commit()
 
-        print(f"✅ Auto summary saved for followup_group {req.followup_group}")
+        response_data["summary_created"] = True
 
+    return response_data
 
-    return {"answer": ai_response}
 
 
 @router.get("/tracks/{track_id}/messages")

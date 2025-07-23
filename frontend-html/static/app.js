@@ -6,6 +6,7 @@ let refWaveformReady = false; // "main" or "ref"
 let focusedWaveform = "main";
 let refTrackAnalysisData = null;
 
+
 // Your existing loadReferenceWaveform function here
 function loadReferenceWaveform() {
   const refFileInput = document.getElementById("ref-file-upload");
@@ -175,12 +176,23 @@ document.getElementById("askAIButton").addEventListener("click", async () => {
     }
 
     const data = await res.json();
-    const answer = data.answer;
+const answer = data.answer;
 
-    thinkingEl.classList.remove("animate-pulse");
-    thinkingEl.innerHTML = `<span class="text-blue-400 text-lg">➤</span>`;
+if (data.summary_created) {
+  showInfoToast("💡 Internal summary created to keep conversations concise.");
+}
 
-    outputBox.innerHTML += `<p><strong>Q:</strong> ${question}<br><strong>A:</strong> ${answer}</p>`;
+thinkingEl.classList.remove("animate-pulse");
+thinkingEl.innerHTML = `<span class="text-blue-400 text-lg">➤</span>`;
+
+// Convert markdown answer to HTML
+const formattedAnswer = marked.parse(answer);
+
+// Append the Q&A with formatted answer
+outputBox.innerHTML += `
+  <p><strong>Q:</strong> ${question}</p>
+  <div><strong>A:</strong> ${formattedAnswer}</div>
+`;
 
     // Track current thread
     followupThread.push({ question, answer });
@@ -230,7 +242,6 @@ async function summarizeFollowupThread() {
       return;
     }
 
-    // Use previous group if current thread is empty
     const groupToSummarize = followupThread.length === 0 ? Math.max(followupGroupIndex - 1, 0) : followupGroupIndex;
 
     console.log("Summarizing follow-up thread for session:", sessionId, "track:", trackId, "group:", groupToSummarize);
@@ -252,21 +263,29 @@ async function summarizeFollowupThread() {
     const data = await res.json();
     const summary = data.summary;
 
+    if (!summary) {
+      console.warn("No summary returned from backend");
+      return;
+    }
+
+    const htmlSummary = marked.parse(summary);
+
     const summaryEl = document.createElement("div");
     summaryEl.className = "bg-white/10 text-white/90 p-4 rounded-lg mt-4";
     summaryEl.innerHTML = `
       <p class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 font-bold text-lg mb-2">
         Thread Summary
       </p>
-      <p class="text-white text-base leading-relaxed">
-        ${summary}
-      </p>
+      <div class="text-white text-base leading-relaxed">
+        ${htmlSummary}
+      </div>
     `;
 
     document.getElementById("aiFollowupResponse").appendChild(summaryEl);
 
     // Optionally save summary in localStorage
     localStorage.setItem("zoundzcope_last_followup_summary", summaryEl.outerHTML);
+
   } catch (err) {
     console.error("❌ Failed to summarize follow-up thread:", err);
   }
@@ -280,13 +299,11 @@ document.getElementById("manualSummarizeBtn").addEventListener("click", async ()
   const button = document.getElementById("manualSummarizeBtn");
   button.classList.add("pulsing"); // Start pulsing while loading
 
-  // Get the track ID to use
   const trackIdToUse = window.lastTrackId || document.getElementById("track-select")?.value;
 
-  // If no track ID, alert and stop
   if (!trackIdToUse) {
     alert("Please select or analyze a track first.");
-    button.classList.remove("pulsing"); // Remove pulsing since we're not continuing
+    button.classList.remove("pulsing");
     return;
   }
 
@@ -301,8 +318,17 @@ document.getElementById("manualSummarizeBtn").addEventListener("click", async ()
       })
     });
 
+    if (!res.ok) throw new Error(`Server error: ${res.status} ${res.statusText}`);
+
     const data = await res.json();
     const summary = data.summary;
+
+    if (!summary) {
+      console.warn("No summary returned from backend");
+      return;
+    }
+
+    const htmlSummary = marked.parse(summary);
 
     const summaryEl = document.createElement("div");
     summaryEl.className = "bg-white/10 text-white/90 p-4 rounded-lg mt-4";
@@ -310,22 +336,21 @@ document.getElementById("manualSummarizeBtn").addEventListener("click", async ()
       <p class="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 font-bold text-lg mb-2">
         Thread Summary
       </p>
-      <p class="text-white text-base leading-relaxed">
-        ${summary}
-      </p>
+      <div class="text-white text-base leading-relaxed">
+        ${htmlSummary}
+      </div>
     `;
 
     document.getElementById("aiFollowupResponse").appendChild(summaryEl);
     localStorage.setItem("zoundzcope_last_followup_summary", summaryEl.outerHTML);
 
-    // ✅ Reset thread
     followupGroupIndex++;
     followupThread = [];
 
   } catch (err) {
     console.error("❌ Failed to summarize follow-up thread:", err);
   } finally {
-    button.classList.remove("pulsing"); // Stop pulsing
+    button.classList.remove("pulsing");
   }
 });
 
@@ -1828,4 +1853,18 @@ document.addEventListener("keydown", (e) => {
 });
 
 
+function showInfoToast(message) {
+  const toast = document.createElement("div");
+  toast.textContent = message;
+  toast.className = `
+    fixed bottom-5 right-5 bg-blue-600 text-white px-4 py-2 rounded shadow-lg
+    opacity-90 z-50 transition-opacity duration-500
+  `;
 
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => document.body.removeChild(toast), 500);
+  }, 3000);
+}
