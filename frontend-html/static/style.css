@@ -689,9 +689,7 @@ select.custom-dropdown:focus {
   line-height: 1.5;
 }
 
-.hidden {
-  display: none !important;
-}
+
 
 button.reset-mode {
   background-color: #e53e3e; /* red-ish */
