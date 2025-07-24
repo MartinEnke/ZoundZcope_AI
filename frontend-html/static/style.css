@@ -696,3 +696,10 @@ button.reset-mode {
   color: white;
   /* add padding, border, hover styles etc. as you want */
 }
+
+#recent-feedback-container ul,
+#recent-feedback-container ol {
+  list-style: none;
+  padding-left: 0;
+  margin-left: 0;
+}
