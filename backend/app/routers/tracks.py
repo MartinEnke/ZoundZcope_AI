@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Form
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
-from app.models import Track, AnalysisResult
+from app.models import Track, AnalysisResult, ChatMessage
 import os
 
 router = APIRouter()
@@ -53,6 +53,10 @@ def delete_track(id: str, db: Session = Depends(get_db)):
     if track.analysis:
         db.delete(track.analysis)
 
+    # Delete related chat messages
+    deleted_chats = db.query(ChatMessage).filter(ChatMessage.track_id == track.id).delete()
+    print(f"Deleted {deleted_chats} chat messages for track {track.id}")
+
     # Safely delete file if file_path is set and file exists
     if track.file_path:
         try:
@@ -68,4 +72,4 @@ def delete_track(id: str, db: Session = Depends(get_db)):
     db.delete(track)
     db.commit()
 
-    return {"message": "Track and analysis deleted"}
+    return {"message": "Track, analysis, and chat messages deleted"}

@@ -154,15 +154,31 @@ def update_session_name(
     db.commit()
     return {"message": "Session updated", "session": session}
 
-# DELETE /sessions/{id}
+
 @router.delete("/{id}")
 def delete_session(id: str, db: Session = Depends(get_db)):
     session = db.query(UserSession).filter(UserSession.id == id).first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    # Optional: Delete all related tracks and chat messages too
-    db.query(Track).filter(Track.session_id == id).delete()
+    # Get all track IDs related to this session
+    track_ids = [t.id for t in db.query(Track.id).filter(Track.session_id == id).all()]
+
+    if track_ids:
+        # Delete chat messages related to these tracks
+        deleted_chats = db.query(ChatMessage).filter(ChatMessage.track_id.in_(track_ids)).delete(synchronize_session=False)
+        print(f"Deleted {deleted_chats} chat messages linked to session {id}")
+
+        # Delete analysis results related to these tracks
+        deleted_analysis = db.query(AnalysisResult).filter(AnalysisResult.track_id.in_(track_ids)).delete(synchronize_session=False)
+        print(f"Deleted {deleted_analysis} analysis results linked to session {id}")
+
+        # Delete tracks themselves
+        deleted_tracks = db.query(Track).filter(Track.session_id == id).delete(synchronize_session=False)
+        print(f"Deleted {deleted_tracks} tracks linked to session {id}")
+
+    # Finally delete the session itself
     db.delete(session)
     db.commit()
-    return {"message": "Session and associated tracks deleted"}
+
+    return {"message": f"Session and all related tracks, analysis, and chats deleted"}
