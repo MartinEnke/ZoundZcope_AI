@@ -951,6 +951,12 @@ const form = document.getElementById("uploadForm");
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  const feedbackBox = document.getElementById("gptResponse");
+if (feedbackBox) feedbackBox.innerHTML = "";
+
+const followupResponseBox = document.getElementById("aiFollowupResponse");
+if (followupResponseBox) followupResponseBox.innerHTML = "";
+
   // 🔁 Immediately reset old waveform to avoid showing it during wait
   const waveformDiv = document.getElementById("waveform");
   if (waveformDiv) {
@@ -963,10 +969,18 @@ form.addEventListener("submit", async (e) => {
     window.wavesurfer = null;
   }
 
+
   localStorage.removeItem("zoundzcope_last_analysis");
   localStorage.removeItem("zoundzcope_last_feedback");
   localStorage.removeItem("zoundzcope_last_followup");
   localStorage.removeItem("zoundzcope_last_subheading");
+
+  // Clear follow-up and manual summary areas in the DOM
+const followupContainer = document.getElementById("followupSection"); // or your actual ID for follow-up area
+const manualSummaryContainer = document.getElementById("manualSummarySection"); // adjust as needed
+
+if (followupContainer) followupContainer.innerHTML = "";
+if (manualSummaryContainer) manualSummaryContainer.innerHTML = "";
 
   const analyzeButton = form.querySelector('button[type="submit"]');
   const formData = new FormData(form);
@@ -1124,6 +1138,8 @@ if (trackType === "mixdown") {
 }
 feedbackBox.appendChild(subheading);
 
+
+
       const ul = document.createElement("ul");
 ul.className = "list-disc list-inside mt-2 text-white/90 space-y-1";
 feedbackBox.appendChild(ul);
@@ -1154,6 +1170,7 @@ for (const [index, line] of lines.entries()) {
 
   ul.appendChild(li);
 }
+
 
 // After all bullets are appended:
 loadReferenceWaveform();
