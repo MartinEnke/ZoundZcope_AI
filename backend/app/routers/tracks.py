@@ -41,6 +41,7 @@ def update_track(
     db.commit()
     return {"message": "Track updated", "track": track}
 
+
 @router.delete("/{id}")
 def delete_track(id: str, db: Session = Depends(get_db)):
     print("Deleting track:", id)
@@ -48,14 +49,23 @@ def delete_track(id: str, db: Session = Depends(get_db)):
     if not track:
         raise HTTPException(status_code=404, detail="Track not found")
 
-    # Delete associated analysis result
+    # Delete associated analysis result if any
     if track.analysis:
         db.delete(track.analysis)
 
-    # Optionally delete file
-    if os.path.exists(track.file_path):
-        os.remove(track.file_path)
+    # Safely delete file if file_path is set and file exists
+    if track.file_path:
+        try:
+            if os.path.exists(track.file_path):
+                os.remove(track.file_path)
+                print(f"Deleted file: {track.file_path}")
+            else:
+                print(f"File path does not exist: {track.file_path}")
+        except Exception as e:
+            print(f"Warning: Failed to delete file {track.file_path}: {e}")
 
+    # Delete track from DB
     db.delete(track)
     db.commit()
+
     return {"message": "Track and analysis deleted"}
