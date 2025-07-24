@@ -10,7 +10,7 @@ logger = logging.getLogger("cleanup")
 BASE_DIR = Path(os.getcwd()).parent
 UPLOAD_FOLDER = BASE_DIR / "backend" / "uploads"
 RMS_ANALYSIS_FOLDER = BASE_DIR / "frontend-html" / "static" / "analysis"
-MAX_FILE_AGE_SECONDS = 40
+MAX_FILE_AGE_SECONDS = 30
 
 def cleanup_old_uploads():
     logger.info("Starting cleanup of old uploads...")
@@ -55,9 +55,9 @@ def cleanup_old_uploads():
                         deleted_count = db.query(AnalysisResult).filter(AnalysisResult.track_id == track.id).delete()
                         logger.info(f"Deleted {deleted_count} analysis results for track {track.id}")
 
-                        # Delete track record from DB
-                        db.delete(track)
-                        logger.info(f"Deleted track record from DB: {track.id}")
+                        # Instead of deleting Track, just clear the file_path
+                        track.file_path = None
+                        db.add(track)  # mark for update
 
                     except Exception as e:
                         logger.error(f"Error deleting files or DB record for {file_path}: {e}")

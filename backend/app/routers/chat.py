@@ -243,7 +243,6 @@ Summarize this follow-up thread (up to 4 user questions and assistant responses)
     return response_data
 
 
-
 @router.get("/tracks/{track_id}/messages")
 def get_messages_for_track(track_id: str, db: Session = Depends(get_db)):
     track = db.query(Track).filter_by(id=track_id).first()
@@ -257,6 +256,10 @@ def get_messages_for_track(track_id: str, db: Session = Depends(get_db)):
         .all()
     )
 
+    print(f"DEBUG: Found {len(messages)} messages for track_id={track_id}")
+    for msg in messages:
+        print(f"DEBUG: message id={msg.id} content={msg.message[:30]}")
+
     return [
         {
             "sender": msg.sender,
@@ -267,7 +270,6 @@ def get_messages_for_track(track_id: str, db: Session = Depends(get_db)):
         }
         for msg in messages
     ]
-
 
 class SummarizeRequest(BaseModel):
     session_id: str

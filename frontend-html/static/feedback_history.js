@@ -451,17 +451,6 @@ async function loadManageSection() {
       sessionDiv.appendChild(sessionHeader);
 
 
-
-
-
-
-
-
-
-
-
-
-
       const trackList = document.createElement("ul");
   trackList.className = "ml-4 space-y-1 text-sm";
 
