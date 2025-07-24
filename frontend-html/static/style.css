@@ -673,3 +673,18 @@ select.custom-dropdown:focus {
   background-color: rgba(255, 255, 255, 0.15); /* milky white translucent */
 
 }
+
+
+#recent-feedback ul {
+  list-style-type: none;
+  padding-left: 1.25rem; /* or 0, as you prefer */
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+#recent-feedback ul li {
+  margin-bottom: 0.75rem;
+  padding-left: 0;
+  color: #e0e0e0;
+  line-height: 1.5;
+}
