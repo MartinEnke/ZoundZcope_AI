@@ -9,10 +9,9 @@ from app.routers import export
 import asyncio
 from app.cleanup import cleanup_old_uploads
 import logging
-
 from contextlib import asynccontextmanager
-
 from fastapi.routing import APIRoute
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,10 +20,18 @@ async def lifespan(app: FastAPI):
         if isinstance(route, APIRoute):
             print(route.path, route.methods)
         else:
-            # For Mount or others just print the path
             print(route.path, "(mount or other)")
-    yield
 
+    # Start your periodic cleanup task here:
+    task = asyncio.create_task(periodic_cleanup_task())
+    try:
+        yield
+    finally:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
 
 app = FastAPI(title="ZoundZcope API", lifespan=lifespan)
 
@@ -119,7 +126,10 @@ async def periodic_cleanup_task():
             cleanup_old_uploads()
         except Exception as e:
             logger.error(f"Periodic cleanup error: {e}")
-        await asyncio.sleep(6 * 60 * 60)  # Run every 6 hours
+        await asyncio.sleep(10)  # Run every 6 hours
 
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(periodic_cleanup_task())
 
 
