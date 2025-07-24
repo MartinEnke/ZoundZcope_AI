@@ -947,6 +947,10 @@ async function loadSessionTracks(sessionId) {
 }
 
 
+// ==========================================================
+// 🔁 Helper: Hide old Elements after Analyze
+// ==========================================================
+
 
 function showSummarizeButton() {
   const summarizeBtn = document.getElementById("manualSummarizeBtn");
@@ -963,6 +967,24 @@ function hideSummarizeButton() {
 }
 
 
+function clearQuickFollowupButtons() {
+  const container = document.getElementById("quick-followup");
+  if (!container) return;
+  container.innerHTML = "";       // komplett leeren
+  container.classList.add("hidden");  // ausblenden (optional)
+}
+
+function resetExportButton() {
+  const exportBtn = document.getElementById("exportFeedbackBtn");
+  if (exportBtn) {
+    exportBtn.disabled = false;                            // Button aktivieren
+    exportBtn.textContent = "Export Feedback & Presets";  // Button-Text zurücksetzen
+    // exportBtn.style.display = "inline-block";           // Falls nötig: Sichtbar machen
+    // exportBtn.dataset.listenerAdded = "";               // Nur zurücksetzen, wenn du Listener neu hinzufügen willst
+  }
+}
+
+
 // ==========================================================
 // 🔸 Upload Form Submission Logic (UPDATED)
 // ==========================================================
@@ -972,6 +994,11 @@ form.addEventListener("submit", async (e) => {
 
   // 1) Verstecke den Summarize-Button gleich zu Beginn der neuen Analyse:
   hideSummarizeButton();
+
+  resetExportButton()
+
+  // Quick Followup Buttons sofort ausblenden / leeren
+  clearQuickFollowupButtons();
 
   const feedbackBox = document.getElementById("gptResponse");
 if (feedbackBox) feedbackBox.innerHTML = "";
