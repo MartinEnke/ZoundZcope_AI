@@ -170,6 +170,7 @@ def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
     db.add(assistant_msg)
     db.commit()
 
+
     # --- Automatic summary creation after 4 user follow-ups ---
     user_msgs_count = (
         db.query(ChatMessage)
