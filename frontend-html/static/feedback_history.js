@@ -276,59 +276,73 @@ async function fetchTracks(sessionId) {
 
   // Load feedback and analysis
   async function loadTrackFeedback(trackId) {
-    const feedbackBox = document.getElementById("history-feedback-output");
-    const feedbackContainer = document.getElementById("history-feedback");
+  const feedbackBox = document.getElementById("history-feedback-output");
+  const feedbackContainer = document.getElementById("history-feedback");
 
-    try {
-      const res = await fetch(`/tracks/${trackId}/messages`);
-      const messages = await res.json();
+  try {
+    const res = await fetch(`/chat/tracks/${trackId}/messages`);
+    const messages = await res.json();
 
-      feedbackBox.innerHTML = "";
-      if (messages.length === 0) {
-        feedbackBox.innerHTML = "<p class='text-white/70'>No feedback found.</p>";
-        return;
-      }
+    feedbackBox.innerHTML = "";
+    if (messages.length === 0) {
+      feedbackBox.innerHTML = "<p class='text-white/70'>No feedback found.</p>";
+      return;
+    }
 
-      messages.forEach(msg => {
-        const div = document.createElement("div");
-        div.className = "mb-4";
+    messages.forEach(msg => {
+      const div = document.createElement("div");
+      div.className = "mb-6";
 
-        const heading = document.createElement("p");
+      const heading = document.createElement("p");
 
-        // Choose color based on track type
-        const typeClass = msg.type?.toLowerCase() === "mixdown"
-          ? "text-pink-400"
-          : msg.type?.toLowerCase() === "master"
-          ? "text-blue-400"
-          : "text-white";
+      // Choose color based on track type
+      const typeClass = msg.type?.toLowerCase() === "mixdown"
+        ? "text-pink-400"
+        : msg.type?.toLowerCase() === "master"
+        ? "text-blue-400"
+        : "text-white";
 
-        heading.className = `font-semibold ${typeClass}`;
-        heading.textContent = `Type: ${msg.type} | Profile: ${msg.feedback_profile || "Default"}`;
-        div.appendChild(heading);
+      heading.className = `font-semibold ${typeClass} mb-4`;
+      heading.textContent = `Type: ${msg.type} | Profile: ${msg.feedback_profile || "Default"}`;
+      div.appendChild(heading);
 
-        const ul = document.createElement("ul");
-        ul.className = "list-disc list-inside text-white/90 text-sm mt-2";
+      // Split by double newlines to separate ISSUE/IMPROVEMENT pairs
+      const pairs = msg.message.split(/\n\s*\n/);
 
-        const lines = msg.message
-          .split("\n")
-          .map(l => l.replace(/^[-•\s]+/, "").trim()) // ⬅️ Strip leading - or • or whitespace
-          .filter(Boolean);
+      pairs.forEach(pairText => {
+        const pairDiv = document.createElement("div");
+        pairDiv.className = "bg-white/10 p-4 rounded-md mb-3 text-white/90 text-sm";
 
-        lines.forEach(line => {
-          const li = document.createElement("li");
-          li.textContent = line;
-          ul.appendChild(li);
-        });
+        // Parse ISSUE and IMPROVEMENT lines explicitly
+        const issueMatch = pairText.match(/-?\s*ISSUE:\s*(.*)/i);
+        const improvementMatch = pairText.match(/-?\s*IMPROVEMENT:\s*([\s\S]*)/i);
 
-        div.appendChild(ul);
-        feedbackBox.appendChild(div);
+        if (issueMatch) {
+          const issueP = document.createElement("p");
+          issueP.className = "font-semibold mb-1";
+          issueP.textContent = "ISSUE: " + issueMatch[1].trim();
+          pairDiv.appendChild(issueP);
+        }
+
+        if (improvementMatch) {
+          const improvementP = document.createElement("p");
+          improvementP.className = "mb-0";
+          improvementP.textContent = "IMPROVEMENT: " + improvementMatch[1].trim();
+          pairDiv.appendChild(improvementP);
+        }
+
+        div.appendChild(pairDiv);
       });
 
-      feedbackContainer.classList.remove("hidden");
-    } catch (err) {
-      console.error("Failed to load feedback:", err);
-    }
+      feedbackBox.appendChild(div);  // <-- Don't forget to append each message div!
+    });
+
+    feedbackContainer.classList.remove("hidden");
+  } catch (err) {
+    console.error("Failed to load feedback:", err);
   }
+}
+
 
   // Initial fetch
   fetchSessions();
