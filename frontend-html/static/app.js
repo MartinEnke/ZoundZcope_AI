@@ -984,7 +984,12 @@ function resetExportButton() {
   }
 }
 
-
+function resetRMSDisplay() {
+  const rmsDisplay = document.getElementById("rms-display");
+  if (rmsDisplay) {
+    rmsDisplay.innerText = "Current RMS: --";  // Oder leer setzen: ""
+  }
+}
 // ==========================================================
 // 🔸 Upload Form Submission Logic (UPDATED)
 // ==========================================================
@@ -994,7 +999,7 @@ form.addEventListener("submit", async (e) => {
 
   // 1) Verstecke den Summarize-Button gleich zu Beginn der neuen Analyse:
   hideSummarizeButton();
-
+  resetRMSDisplay();
   resetExportButton()
 
   // Quick Followup Buttons sofort ausblenden / leeren
