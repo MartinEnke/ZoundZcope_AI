@@ -234,6 +234,9 @@ if (manualSummarizeBtn.style.display === "none") {
     questionInput.value = "";
     localStorage.setItem("zoundzcope_last_followup", outputBox.innerHTML);
 
+    // ERST JETZT den Button zeigen:
+    showSummarizeButton();
+
   } catch (err) {
     console.error("❌ Follow-up failed:", err);
     outputBox.innerHTML += `<p class='text-red-400'>Something went wrong: ${err.message}</p>`;
@@ -944,12 +947,31 @@ async function loadSessionTracks(sessionId) {
 }
 
 
+
+function showSummarizeButton() {
+  const summarizeBtn = document.getElementById("manualSummarizeBtn");
+  if (summarizeBtn) {
+    summarizeBtn.style.display = "inline-block";
+  }
+}
+
+function hideSummarizeButton() {
+  const summarizeBtn = document.getElementById("manualSummarizeBtn");
+  if (summarizeBtn) {
+    summarizeBtn.style.display = "none";
+  }
+}
+
+
 // ==========================================================
 // 🔸 Upload Form Submission Logic (UPDATED)
 // ==========================================================
 const form = document.getElementById("uploadForm");
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
+
+  // 1) Verstecke den Summarize-Button gleich zu Beginn der neuen Analyse:
+  hideSummarizeButton();
 
   const feedbackBox = document.getElementById("gptResponse");
 if (feedbackBox) feedbackBox.innerHTML = "";
