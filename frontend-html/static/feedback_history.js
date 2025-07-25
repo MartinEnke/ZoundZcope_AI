@@ -281,7 +281,13 @@ async function fetchTracks(sessionId) {
 
   try {
     const res = await fetch(`/chat/tracks/${trackId}/messages`);
-    const messages = await res.json();
+    let messages = await res.json();
+
+    // Filter only initial feedback messages (profile "pro" and followup_group = 0 or null/undefined)
+    messages = messages.filter(msg =>
+      msg.feedback_profile === "pro" &&
+      (msg.followup_group === 0 || msg.followup_group === "0" || msg.followup_group == null)
+    );
 
     feedbackBox.innerHTML = "";
     if (messages.length === 0) {
@@ -290,6 +296,19 @@ async function fetchTracks(sessionId) {
     }
 
     messages.forEach(msg => {
+      // Split message into pairs first
+      const pairs = msg.message.split(/\n\s*\n/);
+
+      // Check if any pair contains ISSUE or IMPROVEMENT
+      const hasValidPairs = pairs.some(pairText =>
+        /-?\s*ISSUE:\s*/i.test(pairText) || /-?\s*IMPROVEMENT:\s*/i.test(pairText)
+      );
+
+      if (!hasValidPairs) {
+        // Skip this message entirely if no valid pairs found
+        return;
+      }
+
       const div = document.createElement("div");
       div.className = "mb-6";
 
@@ -306,14 +325,11 @@ async function fetchTracks(sessionId) {
       heading.textContent = `Type: ${msg.type} | Profile: ${msg.feedback_profile || "Default"}`;
       div.appendChild(heading);
 
-      // Split by double newlines to separate ISSUE/IMPROVEMENT pairs
-      const pairs = msg.message.split(/\n\s*\n/);
-
+      // Now render all valid pairs
       pairs.forEach(pairText => {
         const pairDiv = document.createElement("div");
         pairDiv.className = "bg-white/10 p-4 rounded-md mb-3 text-white/90 text-sm";
 
-        // Parse ISSUE and IMPROVEMENT lines explicitly
         const issueMatch = pairText.match(/-?\s*ISSUE:\s*(.*)/i);
         const improvementMatch = pairText.match(/-?\s*IMPROVEMENT:\s*([\s\S]*)/i);
 
@@ -334,7 +350,7 @@ async function fetchTracks(sessionId) {
         div.appendChild(pairDiv);
       });
 
-      feedbackBox.appendChild(div);  // <-- Don't forget to append each message div!
+      feedbackBox.appendChild(div);
     });
 
     feedbackContainer.classList.remove("hidden");
@@ -342,6 +358,7 @@ async function fetchTracks(sessionId) {
     console.error("Failed to load feedback:", err);
   }
 }
+
 
 
   // Initial fetch
