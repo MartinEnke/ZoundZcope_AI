@@ -1129,7 +1129,23 @@ if (refFileInput && refFileInput.files.length > 0) {
 console.log("Setting window.lastTrackId to:", tracks[0]?.id);
 
       window.lastSessionId = sessionId;
-      window.lastTrackId = tracks[0]?.id || "";
+window.lastTrackId = tracks[0]?.id || "";
+
+// Sync hidden session_id input to keep manual summarizer in sync
+const sessionIdInput = document.getElementById("session_id");
+if (sessionIdInput) {
+  sessionIdInput.value = sessionId;
+}
+
+// Reset follow-up state to avoid stale data after new session
+followupThread = [];
+followupGroupIndex = 0;
+lastManualSummaryGroup = -1;  // or null if you prefer
+
+console.log("Session and track set:", window.lastSessionId, window.lastTrackId);
+console.log("Follow-up state reset");
+
+
 
       const resultsEl = document.getElementById("results");
       const feedbackEl = document.getElementById("feedback");

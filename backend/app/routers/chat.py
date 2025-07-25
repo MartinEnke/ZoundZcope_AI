@@ -280,12 +280,14 @@ class SummarizeRequest(BaseModel):
 
 @router.post("/summarize-thread")
 def summarize_thread(req: SummarizeRequest, db: Session = Depends(get_db)):
+    print(f"Summarize request: session_id={req.session_id}, track_id={req.track_id}, group={req.followup_group}")
     messages = (
         db.query(ChatMessage)
         .filter_by(session_id=req.session_id, track_id=req.track_id, followup_group=req.followup_group)
         .order_by(ChatMessage.timestamp)
         .all()
     )
+    print(f"Found {len(messages)} messages")
     # Count only user messages as "follow-up" messages
     user_msgs = [msg for msg in messages if msg.sender == "user"]
 
