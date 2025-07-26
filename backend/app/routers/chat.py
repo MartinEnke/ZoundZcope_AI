@@ -3,10 +3,11 @@ from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import Track, AnalysisResult, ChatMessage
 from app.gpt_utils import generate_feedback_prompt, generate_feedback_response, build_followup_prompt
-import json
-from pydantic import BaseModel
 from app.utils import normalize_type, normalize_genre, normalize_profile, sanitize_user_question
+from pydantic import BaseModel
 from typing import Optional, Dict, Any
+import json
+
 
 router = APIRouter()
 
@@ -17,7 +18,7 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/feedback_history.html")
+@router.get("/generate_feedback")
 def get_feedback(
     track_id: str = Form(...),
     session_id: str = Form(...),
@@ -26,6 +27,24 @@ def get_feedback(
     feedback_profile: str = Form(...),
     db: Session = Depends(get_db)
 ):
+    """
+    Handle a request to generate AI mixing/mastering feedback for a given audio track.
+
+    This function normalizes user inputs, fetches audio analysis data, builds
+    an AI prompt, sends it for feedback generation, saves the feedback in the
+    database, and returns it to the client.
+
+    Parameters:
+        track_id (str): Unique identifier of the audio track.
+        session_id (str): Current user session identifier.
+        genre (str): Genre of the track, used to tailor feedback.
+        type (str): Feedback type ('mixdown', 'mastering', 'master review').
+        feedback_profile (str): Detail level ('simple', 'detailed', 'pro').
+        db (Session): Database session for querying track data.
+
+    Returns:
+        dict: JSON response containing AI feedback text, or error message if analysis not found.
+    """
 
     genre = normalize_genre(genre)
     type = normalize_type(type)
