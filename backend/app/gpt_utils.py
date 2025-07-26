@@ -1,11 +1,10 @@
 from openai import OpenAI
-import os
-import json
-from dotenv import load_dotenv
-load_dotenv()
 from app.utils import normalize_type, normalize_profile, normalize_genre, ALLOWED_GENRES, normalize_subgenre
 import html
-import re
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # client = OpenAI(

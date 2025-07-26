@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
-from app.models import ChatMessage
+from app.models import Track, ChatMessage
 from app.gpt_utils import generate_feedback_response
 from reportlab.lib.pagesizes import letter
 from io import BytesIO
@@ -10,8 +10,6 @@ from reportlab.lib.utils import simpleSplit
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, ListFlowable, ListItem
 from reportlab.lib.enums import TA_CENTER
-
-
 
 
 router = APIRouter()
@@ -268,21 +266,56 @@ def create_pdf(full_report_text: str) -> BytesIO:
     return buffer
 
 
+
+
 @router.get("/export-feedback-presets")
 def export_feedback_presets(
     session_id: str = Query(...),
     track_id: str = Query(...),
     db: Session = Depends(get_db)
 ):
-    print(f"Export request received for session {session_id}, track {track_id}")
-    feedback_text = get_feedback_text(session_id, track_id, db)
-    if not feedback_text:
+    print(f"Export request for session {session_id}, track {track_id}")
+
+    # Fetch the track object
+    track = db.query(Track).filter(Track.id == track_id).first()
+    if not track:
+        raise HTTPException(status_code=404, detail="Track not found")
+
+    # Detect if this is a reference track by name or however you identify it
+    if "(Reference)" in (track.track_name or ""):
+        # Find main track(s) for this session excluding reference tracks
+        main_track = (
+            db.query(Track)
+            .filter(
+                Track.session_id == session_id,
+                ~Track.track_name.contains("(Reference)"),
+            )
+            .order_by(Track.uploaded_at.desc())
+            .first()
+        )
+
+        if not main_track:
+            raise HTTPException(
+                status_code=404,
+                detail="No main track found for this session to export feedback",
+            )
+        print(f"Reference track detected, switching export to main track {main_track.id}")
+        track_id = main_track.id
+
+    # Now fetch feedback messages for the track_id (could be original or switched)
+    messages = (
+        db.query(ChatMessage)
+        .filter_by(session_id=session_id, track_id=track_id, sender='assistant')
+        .order_by(ChatMessage.timestamp)
+        .all()
+    )
+
+    if not messages:
         raise HTTPException(status_code=404, detail="No feedback found for this session and track")
 
-    # Generate the full formatted report (feedback + presets) from GPT
-    full_report = generate_preset_text_from_feedback(feedback_text)
+    feedback_text = "\n\n".join(msg.message for msg in messages)
 
-    # Create PDF with only the full GPT report text
+    full_report = generate_preset_text_from_feedback(feedback_text)
     pdf_buffer = create_pdf(full_report)
 
     return StreamingResponse(

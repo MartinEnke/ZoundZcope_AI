@@ -1,17 +1,16 @@
 from fastapi import APIRouter, UploadFile, File, Form
-from sqlalchemy.orm import Session
-import shutil, os
+from fastapi.responses import JSONResponse
 from app.database import SessionLocal
 from app.models import Track, AnalysisResult, ChatMessage, Session as UserSession
 from app.audio_analysis import analyze_audio
-from typing import Optional
-from fastapi.responses import JSONResponse
 from app.gpt_utils import generate_feedback_prompt, generate_feedback_response
 from app.utils import normalize_session_name, normalize_profile, normalize_genre, normalize_subgenre, safe_track_name
 from app.analysis_rms_chunks import compute_rms_chunks
 import time
 from pathlib import Path
+import shutil, os
 import uuid
+from typing import Optional
 
 router = APIRouter()
 
