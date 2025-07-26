@@ -98,6 +98,21 @@ class FollowUpRequest(BaseModel):
 
 @router.post("/ask-followup")
 def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
+    """
+        Fetches the main track and optional reference track analysis from the database.
+        Retrieves the previous follow-up summary if available to provide context for the AI prompt.
+
+        Parameters:
+            req (FollowUpRequest): The follow-up request containing session, track, and follow-up group info.
+            db (Session): Database session for querying data.
+
+        Returns:
+            tuple: (main_track, ref_analysis, summary_text)
+                main_track: The primary Track object or None if not found.
+                ref_analysis: Dict of reference track analysis data or None.
+                summary_text: Previous follow-up summary string or empty string.
+        """
+
     profile = normalize_profile(req.feedback_profile)
     user_question = sanitize_user_question(req.user_question)
 
@@ -131,7 +146,7 @@ def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
             # add other needed fields...
         }
 
-    # 🔍 Include summary from previous thread if applicable
+    # 3. Retrieve previous follow-up summary if applicable
     summary_text = ""
     if req.followup_group > 0:
         summary_msg = (
@@ -299,6 +314,20 @@ class SummarizeRequest(BaseModel):
 
 @router.post("/summarize-thread")
 def summarize_thread(req: SummarizeRequest, db: Session = Depends(get_db)):
+    """
+        Generate a summary of a follow-up conversation thread.
+
+        Retrieves chat messages for a given session, track, and follow-up group,
+        then uses AI to summarize the thread into a concise improvement strategy.
+
+        Parameters:
+            req (SummarizeRequest): Contains session_id, track_id, and followup_group.
+            db (Session): Database session for querying chat messages.
+
+        Returns:
+            dict: A JSON response with the AI-generated summary or a message if
+                  no follow-up messages are found.
+        """
     print(f"Summarize request: session_id={req.session_id}, track_id={req.track_id}, group={req.followup_group}")
     messages = (
         db.query(ChatMessage)
@@ -334,6 +363,7 @@ Summarize this follow-up thread (5 user questions with assistant responses) into
 
     summary = generate_feedback_response(prompt)
     return {"summary": summary}
+
 
 
 @router.get("/test")

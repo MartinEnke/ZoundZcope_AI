@@ -1,27 +1,33 @@
-from openai import OpenAI
-from app.utils import normalize_type, normalize_profile, normalize_genre, ALLOWED_GENRES, normalize_subgenre
-import html
-import os
-from dotenv import load_dotenv
-load_dotenv()
+# AI Feedback Prompt Generation (`gpt_utils.py`)
 
+This module contains key prompt templates, role definitions, communication style guides, and example outputs used to generate tailored AI feedback for the music mixing and mastering assistant. The main function assembles all parts dynamically into a detailed prompt sent to the AI model.
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-# client = OpenAI(
-#     base_url="https://api.together.xyz/v1",  # You can still use Together
-# )
+---
 
+## Constants & Templates
 
+### Reference Track Instruction
+
+```python
 REFERENCE_TRACK_INSTRUCTION = (
     "If a reference track analysis is provided, you MUST compare the submitted track's analysis with the reference track's data."
     "Give specific feedback on differences and how to improve the submitted track based on the comparison."
     "If no reference data is available, Do NOT mention, assume, or imply any reference track in the feedback."
 )
+
+Enforces that the AI only mentions a reference track when reference data is available.
+Guides the AI to provide comparison-based feedback.
+
+
 ROLE_CONTEXTS = {
     "mixdown": "You are a professional **mixing engineer reviewing a mixdown** with deep knowledge of {genre}, especially {subgenre}.",
     "mastering": "You are a professional **mastering engineer giving mastering advice** for this mixdown with deep knowledge of {genre}, especially {subgenre}.",
     "master": "You are a professional **mastering engineer reviewing a finished master** to assess its quality with deep knowledge of {genre}, especially {subgenre}.",
 }
+
+Defines the AI persona and task based on the feedback type.
+Ensures contextual and role-specific feedback.
+
 
 PROFILE_GUIDANCE = {
     "simple": (
@@ -41,72 +47,7 @@ PROFILE_GUIDANCE = {
     ),
 }
 
-FORMAT_RULES = {
-    "simple": """
-Each bullet must:
-- Start with "ISSUE": Describe in plain but friendly language what feels off or unusual in the sound.
-- Follow with "IMPROVEMENT": Suggest friendly a simple, actionable fix without technical terms.
-- Use 1–2 short, friendly sentences.
-- Briefly say why the suggestion might help, using intuitive, listener-friendly terms.
-""",
-
-    "detailed": """
-Each bullet must:
-- Begin with "ISSUE": Describe friendly a clear mix/mastering issue using basic production terms.
-- Follow with "IMPROVEMENT": Suggest an actionable tip (e.g., EQ, reverb, compression) with a short reason why.
-- Use 2–3 clear sentences.
-- Reference analysis data or genre norms when helpful.
-""",
-
-    "pro": """
-Each bullet must:
-- Start with "ISSUE": Use technical but friendly language to precisely identify the issue.
-- Follow with "IMPROVEMENT": Provide a targeted, technique-based recommendation (e.g., transient shaping, multiband sidechaining).
-- Keep it sharp and focused: 2–3 dense, information-rich but friendly sentences.
-- Justify the advice based on analysis or genre expectations.
-"""
-}
-
-EXAMPLE_OUTPUTS = {
-    "simple": """
-#### Example Output:
-- ISSUE: Compared to the reference track the bass is too loud and makes the track feel heavy.
-  IMPROVEMENT: Turn the bass down a little and check how it sounds with vocals. 
-  This will help make everything clearer.
-
-- ISSUE: The sound is too crowded.
-  IMPROVEMENT: Try making some sounds quieter or move them left and right. 
-  This can make the track feel more open.
-""",
-
-    "detailed": """
-#### Example Output:
-- ISSUE: Compared to the reference track the RMS Level doesn't match the standard for a mixdown of this {genre}.  
-  IMPROVEMENT: Aim for around -15 dB RMS to preserve headroom for mastering. 
-  This helps the final master stay loud and punchy, especially in {subgenre}.
-  
-- ISSUE: The kick and bass are clashing in the low end.
-  IMPROVEMENT: Use EQ to reduce overlapping frequencies and sidechain the bass to the kick. 
-  This adds clarity to your low end.
-
-- ISSUE: The vocals feel buried in the mix.
-  IMPROVEMENT: Add light compression and EQ boost around 2-4 kHz to bring them forward without sounding harsh.
-""",
-
-    "pro": """
-#### Example Output:
-- ISSUE: Compared to the reference track, your low-end feels less controlled and slightly muddy.
-  IMPROVEMENT: Try applying a dynamic EQ to tighten the sub frequencies, similar to the clean bass in the reference track.
-  
-- ISSUE: Excessive buildup around 100Hz is causing low-end smearing.
-  IMPROVEMENT: Use a dynamic EQ or sidechain-triggered low-shelf cut on the bass. 
-  This maintains punch while improving definition.
-
-- ISSUE: The stereo image collapses in the high-mids.
-  IMPROVEMENT: Use mid-side EQ or widening tools (e.g. MicroShift) to open up the 2–6 kHz range. 
-  Essential for clarity in {subgenre} arrangements.
-"""
-}
+Adapts feedback tone and complexity to user-selected detail level.
 
 
 def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data: dict, feedback_profile: str, ref_analysis_data: dict = None) -> str:
@@ -125,7 +66,7 @@ def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data
             Returns:
                 str: Formatted prompt string ready to be sent to the AI model.
             """
-
+    
     type = normalize_type(type)
     if type not in ROLE_CONTEXTS:
         raise ValueError(f"Unknown type: {type}")
@@ -214,78 +155,9 @@ Now return exactly 2–3 bullet points.
 """.strip()
 
 
-def generate_feedback_response(prompt: str) -> str:
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}]
-    )
-    # response = client.chat.completions.create(
-    #     model="mistralai/Mixtral-8x7B-Instruct-v0.1",
-    #     messages=[{"role": "user", "content": prompt}]
-    # )
-    return response.choices[0].message.content.strip()
-
-
-def generate_followup_response(analysis_text: str, feedback_text: str, user_question: str, thread_summary: str = "") -> str:
-    prompt = build_followup_prompt(analysis_text, feedback_text, user_question, thread_summary)
-    return generate_feedback_response(prompt)
-
-
-def build_followup_prompt(
-    analysis_text: str,
-    feedback_text: str,
-    user_question: str,
-    thread_summary: str = "",
-    ref_analysis_data: dict = None,   # NEW parameter
-) -> str:
-    import html
-    import re
-
-    # Clean and escape user question
-    user_question = re.sub(r"[^\w\s.,!?@&$()\-+=:;\'\"/]", "", user_question.strip())[:400]
-    user_question = html.escape(user_question)
-
-    ref_section = ""
-    if ref_analysis_data and isinstance(ref_analysis_data, dict):
-        ref_section = f"""
-        ### Reference Track Analysis (for comparison)
-        - Peak: {ref_analysis_data.get('peak_db', 'N/A')} dB
-        - RMS Peak: {ref_analysis_data.get('rms_db_peak', 'N/A')} dB
-        - LUFS: {ref_analysis_data.get('lufs', 'N/A')}
-        - Transients: {ref_analysis_data.get('transient_description', 'N/A')}
-        - Spectral balance note: {ref_analysis_data.get('spectral_balance_description', 'N/A')}
-        - Dynamic range: {ref_analysis_data.get('dynamic_range', 'N/A')}
-        - Stereo width: {ref_analysis_data.get('stereo_width', 'N/A')}
-        - Bass profile: {ref_analysis_data.get('low_end_description', '')}
-        """
-    else:
-        print("Warning: ref_analysis_data missing or invalid:", ref_analysis_data)
-
-    return f"""
-You are a helpful and professional **audio engineer assistant**.
-
-{"### Summary of Previous Conversation\n" + thread_summary + "\n" if thread_summary else ""}
-
-### Track Analysis
-{analysis_text}
-
-{ref_section}
-
-### Prior Feedback
-{feedback_text}
-
-### User's Follow-Up Question
-"{user_question}"
-
-### Instructions
-- Use the analysis, feedback, and summary above as context.
-- Do **not** repeat the full analysis or feedback.
-- Answer the follow-up clearly and concisely.
-- Stay on topic and be technically helpful.
-- If the question is vague, use the existing context to infer intent.
-
-Respond below:
-"""
-
-
-
+Explanation:
+Validates inputs against allowed roles, genres, and profiles.
+Escapes HTML in genre and subgenre for safe prompt formatting.
+Dynamically inserts audio analysis and optional reference track data.
+Includes detailed instructions on tone, style, and bullet format.
+Enforces no extraneous text in AI output to ensure clean feedback.
