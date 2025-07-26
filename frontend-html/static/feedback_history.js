@@ -163,11 +163,20 @@ async function loadSessionTracks(sessionId) {
         feedbackBox.appendChild(historyHeading);
 
         const subheading = document.createElement("p");
-        subheading.className = track.type === "mixdown"
-          ? "text-pink-400 text-lg font-semibold"
-          : "text-blue-400 text-lg font-semibold";
-        subheading.textContent = track.type === "mixdown"
-          ? "Mixdown Suggestions:" : "Mastering Advice:";
+
+if (track.type === "mixdown") {
+  subheading.className = "text-pink-400 text-lg font-semibold";
+  subheading.textContent = "Mixdown Suggestions:";
+} else if (track.type === "master") {
+  subheading.className = "text-blue-400 text-lg font-semibold";
+  subheading.textContent = "Mastering Advice:";
+} else if (track.type === "master review") {
+  subheading.className = "text-blue-400 text-lg font-semibold";
+  subheading.textContent = "Master Review:";
+} else {
+  subheading.className = "text-white/70 text-lg font-semibold";
+  subheading.textContent = "AI Feedback:";
+}
         feedbackBox.appendChild(subheading);
 
         const ul = document.createElement("ul");
@@ -285,9 +294,8 @@ async function fetchTracks(sessionId) {
 
     // Filter only initial feedback messages (profile "pro" and followup_group = 0 or null/undefined)
     messages = messages.filter(msg =>
-      msg.feedback_profile === "pro" &&
-      (msg.followup_group === 0 || msg.followup_group === "0" || msg.followup_group == null)
-    );
+  (msg.followup_group === 0 || msg.followup_group === "0" || msg.followup_group == null)
+);
 
     feedbackBox.innerHTML = "";
     if (messages.length === 0) {
@@ -312,18 +320,25 @@ async function fetchTracks(sessionId) {
       const div = document.createElement("div");
       div.className = "mb-6";
 
-      const heading = document.createElement("p");
+      function capitalize(word) {
+  if (!word) return "";
+  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+}
 
-      // Choose color based on track type
-      const typeClass = msg.type?.toLowerCase() === "mixdown"
-        ? "text-pink-400"
-        : msg.type?.toLowerCase() === "master"
-        ? "text-blue-400"
-        : "text-white";
+const heading = document.createElement("p");
 
-      heading.className = `font-semibold ${typeClass} mb-4`;
-      heading.textContent = `Type: ${msg.type} | Profile: ${msg.feedback_profile || "Default"}`;
-      div.appendChild(heading);
+// Choose color based on track type
+const typeClass = msg.type?.toLowerCase() === "mixdown"
+  ? "text-pink-400"
+  : msg.type?.toLowerCase() === "master"
+  ? "text-blue-400"
+  : msg.type?.toLowerCase() === "mastering"
+  ? "text-blue-400"
+  : "text-white";
+
+heading.className = `font-semibold ${typeClass} mb-4`;
+heading.textContent = `Type: ${capitalize(msg.type)} | Profile: ${msg.feedback_profile || "Default"}`;
+div.appendChild(heading);
 
       // Now render all valid pairs
       pairs.forEach(pairText => {
