@@ -81,6 +81,9 @@ def get_tracks_for_session(
 
         query = db.query(Track).filter(Track.session_id == id)
 
+        # Exclude reference tracks by name
+        query = query.filter(~Track.track_name.ilike('%(Reference)%'))
+
         if type:
             query = query.filter(Track.type.ilike(type))
         if track_name:
