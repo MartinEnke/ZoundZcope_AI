@@ -8,12 +8,40 @@ import numpy as np
 client = OpenAI()  # your key must be set in env
 
 
+import re
+
+def extract_code_blocks(text):
+    """
+        Extracts all markdown code blocks from chunk_text.
+        Returns a list of code strings.
+        """
+    # Regex to match triple-backtick code blocks, optionally with language hint
+    return re.findall(r"```(?:\w+)?\n(.*?)```", text, re.DOTALL)
+
 def build_prompt(query, retrieved_chunks):
     prompt = "You are an expert explaining the implementation of a music AI project.\n"
-    prompt += "Answer the user's question based on these code snippets and explanations:\n\n"
+    prompt += "If the user requests the full original function, return the entire function code exactly as it appears inside markdown code blocks.\n"
+    prompt += "Otherwise, provide clear, concise explanations quoting relevant code.\n\n"
+
+    all_codes = []
+    for chunk in retrieved_chunks:
+        codes = extract_code_blocks(chunk['text'])
+        all_codes.extend(codes)
+
+    # Add extracted code snippets first, if any
+    if all_codes:
+        prompt += "Here are the relevant code snippets:\n\n"
+        for code in all_codes:
+            prompt += f"```python\n{code}\n```\n\n"
+
+    # Add explanations as well
+    prompt += "Additional context and explanations from the docs:\n\n"
     for chunk in retrieved_chunks:
         prompt += f"File: {chunk['filename']}, Section {chunk['chunk_index']}:\n{chunk['text']}\n\n"
-    prompt += f"User question: {query}\n\nAnswer clearly and concisely, quoting relevant code."
+
+    # Finally, add the user question once
+    prompt += f"User question: {query}\n\nAnswer accordingly."
+
     return prompt
 
 

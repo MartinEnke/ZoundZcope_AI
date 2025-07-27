@@ -1,82 +1,48 @@
-# Follow-Up Prompt Construction
+# Follow-Up Prompt Construction (gpt_utils.py)
 
-This section details the function responsible for assembling a comprehensive and context-aware prompt to guide the AI assistant in generating precise, relevant answers to user follow-up questions. The function integrates prior audio analysis, previous AI feedback, the user’s query, conversation summaries, and optional reference track data to maintain continuity and clarity in multi-turn interactions.
+This section describes the function responsible for assembling a detailed, context-aware prompt
+to guide the AI assistant in providing precise and relevant answers to user follow-up questions.
 
 ---
 
-## Function: build_followup_prompt (gpt_utils.py)
+## Function: `build_followup_prompt`
 
-```python
-def build_followup_prompt(
-    analysis_text: str,
-    feedback_text: str,
-    user_question: str,
-    thread_summary: str = "",
-    ref_analysis_data: dict = None,
-) -> str:
-    """
-    Constructs a detailed prompt for AI follow-up feedback based on prior analysis,
-    previous feedback, the user’s follow-up question, optional conversation summary,
-    and optionally reference track analysis data.
+- Integrates multiple sources of context into a single prompt string:  
+  - Prior audio analysis text describing the submitted track’s attributes.  
+  - Previous AI feedback given to the user.  
+  - The user’s current follow-up question, sanitized and escaped for safety.  
+  - An optional summary of the previous conversation to maintain continuity and reduce prompt length.  
+  - Optional reference track analysis data for comparative feedback.
 
-    Parameters:
-        analysis_text (str): Text description of the audio analysis.
-        feedback_text (str): Previous AI feedback text.
-        user_question (str): User’s follow-up question.
-        thread_summary (str, optional): Summary of prior follow-up conversation for context.
-        ref_analysis_data (dict, optional): Reference track analysis for comparison.
+- Sanitizes and truncates the user’s question to remove unwanted characters and limit length.  
+- Dynamically includes a reference track analysis section if such data is provided and valid.  
+- Structures the prompt with clear labeled sections to ensure the AI understands the context and stays focused.  
+- Provides explicit instructions to the AI to avoid repeating full prior text and to answer clearly and technically.
 
-    Returns:
-        str: A formatted prompt string ready for submission to the AI model.
-    """
-    
-    # Clean and escape user question
-    user_question = re.sub(r"[^\w\s.,!?@&$()\-+=:;\'\"/]", "", user_question.strip())[:400]
-    user_question = html.escape(user_question)
+---
 
-    ref_section = ""
-    if ref_analysis_data and isinstance(ref_analysis_data, dict):
-        ref_section = f"""
-        ### Reference Track Analysis (for comparison)
-        - Peak: {ref_analysis_data.get('peak_db', 'N/A')} dB
-        - RMS Peak: {ref_analysis_data.get('rms_db_peak', 'N/A')} dB
-        - LUFS: {ref_analysis_data.get('lufs', 'N/A')}
-        - Transients: {ref_analysis_data.get('transient_description', 'N/A')}
-        - Spectral balance note: {ref_analysis_data.get('spectral_balance_description', 'N/A')}
-        - Dynamic range: {ref_analysis_data.get('dynamic_range', 'N/A')}
-        - Stereo width: {ref_analysis_data.get('stereo_width', 'N/A')}
-        - Bass profile: {ref_analysis_data.get('low_end_description', '')}
-        """
-    else:
-        print("Warning: ref_analysis_data missing or invalid:", ref_analysis_data)
+**Inputs:**
 
-    return f"""
-You are a helpful and professional **audio engineer assistant**.
+- `analysis_text` (str): Description of the track’s audio analysis.  
+- `feedback_text` (str): The last AI-generated feedback text.  
+- `user_question` (str): The follow-up question from the user.  
+- `thread_summary` (str, optional): Summary of earlier follow-up conversation for context.  
+- `ref_analysis_data` (dict, optional): Reference track analysis for comparison.
 
-{"### Summary of Previous Conversation\n" + thread_summary + "\n" if thread_summary else ""}
+---
 
-### Track Analysis
-{analysis_text}
+**Output:**
 
-{ref_section}
+- A formatted prompt string, ready to be submitted to the AI model for generating the follow-up response.
 
-### Prior Feedback
-{feedback_text}
+---
 
-### User's Follow-Up Question
-"{user_question}"
+**Design Notes:**
 
-### Instructions
-- Use the analysis, feedback, and summary above as context.
-- Do **not** repeat the full analysis or feedback.
-- Answer the follow-up clearly and concisely.
-- Stay on topic and be technically helpful.
-- If the question is vague, use the existing context to infer intent.
+- Ensures the prompt is concise and well-structured to optimize AI understanding and response quality.  
+- Handles missing or invalid reference data gracefully with warnings.  
+- Emphasizes professional, helpful, and focused assistant behavior.
 
-Respond below:
-"""
-```
+---
 
-Explanation:
-This function builds a context-rich prompt that guides the AI assistant when answering user follow-up questions. It includes the original audio analysis, prior AI feedback, the sanitized user question, an optional conversation summary to keep context concise, and optionally reference track analysis for comparative feedback. The prompt instructs the AI to be concise, focused, and technically helpful, ensuring relevant and precise answers.
-
+*The complete source code for this function is stored separately for exact retrieval.*

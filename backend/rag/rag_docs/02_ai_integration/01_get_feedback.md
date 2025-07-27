@@ -1,76 +1,80 @@
 # Function: get_feedback (chat.py)
 
-```python
-def get_feedback(
-    track_id: str = Form(...),
-    session_id: str = Form(...),
-    genre: str = Form(...),
-    type: str = Form(...),
-    feedback_profile: str = Form(...),
-    db: Session = Depends(get_db)
-):
-    """
-    Handle a request to generate AI mixing/mastering feedback for a given audio track.
-    
-    This function normalizes user inputs, fetches audio analysis data, builds
-    an AI prompt, sends it for feedback generation, saves the feedback in the
-    database, and returns it to the client.
-    
-    Parameters:
-        track_id (str): Unique identifier of the audio track.
-        session_id (str): Current user session identifier.
-        genre (str): Genre of the track, used to tailor feedback.
-        type (str): Feedback type ('mixdown', 'mastering', 'master review').
-        feedback_profile (str): Detail level ('simple', 'detailed', 'pro').
-        db (Session): Database session for querying track data.
-    
-    Returns:
-        dict: JSON response containing AI feedback text, or error message if analysis not found.
-    """
+This function serves as the FastAPI endpoint for generating AI-based mixing or mastering feedback
+on a user’s uploaded audio track.
 
-    genre = normalize_genre(genre)
-    type = normalize_type(type)
-    feedback_profile = normalize_profile(feedback_profile)
+It performs the following key tasks:
 
-    # Fetch track and analysis
-    track = db.query(Track).filter(Track.id == track_id).first()
-    if not track or not track.analysis:
-        return {"error": "Track analysis not found"}
+- Normalizes user input parameters such as genre, feedback type, and detail level.
+- Retrieves the pre-computed audio analysis data from the database associated with the track.
+- Constructs a detailed AI prompt using this data to tailor feedback precisely.
+- Sends the prompt to an AI language model to generate mixing/mastering guidance.
+- Saves the AI’s feedback response into the database for conversation history.
+- Returns the generated feedback text in JSON format to the frontend.
 
-    analysis = {
-        "peak_db": track.analysis.peak_db,
-        "rms_db": track.analysis.rms_db,
-        "lufs": track.analysis.lufs,
-        "dynamic_range": track.analysis.dynamic_range,
-        "stereo_width": track.analysis.stereo_width,
-        "key": track.analysis.key,
-        "tempo": track.analysis.tempo,
-        "low_end_energy_ratio": track.analysis.low_end_energy_ratio,
-        "bass_profile": track.analysis.bass_profile,
-        "band_energies": json.loads(track.analysis.band_energies),
-        "issues": json.loads(track.analysis.issues),
-    }
+This separation of concerns allows the API endpoint to handle request validation,
+database interaction, and AI integration cleanly.
 
-    prompt = generate_feedback_prompt(genre, type, analysis, feedback_profile)
-    feedback = generate_feedback_response(prompt)
+---
 
-    chat = ChatMessage(
-        session_id=session_id,
-        track_id=track.id,
-        sender="assistant",
-        message=feedback,
-        feedback_profile=feedback_profile
-    )
-    db.add(chat)
-    db.commit()
+**Inputs:**
 
-    return {"feedback": feedback}
-```
+- `track_id`, `session_id`, `genre`, `type`, `feedback_profile`, and a DB session.
 
-Explanation:
-This function serves as the API endpoint for generating AI feedback on a user's uploaded audio track.
-It normalizes the user’s input parameters, fetches pre-computed audio analysis data from the database,
-and constructs a detailed prompt tailored by genre, feedback type, and desired detail level.
-The prompt is then sent to an AI model (e.g., GPT-4) to generate mixing or mastering feedback.
-The response is saved in the database as a chat message, enabling conversation history,
-and returned to the frontend for display.
+**Output:**
+
+- A JSON response containing the AI-generated feedback or an error message.
+
+---
+
+**Design notes:**
+
+- The function relies heavily on helper functions like `normalize_genre` and `generate_feedback_prompt`.
+- Audio analysis data is pre-calculated and stored for efficiency.
+- Feedback is saved to enable chat-style interaction history for users.
+4. Optional: link or reference the full function chunk
+You could add a note like:
+
+markdown
+Copy
+*The full function implementation is stored separately and can be retrieved on request.*
+Or, if you have a UI, provide a link or UI toggle to view the full code.
+
+Final markdown chunk example:
+markdown
+Copy
+# Function Explanation: get_feedback (chat.py)
+
+This function serves as the FastAPI endpoint for generating AI-based mixing or mastering feedback
+on a user’s uploaded audio track.
+
+It performs the following key tasks:
+
+- Normalizes user input parameters such as genre, feedback type, and detail level.
+- Retrieves the pre-computed audio analysis data from the database associated with the track.
+- Constructs a detailed AI prompt using this data to tailor feedback precisely.
+- Sends the prompt to an AI language model to generate mixing/mastering guidance.
+- Saves the AI’s feedback response into the database for conversation history.
+- Returns the generated feedback text in JSON format to the frontend.
+
+---
+
+**Inputs:**
+
+- `track_id`, `session_id`, `genre`, `type`, `feedback_profile`, and a DB session.
+
+**Output:**
+
+- A JSON response containing the AI-generated feedback or an error message.
+
+---
+
+**Design notes:**
+
+- The function relies heavily on helper functions like `normalize_genre` and `generate_feedback_prompt`.
+- Audio analysis data is pre-calculated and stored for efficiency.
+- Feedback is saved to enable chat-style interaction history for users.
+
+---
+
+*The full function implementation is stored separately and can be retrieved on request.*

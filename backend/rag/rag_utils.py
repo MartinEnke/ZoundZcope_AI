@@ -186,3 +186,5 @@ def search_index(index, query_embedding, top_k=3):
     """
     distances, indices = index.search(np.array([query_embedding]), top_k)
     return indices[0], distances[0]
+
+
