@@ -1,4 +1,4 @@
-# Function: ask_followup 
+# Function: ask_followup (chat.py)
 
 ## Part 2: Build Prompt, Generate Response, Save Messages
 

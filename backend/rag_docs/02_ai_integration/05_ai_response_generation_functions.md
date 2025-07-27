@@ -4,7 +4,7 @@ This section covers functions responsible for sending prompts to the AI model an
 
 ---
 
-## `generate_feedback_response`
+## Function: generate_feedback_response (gpt_utils.py)
 
 ```python
 def generate_feedback_response(prompt: str) -> str:
@@ -33,7 +33,7 @@ Returns the textual content from the first choice in the response.
 
 ---
 
-## `generate_follow_response`
+## Function: generate_follow_response (gpt_utils.py)
 
 
 ```python

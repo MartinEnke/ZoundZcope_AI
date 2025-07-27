@@ -1,4 +1,10 @@
-## Function: build_followup_prompt
+# Follow-Up Prompt Construction
+
+This section details the function responsible for assembling a comprehensive and context-aware prompt to guide the AI assistant in generating precise, relevant answers to user follow-up questions. The function integrates prior audio analysis, previous AI feedback, the user’s query, conversation summaries, and optional reference track data to maintain continuity and clarity in multi-turn interactions.
+
+---
+
+## Function: build_followup_prompt (gpt_utils.py)
 
 ```python
 def build_followup_prompt(

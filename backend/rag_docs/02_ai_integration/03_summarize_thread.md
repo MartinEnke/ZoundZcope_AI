@@ -1,4 +1,4 @@
-# Function: summarize_thread
+# Function: summarize_thread (chat.py)
 
 ```python
 class SummarizeRequest(BaseModel):

@@ -1,6 +1,6 @@
 # AI Feedback Prompt Generation
 
-This module contains key prompt templates, role definitions, communication style guides, and example outputs used to generate tailored AI feedback for the music mixing and mastering assistant. The main function assembles all parts dynamically into a detailed prompt sent to the AI model.
+This section contains key prompt templates, role definitions, communication style guides, and example outputs used to generate tailored AI feedback for the music mixing and mastering assistant. The main function assembles all parts dynamically into a detailed prompt sent to the AI model.
 
 ---
 
@@ -129,7 +129,7 @@ Explanation:
 Shows sample feedback bullet points for each detail level, illustrating the expected language and style.
 
 
-## Feedback Prompt Build-Up
+## Function: generate_feedback_prompt (gpt_utils.py)
 
 ```python
 def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data: dict, feedback_profile: str, ref_analysis_data: dict = None) -> str:
