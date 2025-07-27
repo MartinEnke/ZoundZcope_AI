@@ -1,11 +1,11 @@
-# summarize_thread
+# Function: summarize_thread
 
 ```python
 class SummarizeRequest(BaseModel):
     session_id: str
     track_id: str
     followup_group: int
-    
+```
 
 This Pydantic model defines the expected structure of the request payload for summarizing a follow-up thread:
 
@@ -13,7 +13,7 @@ This Pydantic model defines the expected structure of the request payload for su
 - **track_id**: Identifier of the audio track for which the follow-up thread exists.  
 - **followup_group**: Index of the follow-up conversation thread to summarize.
 
-
+```python
 @router.post("/summarize-thread")
 def summarize_thread(req: SummarizeRequest, db: Session = Depends(get_db)):
     """
@@ -65,9 +65,7 @@ Summarize this follow-up thread (5 user questions with assistant responses) into
 
     summary = generate_feedback_response(prompt)
     return {"summary": summary}
-
-
-
+```
 
 Explanation:
 This API endpoint generates a concise summary of a specific follow-up conversation thread between the user 

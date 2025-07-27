@@ -1,4 +1,6 @@
-# ask_followup - Part 2: Build Prompt, Generate Response, Save Messages
+# Function: ask_followup 
+
+## Part 2: Build Prompt, Generate Response, Save Messages
 
 ```python
 def process_followup_and_save(req, main_track, ref_analysis, summary_text, db):
@@ -53,9 +55,7 @@ def process_followup_and_save(req, main_track, ref_analysis, summary_text, db):
     db.commit()
 
     return ai_response
-
-
-
+```
 
 Explanation:
 This step prepares the AI prompt using the user’s question, previous feedback, audio analysis, 

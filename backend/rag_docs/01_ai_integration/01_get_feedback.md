@@ -65,9 +65,7 @@ def get_feedback(
     db.commit()
 
     return {"feedback": feedback}
-
-
-
+```
 
 Explanation:
 This function serves as the API endpoint for generating AI feedback on a user's uploaded audio track.

@@ -1,4 +1,6 @@
-# ask_followup - Part 3: Auto Summary and Response
+# Function: ask_followup 
+
+## Part 3: Auto Summary and Response
 
 ```python
 def create_summary_if_needed(req, db):
@@ -78,9 +80,7 @@ Summarize this follow-up thread (up to 4 user questions and assistant responses)
         response_data["summary_text"] = summary_text
 
     return response_data
-
-
-
+```
 
 Explanation:
 This function monitors the number of follow-up user messages in the current thread and, 

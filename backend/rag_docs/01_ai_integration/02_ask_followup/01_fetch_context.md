@@ -1,4 +1,6 @@
-# ask_followup - Part 1: Fetch Tracks and Prepare Context
+# Function: ask_followup 
+
+## Part 1: Fetch Tracks and Prepare Context
 
 ```python
 class FollowUpRequest(BaseModel):
@@ -10,7 +12,7 @@ class FollowUpRequest(BaseModel):
     feedback_profile: str
     followup_group: int = 0
     ref_analysis_data: Optional[Dict[str, Any]] = None
-    
+```
     
 This Pydantic model defines the expected structure of the follow-up request payload:
 
@@ -22,7 +24,7 @@ This Pydantic model defines the expected structure of the follow-up request payl
 - **followup_group**: Index of the follow-up conversation thread.  
 - **ref_analysis_data**: Optional reference track analysis for comparative feedback.
     
-    
+```python
 def fetch_tracks_and_context(req, db):
     """
     Fetches the main track and optional reference track analysis from the database.
@@ -86,9 +88,7 @@ def fetch_tracks_and_context(req, db):
             summary_text = summary_msg.message
 
     return main_track, ref_analysis, summary_text
-
-
-
+```
 
 Explanation:
 This part handles database interactions for the follow-up process. 

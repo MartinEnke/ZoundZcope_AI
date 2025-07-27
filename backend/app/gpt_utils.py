@@ -1,9 +1,10 @@
 from openai import OpenAI
 from app.utils import normalize_type, normalize_profile, normalize_genre, ALLOWED_GENRES, normalize_subgenre
-import html
 import os
 from dotenv import load_dotenv
 load_dotenv()
+import html
+import re
 
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -215,6 +216,15 @@ Now return exactly 2–3 bullet points.
 
 
 def generate_feedback_response(prompt: str) -> str:
+    """
+        Sends a prompt string to the AI model and returns the generated feedback text.
+
+        Parameters:
+            prompt (str): The fully constructed prompt containing context, instructions, and analysis data.
+
+        Returns:
+            str: The AI-generated feedback text, stripped of leading/trailing whitespace.
+        """
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}]
@@ -227,6 +237,19 @@ def generate_feedback_response(prompt: str) -> str:
 
 
 def generate_followup_response(analysis_text: str, feedback_text: str, user_question: str, thread_summary: str = "") -> str:
+    """
+        Builds a follow-up prompt incorporating prior analysis, feedback, user question,
+        and optionally a summary of the follow-up conversation thread, then sends it to the AI.
+
+        Parameters:
+            analysis_text (str): Text description of the audio analysis.
+            feedback_text (str): Previous AI feedback given to the user.
+            user_question (str): The user's follow-up question.
+            thread_summary (str, optional): Summary of previous follow-up messages for context.
+
+        Returns:
+            str: AI-generated answer to the follow-up question.
+        """
     prompt = build_followup_prompt(analysis_text, feedback_text, user_question, thread_summary)
     return generate_feedback_response(prompt)
 
@@ -238,8 +261,21 @@ def build_followup_prompt(
     thread_summary: str = "",
     ref_analysis_data: dict = None,   # NEW parameter
 ) -> str:
-    import html
-    import re
+    """
+        Constructs a detailed prompt for AI follow-up feedback based on prior analysis,
+        previous feedback, the user’s follow-up question, optional conversation summary,
+        and optionally reference track analysis data.
+
+        Parameters:
+            analysis_text (str): Text description of the audio analysis.
+            feedback_text (str): Previous AI feedback text.
+            user_question (str): User’s follow-up question.
+            thread_summary (str, optional): Summary of prior follow-up conversation for context.
+            ref_analysis_data (dict, optional): Reference track analysis for comparison.
+
+        Returns:
+            str: A formatted prompt string ready for submission to the AI model.
+        """
 
     # Clean and escape user question
     user_question = re.sub(r"[^\w\s.,!?@&$()\-+=:;\'\"/]", "", user_question.strip())[:400]

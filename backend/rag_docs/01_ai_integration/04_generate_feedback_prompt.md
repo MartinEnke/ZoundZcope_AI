@@ -1,4 +1,4 @@
-# AI Feedback Prompt Generation (`gpt_utils.py`)
+# AI Feedback Prompt Generation
 
 This module contains key prompt templates, role definitions, communication style guides, and example outputs used to generate tailored AI feedback for the music mixing and mastering assistant. The main function assembles all parts dynamically into a detailed prompt sent to the AI model.
 
@@ -6,29 +6,30 @@ This module contains key prompt templates, role definitions, communication style
 
 ## Constants & Templates
 
-### Reference Track Instruction
-
 ```python
 REFERENCE_TRACK_INSTRUCTION = (
     "If a reference track analysis is provided, you MUST compare the submitted track's analysis with the reference track's data."
     "Give specific feedback on differences and how to improve the submitted track based on the comparison."
     "If no reference data is available, Do NOT mention, assume, or imply any reference track in the feedback."
 )
-
+```
+Explanation:
 Enforces that the AI only mentions a reference track when reference data is available.
 Guides the AI to provide comparison-based feedback.
 
-
+```python
 ROLE_CONTEXTS = {
     "mixdown": "You are a professional **mixing engineer reviewing a mixdown** with deep knowledge of {genre}, especially {subgenre}.",
     "mastering": "You are a professional **mastering engineer giving mastering advice** for this mixdown with deep knowledge of {genre}, especially {subgenre}.",
     "master": "You are a professional **mastering engineer reviewing a finished master** to assess its quality with deep knowledge of {genre}, especially {subgenre}.",
 }
-
+```
+Explanation: 
 Defines the AI persona and task based on the feedback type.
 Ensures contextual and role-specific feedback.
 
 
+```python
 PROFILE_GUIDANCE = {
     "simple": (
         "Speak as if you're explaining to someone with no technical knowledge. "
@@ -46,10 +47,91 @@ PROFILE_GUIDANCE = {
         "Feel free to reference techniques like mid-side EQ, transient shaping, etc. Keep it precise and focused."
     ),
 }
-
+```
+Explanation:
 Adapts feedback tone and complexity to user-selected detail level.
 
+```python
+FORMAT_RULES = {
+    "simple": """
+Each bullet must:
+- Start with "ISSUE": Describe in plain but friendly language what feels off or unusual in the sound.
+- Follow with "IMPROVEMENT": Suggest friendly a simple, actionable fix without technical terms.
+- Use 1–2 short, friendly sentences.
+- Briefly say why the suggestion might help, using intuitive, listener-friendly terms.
+""",
 
+    "detailed": """
+Each bullet must:
+- Begin with "ISSUE": Describe friendly a clear mix/mastering issue using basic production terms.
+- Follow with "IMPROVEMENT": Suggest an actionable tip (e.g., EQ, reverb, compression) with a short reason why.
+- Use 2–3 clear sentences.
+- Reference analysis data or genre norms when helpful.
+""",
+
+    "pro": """
+Each bullet must:
+- Start with "ISSUE": Use technical but friendly language to precisely identify the issue.
+- Follow with "IMPROVEMENT": Provide a targeted, technique-based recommendation (e.g., transient shaping, multiband sidechaining).
+- Keep it sharp and focused: 2–3 dense, information-rich but friendly sentences.
+- Justify the advice based on analysis or genre expectations.
+"""
+}
+```
+
+Explanation:
+Specifies the structure and style of each bullet point in the AI feedback, customized per detail level.
+
+```python
+EXAMPLE_OUTPUTS = {
+    "simple": """
+#### Example Output:
+- ISSUE: Compared to the reference track the bass is too loud and makes the track feel heavy.
+  IMPROVEMENT: Turn the bass down a little and check how it sounds with vocals. 
+  This will help make everything clearer.
+
+- ISSUE: The sound is too crowded.
+  IMPROVEMENT: Try making some sounds quieter or move them left and right. 
+  This can make the track feel more open.
+""",
+
+    "detailed": """
+#### Example Output:
+- ISSUE: Compared to the reference track the RMS Level doesn't match the standard for a mixdown of this {genre}.  
+  IMPROVEMENT: Aim for around -15 dB RMS to preserve headroom for mastering. 
+  This helps the final master stay loud and punchy, especially in {subgenre}.
+  
+- ISSUE: The kick and bass are clashing in the low end.
+  IMPROVEMENT: Use EQ to reduce overlapping frequencies and sidechain the bass to the kick. 
+  This adds clarity to your low end.
+
+- ISSUE: The vocals feel buried in the mix.
+  IMPROVEMENT: Add light compression and EQ boost around 2-4 kHz to bring them forward without sounding harsh.
+""",
+
+    "pro": """
+#### Example Output:
+- ISSUE: Compared to the reference track, your low-end feels less controlled and slightly muddy.
+  IMPROVEMENT: Try applying a dynamic EQ to tighten the sub frequencies, similar to the clean bass in the reference track.
+  
+- ISSUE: Excessive buildup around 100Hz is causing low-end smearing.
+  IMPROVEMENT: Use a dynamic EQ or sidechain-triggered low-shelf cut on the bass. 
+  This maintains punch while improving definition.
+
+- ISSUE: The stereo image collapses in the high-mids.
+  IMPROVEMENT: Use mid-side EQ or widening tools (e.g. MicroShift) to open up the 2–6 kHz range. 
+  Essential for clarity in {subgenre} arrangements.
+"""
+}
+```
+
+Explanation:
+Shows sample feedback bullet points for each detail level, illustrating the expected language and style.
+
+
+## Feedback Prompt Build-Up
+
+```python
 def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data: dict, feedback_profile: str, ref_analysis_data: dict = None) -> str:
     """
             Constructs a detailed AI prompt combining role context, communication style,
@@ -153,7 +235,7 @@ Now return exactly 2–3 bullet points.
 
 {example_output}
 """.strip()
-
+```
 
 Explanation:
 Validates inputs against allowed roles, genres, and profiles.
