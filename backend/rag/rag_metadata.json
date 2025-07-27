@@ -1,0 +1,1028 @@
+[
+  {
+    "id": "chunk_1",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 0,
+    "text": "# AI Feedback Prompt Generation\n\nAI Feedback Prompt Generation\n\nThis section contains key prompt templates, role definitions, communication style guides, and example outputs used to generate tailored AI feedback for the music mixing and mastering assistant. The main function assembles all parts dynamically into a detailed prompt sent to the AI model.\n\n---"
+  },
+  {
+    "id": "chunk_2",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 1,
+    "text": "# Constants & Templates\n\nConstants & Templates\n\n```python\nREFERENCE_TRACK_INSTRUCTION = (\n    \"If a reference track analysis is provided, you MUST compare the submitted track's analysis with the reference track's data.\"\n    \"Give specific feedback on differences and how to improve the submitted track based on the comparison.\"\n    \"If no reference data is available, Do NOT mention, assume, or imply any reference track in the feedback.\"\n)\n```\nExplanation:\nEnforces that the AI only mentions a reference track when reference data is available.\nGuides the AI to provide comparison-based feedback."
+  },
+  {
+    "id": "chunk_3",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 2,
+    "text": "# Constants & Templates\n\n```python\nROLE_CONTEXTS = {\n    \"mixdown\": \"You are a professional **mixing engineer reviewing a mixdown** with deep knowledge of {genre}, especially {subgenre}.\",\n    \"mastering\": \"You are a professional **mastering engineer giving mastering advice** for this mixdown with deep knowledge of {genre}, especially {subgenre}.\",\n    \"master\": \"You are a professional **mastering engineer reviewing a finished master** to assess its quality with deep knowledge of {genre}, especially {subgenre}.\",\n}\n```\nExplanation: \nDefines the AI persona and task based on the feedback type.\nEnsures contextual and role-specific feedback."
+  },
+  {
+    "id": "chunk_4",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 3,
+    "text": "# Constants & Templates\n\n```python\nPROFILE_GUIDANCE = {\n    \"simple\": (\n        \"Speak as if you're explaining to someone with no technical knowledge. \"\n        \"Avoid all audio engineering jargon. \"\n        \"Use plain, friendly language like 'the bass feels too strong'. Focus on what to do, not how.\"\n    ),\n    \"detailed\": (\n        \"Use moderately technical language. \"\n        \"Assume the listener has some production experience. \"\n        \"You can mention EQ, compression, reverb, etc., but keep explanations short and accessible.\"\n    ),\n    \"pro\": (\n        \"Use advanced audio production vocabulary. \"\n        \"Assume you're speaking to a seasoned engineer. \"\n        \"Feel free to reference techniques like mid-side EQ, transient shaping, etc. Keep it precise and focused.\"\n    ),\n}\n```\nExplanation:\nAdapts feedback tone and complexity to user-selected detail level."
+  },
+  {
+    "id": "chunk_5",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 4,
+    "text": "# Constants & Templates\n\n```python\nFORMAT_RULES = {\n    \"simple\": \"\"\"\nEach bullet must:\n- Start with \"ISSUE\": Describe in plain but friendly language what feels off or unusual in the sound.\n- Follow with \"IMPROVEMENT\": Suggest friendly a simple, actionable fix without technical terms.\n- Use 1–2 short, friendly sentences.\n- Briefly say why the suggestion might help, using intuitive, listener-friendly terms.\n\"\"\",\n\n    \"detailed\": \"\"\"\nEach bullet must:\n- Begin with \"ISSUE\": Describe friendly a clear mix/mastering issue using basic production terms.\n- Follow with \"IMPROVEMENT\": Suggest an actionable tip (e.g., EQ, reverb, compression) with a short reason why.\n- Use 2–3 clear sentences.\n- Reference analysis data or genre norms when helpful.\n\"\"\","
+  },
+  {
+    "id": "chunk_6",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 5,
+    "text": "# Constants & Templates\n\n\"pro\": \"\"\"\nEach bullet must:\n- Start with \"ISSUE\": Use technical but friendly language to precisely identify the issue.\n- Follow with \"IMPROVEMENT\": Provide a targeted, technique-based recommendation (e.g., transient shaping, multiband sidechaining).\n- Keep it sharp and focused: 2–3 dense, information-rich but friendly sentences.\n- Justify the advice based on analysis or genre expectations.\n\"\"\"\n}\n```\n\nExplanation:\nSpecifies the structure and style of each bullet point in the AI feedback, customized per detail level.\n\n```python\nEXAMPLE_OUTPUTS = {\n    \"simple\": \"\"\""
+  },
+  {
+    "id": "chunk_7",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 6,
+    "text": "# Example Output:\n\nExample Output:\n- ISSUE: Compared to the reference track the bass is too loud and makes the track feel heavy.\n  IMPROVEMENT: Turn the bass down a little and check how it sounds with vocals. \n  This will help make everything clearer.\n\n- ISSUE: The sound is too crowded.\n  IMPROVEMENT: Try making some sounds quieter or move them left and right. \n  This can make the track feel more open.\n\"\"\",\n\n    \"detailed\": \"\"\""
+  },
+  {
+    "id": "chunk_8",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 7,
+    "text": "# Example Output:\n\nExample Output:\n- ISSUE: Compared to the reference track the RMS Level doesn't match the standard for a mixdown of this {genre}.  \n  IMPROVEMENT: Aim for around -15 dB RMS to preserve headroom for mastering. \n  This helps the final master stay loud and punchy, especially in {subgenre}.\n  \n- ISSUE: The kick and bass are clashing in the low end.\n  IMPROVEMENT: Use EQ to reduce overlapping frequencies and sidechain the bass to the kick. \n  This adds clarity to your low end.\n\n- ISSUE: The vocals feel buried in the mix.\n  IMPROVEMENT: Add light compression and EQ boost around 2-4 kHz to bring them forward without sounding harsh.\n\"\"\",\n\n    \"pro\": \"\"\""
+  },
+  {
+    "id": "chunk_9",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 8,
+    "text": "# Example Output:\n\nExample Output:\n- ISSUE: Compared to the reference track, your low-end feels less controlled and slightly muddy.\n  IMPROVEMENT: Try applying a dynamic EQ to tighten the sub frequencies, similar to the clean bass in the reference track.\n  \n- ISSUE: Excessive buildup around 100Hz is causing low-end smearing.\n  IMPROVEMENT: Use a dynamic EQ or sidechain-triggered low-shelf cut on the bass. \n  This maintains punch while improving definition.\n\n- ISSUE: The stereo image collapses in the high-mids.\n  IMPROVEMENT: Use mid-side EQ or widening tools (e.g. MicroShift) to open up the 2–6 kHz range. \n  Essential for clarity in {subgenre} arrangements.\n\"\"\"\n}\n```\n\nExplanation:\nShows sample feedback bullet points for each detail level, illustrating the expected language and style."
+  },
+  {
+    "id": "chunk_10",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 9,
+    "text": "# Function: generate_feedback_prompt (gpt_utils.py)\n\nFunction: generate_feedback_prompt (gpt_utils.py)\n\n```python\ndef generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data: dict, feedback_profile: str, ref_analysis_data: dict = None) -> str:\n    \"\"\"\n            Constructs a detailed AI prompt combining role context, communication style,\n            audio analysis data, reference track data (optional), and formatting instructions.\n\n            Parameters:\n                genre (str): Music genre, normalized.\n                subgenre (str): Music subgenre, normalized.\n                type (str): Feedback type ('mixdown', 'mastering', 'master').\n                analysis_data (dict): Audio analysis metrics of the submitted track.\n                feedback_profile (str): Desired feedback complexity ('simple', 'detailed', 'pro').\n                ref_analysis_data (dict, optional): Reference track analysis for comparison."
+  },
+  {
+    "id": "chunk_11",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 10,
+    "text": "# Function: generate_feedback_prompt (gpt_utils.py)\n\nReturns:\n                str: Formatted prompt string ready to be sent to the AI model.\n            \"\"\"\n    \n    type = normalize_type(type)\n    if type not in ROLE_CONTEXTS:\n        raise ValueError(f\"Unknown type: {type}\")\n    genre = normalize_genre(genre)\n    if genre not in ALLOWED_GENRES:\n        raise ValueError(f\"Unknown genre: {genre}\")\n    subgenre = normalize_subgenre(subgenre)\n    feedback_profile = normalize_profile(feedback_profile)\n    if feedback_profile not in PROFILE_GUIDANCE:\n        raise ValueError(f\"Unknown feedback_profile: {feedback_profile}\")\n\n    context = (\n            REFERENCE_TRACK_INSTRUCTION + \"\\n\\n\" + ROLE_CONTEXTS[type].format(\n        genre=html.escape(genre),\n        subgenre=html.escape(subgenre)\n    )\n    )\n    communication_style = PROFILE_GUIDANCE[feedback_profile]"
+  },
+  {
+    "id": "chunk_12",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 11,
+    "text": "# Function: generate_feedback_prompt (gpt_utils.py)\n\n# Add reference track data section if available\n    ref_section = \"\"\n    if ref_analysis_data:\n        ref_section = f\"\"\"\n    ### Reference Track Analysis (for comparison)\n    - Peak: {ref_analysis_data['peak_db']} dB\n    - RMS Peak: {ref_analysis_data['rms_db_peak']} dB\n    - LUFS: {ref_analysis_data['lufs']}\n    - Transients: {ref_analysis_data['transient_description']}\n    - Spectral balance note: {ref_analysis_data['spectral_balance_description']}\n    - Dynamic range: {ref_analysis_data['dynamic_range']}\n    - Stereo width: {ref_analysis_data['stereo_width']}\n    - Bass profile: {ref_analysis_data.get('low_end_description', '')}\n    \"\"\"\n\n    peak_warning = \"\"\n    if analysis_data.get(\"peak_issue_explanation\"):\n        peak_warning = f\"\\n⚠️ Peak warning: {analysis_data['peak_issue_explanation']}\\n\"\n\n    format_rule = FORMAT_RULES.get(feedback_profile, FORMAT_RULES[\"detailed\"])\n\n    example_output = EXAMPLE_OUTPUTS.get(feedback_profile, \"\")\n\n    # Final assembly\n    return f\"\"\""
+  },
+  {
+    "id": "chunk_13",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 12,
+    "text": "# Context\n\nContext\n{context}\n\n- **Respect the genre context**. F.e. only suggest reducing bass if clearly excessive relative to the genre’s typical sound."
+  },
+  {
+    "id": "chunk_14",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 13,
+    "text": "# Communication Style\n\nCommunication Style\n{communication_style}"
+  },
+  {
+    "id": "chunk_15",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 14,
+    "text": "# Track Analysis Data\n\nTrack Analysis Data\n- Peak: {analysis_data['peak_db']} dB\n- RMS Peak: {analysis_data['rms_db_peak']} dB\n- LUFS: {analysis_data['lufs']}\n- Avg Transient Strength: {analysis_data['avg_transient_strength']}\n- Max Transient Strength: {analysis_data['max_transient_strength']}\n- Transients: {analysis_data['transient_description']}\nIf low-end is flagged as strong but typical for the genre, do NOT treat it as a problem unless masking, muddiness, or translation concerns are clearly implied.\n- Spectral balance note: {analysis_data['spectral_balance_description']}\n- Dynamic range: {analysis_data['dynamic_range']}\n- Stereo width: {analysis_data['stereo_width']}\n- Bass profile: {analysis_data.get('low_end_description', '')}\n  (Genre: {genre} — please consider if the low-end level suits this genre’s typical sound.)"
+  },
+  {
+    "id": "chunk_16",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 15,
+    "text": "# REFERENCE TRACK\n\nREFERENCE TRACK\nHere is analysis data for the reference track. Use this data to inform your feedback and compare where appropriate.\n{ref_section}\n\n{peak_warning}"
+  },
+  {
+    "id": "chunk_17",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 16,
+    "text": "# Reasoning Step\n\nReasoning Step\nUse the reference track when provided as a benchmark to guide specific suggestions even when not typical for genre etc..\nBefore writing the bullet points, briefly reflect on what stands out from the analysis data.\nWrite 2–3 sentences summarizing key characteristics or concerns about the mix (this part will not be shown to the user)."
+  },
+  {
+    "id": "chunk_18",
+    "filename": "rag_docs/02_ai_integration/04_generate_feedback_prompt.md",
+    "chunk_index": 17,
+    "text": "# Bullet Point Feedback\n\nBullet Point Feedback\nNow return exactly 2–3 bullet points.\n\n{format_rule.strip()}\n\n⚠️ Do **not** include a title, greeting, summary, or closing line.\n\n{example_output}\n\"\"\".strip()\n```\n\nExplanation:\nValidates inputs against allowed roles, genres, and profiles.\nEscapes HTML in genre and subgenre for safe prompt formatting.\nDynamically inserts audio analysis and optional reference track data.\nIncludes detailed instructions on tone, style, and bullet format.\nEnforces no extraneous text in AI output to ensure clean feedback."
+  },
+  {
+    "id": "chunk_19",
+    "filename": "rag_docs/02_ai_integration/01_get_feedback.md",
+    "chunk_index": 0,
+    "text": "# Function: get_feedback (chat.py)\n\nFunction: get_feedback (chat.py)"
+  },
+  {
+    "id": "chunk_20",
+    "filename": "rag_docs/02_ai_integration/01_get_feedback.md",
+    "chunk_index": 1,
+    "text": "# Function: get_feedback (chat.py)\n\n```python\ndef get_feedback(\n    track_id: str = Form(...),\n    session_id: str = Form(...),\n    genre: str = Form(...),\n    type: str = Form(...),\n    feedback_profile: str = Form(...),\n    db: Session = Depends(get_db)\n):\n    \"\"\"\n    Handle a request to generate AI mixing/mastering feedback for a given audio track.\n    \n    This function normalizes user inputs, fetches audio analysis data, builds\n    an AI prompt, sends it for feedback generation, saves the feedback in the\n    database, and returns it to the client.\n    \n    Parameters:\n        track_id (str): Unique identifier of the audio track.\n        session_id (str): Current user session identifier.\n        genre (str): Genre of the track, used to tailor feedback.\n        type (str): Feedback type ('mixdown', 'mastering', 'master review').\n        feedback_profile (str): Detail level ('simple', 'detailed', 'pro').\n        db (Session): Database session for querying track data.\n    \n    Returns:\n        dict: JSON response containing AI feedback text, or error message if analysis not found.\n    \"\"\""
+  },
+  {
+    "id": "chunk_21",
+    "filename": "rag_docs/02_ai_integration/01_get_feedback.md",
+    "chunk_index": 2,
+    "text": "# Function: get_feedback (chat.py)\n\ngenre = normalize_genre(genre)\n    type = normalize_type(type)\n    feedback_profile = normalize_profile(feedback_profile)\n\n    # Fetch track and analysis\n    track = db.query(Track).filter(Track.id == track_id).first()\n    if not track or not track.analysis:\n        return {\"error\": \"Track analysis not found\"}\n\n    analysis = {\n        \"peak_db\": track.analysis.peak_db,\n        \"rms_db\": track.analysis.rms_db,\n        \"lufs\": track.analysis.lufs,\n        \"dynamic_range\": track.analysis.dynamic_range,\n        \"stereo_width\": track.analysis.stereo_width,\n        \"key\": track.analysis.key,\n        \"tempo\": track.analysis.tempo,\n        \"low_end_energy_ratio\": track.analysis.low_end_energy_ratio,\n        \"bass_profile\": track.analysis.bass_profile,\n        \"band_energies\": json.loads(track.analysis.band_energies),\n        \"issues\": json.loads(track.analysis.issues),\n    }"
+  },
+  {
+    "id": "chunk_22",
+    "filename": "rag_docs/02_ai_integration/01_get_feedback.md",
+    "chunk_index": 3,
+    "text": "# Function: get_feedback (chat.py)\n\nprompt = generate_feedback_prompt(genre, type, analysis, feedback_profile)\n    feedback = generate_feedback_response(prompt)\n\n    chat = ChatMessage(\n        session_id=session_id,\n        track_id=track.id,\n        sender=\"assistant\",\n        message=feedback,\n        feedback_profile=feedback_profile\n    )\n    db.add(chat)\n    db.commit()\n\n    return {\"feedback\": feedback}\n```\n\nExplanation:\nThis function serves as the API endpoint for generating AI feedback on a user's uploaded audio track.\nIt normalizes the user’s input parameters, fetches pre-computed audio analysis data from the database,\nand constructs a detailed prompt tailored by genre, feedback type, and desired detail level.\nThe prompt is then sent to an AI model (e.g., GPT-4) to generate mixing or mastering feedback.\nThe response is saved in the database as a chat message, enabling conversation history,\nand returned to the frontend for display."
+  },
+  {
+    "id": "chunk_23",
+    "filename": "rag_docs/02_ai_integration/03_summarize_thread.md",
+    "chunk_index": 0,
+    "text": "# Function: summarize_thread (chat.py)\n\nFunction: summarize_thread (chat.py)\n\n```python\nclass SummarizeRequest(BaseModel):\n    session_id: str\n    track_id: str\n    followup_group: int\n```\n\nThis Pydantic model defines the expected structure of the request payload for summarizing a follow-up thread:\n\n- **session_id**: Identifier for the current user session.  \n- **track_id**: Identifier of the audio track for which the follow-up thread exists.  \n- **followup_group**: Index of the follow-up conversation thread to summarize.\n\n```python\n@router.post(\"/summarize-thread\")\ndef summarize_thread(req: SummarizeRequest, db: Session = Depends(get_db)):\n    \"\"\"\n    Generate a summary of a follow-up conversation thread.\n\n    Retrieves chat messages for a given session, track, and follow-up group,\n    then uses AI to summarize the thread into a concise improvement strategy.\n\n    Parameters:\n        req (SummarizeRequest): Contains session_id, track_id, and followup_group.\n        db (Session): Database session for querying chat messages."
+  },
+  {
+    "id": "chunk_24",
+    "filename": "rag_docs/02_ai_integration/03_summarize_thread.md",
+    "chunk_index": 1,
+    "text": "# Function: summarize_thread (chat.py)\n\nReturns:\n        dict: A JSON response with the AI-generated summary or a message if\n              no follow-up messages are found.\n    \"\"\"\n    print(f\"Summarize request: session_id={req.session_id}, track_id={req.track_id}, group={req.followup_group}\")\n    messages = (\n        db.query(ChatMessage)\n        .filter_by(session_id=req.session_id, track_id=req.track_id, followup_group=req.followup_group)\n        .order_by(ChatMessage.timestamp)\n        .all()\n    )\n    print(f\"Found {len(messages)} messages\")\n    # Count only user messages as \"follow-up\" messages\n    user_msgs = [msg for msg in messages if msg.sender == \"user\"]\n\n    if not user_msgs:\n        return {\"summary\": \"No follow-up messages found for this thread to summarize.\"}\n\n    thread = []\n    for msg in messages:\n        if msg.sender == \"user\":\n            thread.append({\"role\": \"user\", \"content\": msg.message})\n        else:\n            thread.append({\"role\": \"assistant\", \"content\": msg.message})"
+  },
+  {
+    "id": "chunk_25",
+    "filename": "rag_docs/02_ai_integration/03_summarize_thread.md",
+    "chunk_index": 2,
+    "text": "# Function: summarize_thread (chat.py)\n\nconversation = \"\\n\".join([f\"{m['role'].capitalize()}: {m['content']}\" for m in thread])\n    print(f\"Conversation for summarization:\\n{conversation}\")\n\n    if not conversation.strip():\n        return {\"summary\": \"No follow-up messages found for this thread to summarize.\"}\n\n    prompt = f\\\"\\\"\\\"\nSummarize this follow-up thread (5 user questions with assistant responses) into a concise overall improvement strategy:\n\n{conversation}\n\\\"\\\"\\\"\n\n    summary = generate_feedback_response(prompt)\n    return {\"summary\": summary}\n```\n\nExplanation:\nThis API endpoint generates a concise summary of a specific follow-up conversation thread between the user \nand AI assistant. It retrieves all messages for the given session, track, and follow-up group, \nformats them into a conversational transcript, and prompts the AI to distill the discussion into actionable \nimprovement strategies. If no follow-up messages exist, it returns a notice indicating so."
+  },
+  {
+    "id": "chunk_26",
+    "filename": "rag_docs/02_ai_integration/06_build_follow_up_prompt.md",
+    "chunk_index": 0,
+    "text": "# Follow-Up Prompt Construction\n\nFollow-Up Prompt Construction\n\nThis section details the function responsible for assembling a comprehensive and context-aware prompt to guide the AI assistant in generating precise, relevant answers to user follow-up questions. The function integrates prior audio analysis, previous AI feedback, the user’s query, conversation summaries, and optional reference track data to maintain continuity and clarity in multi-turn interactions.\n\n---"
+  },
+  {
+    "id": "chunk_27",
+    "filename": "rag_docs/02_ai_integration/06_build_follow_up_prompt.md",
+    "chunk_index": 1,
+    "text": "# Function: build_followup_prompt (gpt_utils.py)\n\nFunction: build_followup_prompt (gpt_utils.py)\n\n```python\ndef build_followup_prompt(\n    analysis_text: str,\n    feedback_text: str,\n    user_question: str,\n    thread_summary: str = \"\",\n    ref_analysis_data: dict = None,\n) -> str:\n    \"\"\"\n    Constructs a detailed prompt for AI follow-up feedback based on prior analysis,\n    previous feedback, the user’s follow-up question, optional conversation summary,\n    and optionally reference track analysis data.\n\n    Parameters:\n        analysis_text (str): Text description of the audio analysis.\n        feedback_text (str): Previous AI feedback text.\n        user_question (str): User’s follow-up question.\n        thread_summary (str, optional): Summary of prior follow-up conversation for context.\n        ref_analysis_data (dict, optional): Reference track analysis for comparison."
+  },
+  {
+    "id": "chunk_28",
+    "filename": "rag_docs/02_ai_integration/06_build_follow_up_prompt.md",
+    "chunk_index": 2,
+    "text": "# Function: build_followup_prompt (gpt_utils.py)\n\nReturns:\n        str: A formatted prompt string ready for submission to the AI model.\n    \"\"\"\n    \n    # Clean and escape user question\n    user_question = re.sub(r\"[^\\w\\s.,!?@&$()\\-+=:;\\'\\\"/]\", \"\", user_question.strip())[:400]\n    user_question = html.escape(user_question)"
+  },
+  {
+    "id": "chunk_29",
+    "filename": "rag_docs/02_ai_integration/06_build_follow_up_prompt.md",
+    "chunk_index": 3,
+    "text": "# Function: build_followup_prompt (gpt_utils.py)\n\nref_section = \"\"\n    if ref_analysis_data and isinstance(ref_analysis_data, dict):\n        ref_section = f\"\"\"\n        ### Reference Track Analysis (for comparison)\n        - Peak: {ref_analysis_data.get('peak_db', 'N/A')} dB\n        - RMS Peak: {ref_analysis_data.get('rms_db_peak', 'N/A')} dB\n        - LUFS: {ref_analysis_data.get('lufs', 'N/A')}\n        - Transients: {ref_analysis_data.get('transient_description', 'N/A')}\n        - Spectral balance note: {ref_analysis_data.get('spectral_balance_description', 'N/A')}\n        - Dynamic range: {ref_analysis_data.get('dynamic_range', 'N/A')}\n        - Stereo width: {ref_analysis_data.get('stereo_width', 'N/A')}\n        - Bass profile: {ref_analysis_data.get('low_end_description', '')}\n        \"\"\"\n    else:\n        print(\"Warning: ref_analysis_data missing or invalid:\", ref_analysis_data)\n\n    return f\"\"\"\nYou are a helpful and professional **audio engineer assistant**."
+  },
+  {
+    "id": "chunk_30",
+    "filename": "rag_docs/02_ai_integration/06_build_follow_up_prompt.md",
+    "chunk_index": 4,
+    "text": "# Function: build_followup_prompt (gpt_utils.py)\n\n{\"### Summary of Previous Conversation\\n\" + thread_summary + \"\\n\" if thread_summary else \"\"}"
+  },
+  {
+    "id": "chunk_31",
+    "filename": "rag_docs/02_ai_integration/06_build_follow_up_prompt.md",
+    "chunk_index": 5,
+    "text": "# Track Analysis\n\nTrack Analysis\n{analysis_text}\n\n{ref_section}"
+  },
+  {
+    "id": "chunk_32",
+    "filename": "rag_docs/02_ai_integration/06_build_follow_up_prompt.md",
+    "chunk_index": 6,
+    "text": "# Prior Feedback\n\nPrior Feedback\n{feedback_text}"
+  },
+  {
+    "id": "chunk_33",
+    "filename": "rag_docs/02_ai_integration/06_build_follow_up_prompt.md",
+    "chunk_index": 7,
+    "text": "# User's Follow-Up Question\n\nUser's Follow-Up Question\n\"{user_question}\""
+  },
+  {
+    "id": "chunk_34",
+    "filename": "rag_docs/02_ai_integration/06_build_follow_up_prompt.md",
+    "chunk_index": 8,
+    "text": "# Instructions\n\nInstructions\n- Use the analysis, feedback, and summary above as context.\n- Do **not** repeat the full analysis or feedback.\n- Answer the follow-up clearly and concisely.\n- Stay on topic and be technically helpful.\n- If the question is vague, use the existing context to infer intent.\n\nRespond below:\n\"\"\"\n```\n\nExplanation:\nThis function builds a context-rich prompt that guides the AI assistant when answering user follow-up questions. It includes the original audio analysis, prior AI feedback, the sanitized user question, an optional conversation summary to keep context concise, and optionally reference track analysis for comparative feedback. The prompt instructs the AI to be concise, focused, and technically helpful, ensuring relevant and precise answers."
+  },
+  {
+    "id": "chunk_35",
+    "filename": "rag_docs/02_ai_integration/05_ai_response_generation_functions.md",
+    "chunk_index": 0,
+    "text": "# AI Response Generation Functions\n\nAI Response Generation Functions\n\nThis section covers functions responsible for sending prompts to the AI model and retrieving responses.\n\n---"
+  },
+  {
+    "id": "chunk_36",
+    "filename": "rag_docs/02_ai_integration/05_ai_response_generation_functions.md",
+    "chunk_index": 1,
+    "text": "# Function: generate_feedback_response (gpt_utils.py)\n\nFunction: generate_feedback_response (gpt_utils.py)\n\n```python\ndef generate_feedback_response(prompt: str) -> str:\n    \"\"\"\n    Sends a prompt string to the AI model and returns the generated feedback text.\n\n    Parameters:\n        prompt (str): The fully constructed prompt containing context, instructions, and analysis data.\n\n    Returns:\n        str: The AI-generated feedback text, stripped of leading/trailing whitespace.\n    \"\"\"\n    \n    response = client.chat.completions.create(\n        model=\"gpt-4o-mini\",\n        messages=[{\"role\": \"user\", \"content\": prompt}]\n    )\n    return response.choices[0].message.content.strip()\n```\n\nExplanation:\nUses OpenAI's chat completion API with the specified model.\nAssumes the prompt is already well-formed.\nReturns the textual content from the first choice in the response.\n\n\n---"
+  },
+  {
+    "id": "chunk_37",
+    "filename": "rag_docs/02_ai_integration/05_ai_response_generation_functions.md",
+    "chunk_index": 2,
+    "text": "# Function: generate_follow_response (gpt_utils.py)\n\nFunction: generate_follow_response (gpt_utils.py)\n\n\n```python\n\ndef generate_followup_response(analysis_text: str, feedback_text: str, user_question: str, thread_summary: str = \"\") -> str:\n    \"\"\"\n    Builds a follow-up prompt incorporating prior analysis, feedback, user question,\n    and optionally a summary of the follow-up conversation thread, then sends it to the AI.\n\n    Parameters:\n        analysis_text (str): Text description of the audio analysis.\n        feedback_text (str): Previous AI feedback given to the user.\n        user_question (str): The user's follow-up question.\n        thread_summary (str, optional): Summary of previous follow-up messages for context."
+  },
+  {
+    "id": "chunk_38",
+    "filename": "rag_docs/02_ai_integration/05_ai_response_generation_functions.md",
+    "chunk_index": 3,
+    "text": "# Function: generate_follow_response (gpt_utils.py)\n\nReturns:\n        str: AI-generated answer to the follow-up question.\n    \"\"\"\n    \n    prompt = build_followup_prompt(analysis_text, feedback_text, user_question, thread_summary)\n    return generate_feedback_response(prompt)\n```\nExplanation:\nLeverages build_followup_prompt to create a context-rich prompt.\nCalls generate_feedback_response to get the AI's reply.\nDesigned for multi-turn conversations with context preservation."
+  },
+  {
+    "id": "chunk_39",
+    "filename": "rag_docs/02_ai_integration/02_ask_followup/01_fetch_context.md",
+    "chunk_index": 0,
+    "text": "# Function: ask_followup (chat.py)\n\nFunction: ask_followup (chat.py)"
+  },
+  {
+    "id": "chunk_40",
+    "filename": "rag_docs/02_ai_integration/02_ask_followup/01_fetch_context.md",
+    "chunk_index": 1,
+    "text": "# Part 1: Fetch Tracks and Prepare Context\n\nPart 1: Fetch Tracks and Prepare Context\n\n```python\nclass FollowUpRequest(BaseModel):\n    analysis_text: str\n    feedback_text: str\n    user_question: str\n    session_id: str\n    track_id: str\n    feedback_profile: str\n    followup_group: int = 0\n    ref_analysis_data: Optional[Dict[str, Any]] = None\n```\n    \nThis Pydantic model defines the expected structure of the follow-up request payload:"
+  },
+  {
+    "id": "chunk_41",
+    "filename": "rag_docs/02_ai_integration/02_ask_followup/01_fetch_context.md",
+    "chunk_index": 2,
+    "text": "# Part 1: Fetch Tracks and Prepare Context\n\n- **analysis_text**: Text of the original audio analysis.  \n- **feedback_text**: Previous AI feedback text.  \n- **user_question**: The follow-up question from the user.  \n- **session_id**, **track_id**: Identify the session and track context.  \n- **feedback_profile**: Detail level of feedback expected.  \n- **followup_group**: Index of the follow-up conversation thread.  \n- **ref_analysis_data**: Optional reference track analysis for comparative feedback.\n    \n```python\ndef fetch_tracks_and_context(req, db):\n    \"\"\"\n    Fetches the main track and optional reference track analysis from the database.\n    Retrieves the previous follow-up summary if available to provide context for the AI prompt.\n\n    Parameters:\n        req (FollowUpRequest): The follow-up request containing session, track, and follow-up group info.\n        db (Session): Database session for querying data."
+  },
+  {
+    "id": "chunk_42",
+    "filename": "rag_docs/02_ai_integration/02_ask_followup/01_fetch_context.md",
+    "chunk_index": 3,
+    "text": "# Part 1: Fetch Tracks and Prepare Context\n\nReturns:\n        tuple: (main_track, ref_analysis, summary_text)\n            main_track: The primary Track object or None if not found.\n            ref_analysis: Dict of reference track analysis data or None.\n            summary_text: Previous follow-up summary string or empty string.\n    \"\"\"\n    # 1. Fetch main track\n    main_track = db.query(Track).filter(Track.id == req.track_id).first()\n    if not main_track:\n        return None, None, None\n\n    # 2. Fetch reference track by upload_group_id\n    ref_track = (\n        db.query(Track)\n        .filter(\n            Track.upload_group_id == main_track.upload_group_id,\n            Track.type == \"reference\"\n        )\n        .order_by(Track.uploaded_at.desc())\n        .first()\n    )"
+  },
+  {
+    "id": "chunk_43",
+    "filename": "rag_docs/02_ai_integration/02_ask_followup/01_fetch_context.md",
+    "chunk_index": 4,
+    "text": "# Part 1: Fetch Tracks and Prepare Context\n\nref_analysis = None\n    if ref_track and ref_track.analysis:\n        ref_analysis = {\n            \"peak_db\": ref_track.analysis.peak_db,\n            \"rms_db_peak\": ref_track.analysis.rms_db_peak,\n            \"lufs\": ref_track.analysis.lufs,\n            \"transient_description\": ref_track.analysis.transient_description,\n            \"spectral_balance_description\": ref_track.analysis.spectral_balance_description,\n            \"dynamic_range\": ref_track.analysis.dynamic_range,\n            \"stereo_width\": ref_track.analysis.stereo_width,\n            \"low_end_description\": ref_track.analysis.low_end_description,\n        }"
+  },
+  {
+    "id": "chunk_44",
+    "filename": "rag_docs/02_ai_integration/02_ask_followup/01_fetch_context.md",
+    "chunk_index": 5,
+    "text": "# Part 1: Fetch Tracks and Prepare Context\n\n# 3. Retrieve previous follow-up summary if applicable\n    summary_text = \"\"\n    if req.followup_group > 0:\n        summary_msg = (\n            db.query(ChatMessage)\n            .filter_by(\n                session_id=req.session_id,\n                track_id=req.track_id,\n                followup_group=req.followup_group - 1,\n                sender=\"assistant\",\n                feedback_profile=\"summary\"\n            )\n            .order_by(ChatMessage.timestamp.desc())\n            .first()\n        )\n        if summary_msg:\n            summary_text = summary_msg.message\n\n    return main_track, ref_analysis, summary_text\n```\n\nExplanation:\nThis part handles database interactions for the follow-up process. \nIt retrieves the main track and optionally a reference track's analysis to provide comparative context. \nIt also fetches a summary of the previous follow-up thread (if any) to keep the AI prompt concise \nand informed about past conversations."
+  },
+  {
+    "id": "chunk_45",
+    "filename": "rag_docs/02_ai_integration/02_ask_followup/02_process_and_save.md",
+    "chunk_index": 0,
+    "text": "# Function: ask_followup (chat.py)\n\nFunction: ask_followup (chat.py)"
+  },
+  {
+    "id": "chunk_46",
+    "filename": "rag_docs/02_ai_integration/02_ask_followup/02_process_and_save.md",
+    "chunk_index": 1,
+    "text": "# Part 2: Build Prompt, Generate Response, Save Messages\n\nPart 2: Build Prompt, Generate Response, Save Messages\n\n```python\ndef process_followup_and_save(req, main_track, ref_analysis, summary_text, db):\n    \"\"\"\n    Constructs the AI prompt for the follow-up question, sends it to the AI,\n    and saves both the user's question and AI assistant's response in the database.\n\n    Parameters:\n        req (FollowUpRequest): The follow-up request containing user question and metadata.\n        main_track (Track): The main track object retrieved from the database.\n        ref_analysis (dict or None): Reference track analysis data for comparative feedback.\n        summary_text (str): Summary of previous follow-up conversation.\n        db (Session): Database session for saving chat messages.\n\n    Returns:\n        str: The AI-generated response text.\n    \"\"\"\n    profile = normalize_profile(req.feedback_profile)\n    user_question = sanitize_user_question(req.user_question)"
+  },
+  {
+    "id": "chunk_47",
+    "filename": "rag_docs/02_ai_integration/02_ask_followup/02_process_and_save.md",
+    "chunk_index": 2,
+    "text": "# Part 2: Build Prompt, Generate Response, Save Messages\n\nprompt = build_followup_prompt(\n        analysis_text=req.analysis_text,\n        feedback_text=req.feedback_text,\n        user_question=user_question,\n        thread_summary=summary_text,\n        ref_analysis_data=ref_analysis or req.ref_analysis_data\n    )\n\n    ai_response = generate_feedback_response(prompt)\n\n    # Save user message\n    user_msg = ChatMessage(\n        session_id=req.session_id,\n        track_id=main_track.id,\n        sender=\"user\",\n        message=user_question,\n        feedback_profile=profile,\n        followup_group=req.followup_group\n    )\n    db.add(user_msg)\n\n    # Save AI assistant response\n    assistant_msg = ChatMessage(\n        session_id=req.session_id,\n        track_id=main_track.id,\n        sender=\"assistant\",\n        message=ai_response,\n        feedback_profile=profile,\n        followup_group=req.followup_group\n    )\n    db.add(assistant_msg)\n    db.commit()\n\n    return ai_response\n```"
+  },
+  {
+    "id": "chunk_48",
+    "filename": "rag_docs/02_ai_integration/02_ask_followup/02_process_and_save.md",
+    "chunk_index": 3,
+    "text": "# Part 2: Build Prompt, Generate Response, Save Messages\n\nExplanation:\nThis step prepares the AI prompt using the user’s question, previous feedback, audio analysis, \nand optional reference track data. It then calls the AI to generate a contextual answer \nand records both sides of the conversation in the database for session continuity and history."
+  },
+  {
+    "id": "chunk_49",
+    "filename": "rag_docs/02_ai_integration/02_ask_followup/03_auto_summary.md",
+    "chunk_index": 0,
+    "text": "# Function: ask_followup (chat.py)\n\nFunction: ask_followup (chat.py)"
+  },
+  {
+    "id": "chunk_50",
+    "filename": "rag_docs/02_ai_integration/02_ask_followup/03_auto_summary.md",
+    "chunk_index": 1,
+    "text": "# Part 3: Auto Summary and Response\n\nPart 3: Auto Summary and Response\n\n```python\ndef create_summary_if_needed(req, db):\n    \"\"\"\n    Checks if enough follow-up user messages exist to generate an automatic summary.\n    If so, generates a concise summary via the AI, saves it, and marks it in the response.\n\n    Parameters:\n        req (FollowUpRequest): Follow-up request data.\n        db (Session): Database session for querying and saving messages.\n\n    Returns:\n        dict: Contains AI answer and summary creation flag if applicable.\n    \"\"\"\n    user_msgs_count = (\n        db.query(ChatMessage)\n        .filter_by(\n            session_id=req.session_id,\n            track_id=req.track_id,\n            followup_group=req.followup_group,\n            sender=\"user\"\n        )\n        .count()\n    )\n\n    response_data = {}"
+  },
+  {
+    "id": "chunk_51",
+    "filename": "rag_docs/02_ai_integration/02_ask_followup/03_auto_summary.md",
+    "chunk_index": 2,
+    "text": "# Part 3: Auto Summary and Response\n\nexisting_summary = (\n        db.query(ChatMessage)\n        .filter_by(\n            session_id=req.session_id,\n            track_id=req.track_id,\n            followup_group=req.followup_group,\n            sender=\"assistant\",\n            feedback_profile=\"summary\"\n        )\n        .first()\n    )\n\n    if user_msgs_count >= 2 and not existing_summary:\n        msgs = (\n            db.query(ChatMessage)\n            .filter_by(\n                session_id=req.session_id,\n                track_id=req.track_id,\n                followup_group=req.followup_group,\n            )\n            .order_by(ChatMessage.timestamp)\n            .all()\n        )\n\n        conversation = \"\\n\".join(\n            f\"{'User' if msg.sender == 'user' else 'Assistant'}: {msg.message}\"\n            for msg in msgs\n        )\n\n        summary_prompt = f\"\"\"\nSummarize this follow-up thread (up to 4 user questions and assistant responses) into a concise overall improvement strategy:\n\n{conversation}\n\"\"\""
+  },
+  {
+    "id": "chunk_52",
+    "filename": "rag_docs/02_ai_integration/02_ask_followup/03_auto_summary.md",
+    "chunk_index": 3,
+    "text": "# Part 3: Auto Summary and Response\n\nsummary_text = generate_feedback_response(summary_prompt)\n\n        summary_msg = ChatMessage(\n            session_id=req.session_id,\n            track_id=req.track_id,\n            sender=\"assistant\",\n            message=summary_text,\n            feedback_profile=\"summary\",\n            followup_group=req.followup_group\n        )\n        db.add(summary_msg)\n        db.commit()\n\n        response_data[\"summary_created\"] = True\n        response_data[\"summary_text\"] = summary_text\n\n    return response_data\n```\n\nExplanation:\nThis function monitors the number of follow-up user messages in the current thread and, \nwhen a threshold is reached, triggers the AI to produce a concise summary of the conversation. \nThe summary is saved as a special chat message and flagged in the response, \nimproving context management for future interactions."
+  },
+  {
+    "id": "chunk_53",
+    "filename": "rag_docs/01_programming_tools/04_ai_and_ml_libraries/01_openai_sdk.md",
+    "chunk_index": 0,
+    "text": "# OpenAI SDK (`openai`)\n\nOpenAI SDK (`openai`)\n\n[OpenAI Python SDK](https://github.com/openai/openai-python) is the official Python client for OpenAI’s API."
+  },
+  {
+    "id": "chunk_54",
+    "filename": "rag_docs/01_programming_tools/04_ai_and_ml_libraries/01_openai_sdk.md",
+    "chunk_index": 1,
+    "text": "# Why OpenAI SDK?\n\nWhy OpenAI SDK?\n\n- **Simplified API Calls:** Abstracts REST API interactions to send prompts and retrieve completions.\n- **Supports Latest Models:** Easy access to GPT-4o-mini and other models.\n- **Integration Friendly:** Fits well into asynchronous backend frameworks."
+  },
+  {
+    "id": "chunk_55",
+    "filename": "rag_docs/01_programming_tools/04_ai_and_ml_libraries/01_openai_sdk.md",
+    "chunk_index": 2,
+    "text": "# How it’s used in this project\n\nHow it’s used in this project\n\nHandles:\n\n- Sending formatted prompts based on analysis and user input.\n- Receiving AI-generated feedback and follow-up answers.\n- Maintaining conversation context with chat completions.\n\n---"
+  },
+  {
+    "id": "chunk_56",
+    "filename": "rag_docs/01_programming_tools/04_ai_and_ml_libraries/03_joblib.md",
+    "chunk_index": 0,
+    "text": "# Joblib\n\nJoblib\n\n[Joblib](https://joblib.readthedocs.io/en/latest/) is a set of tools to provide lightweight pipelining in Python."
+  },
+  {
+    "id": "chunk_57",
+    "filename": "rag_docs/01_programming_tools/04_ai_and_ml_libraries/03_joblib.md",
+    "chunk_index": 1,
+    "text": "# Why Joblib?\n\nWhy Joblib?\n\n- **Efficient Serialization:** Speeds up saving/loading of large numpy arrays and machine learning models.\n- **Parallel Processing:** Provides simple helpers for parallelizing tasks.\n- **Integration:** Commonly used alongside scikit-learn for model persistence."
+  },
+  {
+    "id": "chunk_58",
+    "filename": "rag_docs/01_programming_tools/04_ai_and_ml_libraries/03_joblib.md",
+    "chunk_index": 2,
+    "text": "# How it's used in this project\n\nHow it's used in this project\n\n- May be used to cache or serialize intermediate audio features or AI model outputs.\n- Supports performance optimizations in ML workflows if applicable."
+  },
+  {
+    "id": "chunk_59",
+    "filename": "rag_docs/01_programming_tools/04_ai_and_ml_libraries/04_numba.md",
+    "chunk_index": 0,
+    "text": "# Numba\n\nNumba\n\n[Numba](https://numba.pydata.org/) is a just-in-time compiler for Python that speeds up numerical functions by compiling to machine code."
+  },
+  {
+    "id": "chunk_60",
+    "filename": "rag_docs/01_programming_tools/04_ai_and_ml_libraries/04_numba.md",
+    "chunk_index": 1,
+    "text": "# Why Numba?\n\nWhy Numba?\n\n- **Performance:** Dramatically accelerates CPU-bound numerical Python code.\n- **Easy to Use:** Annotate functions with decorators to compile them.\n- **Compatibility:** Works well with NumPy arrays and scientific computing."
+  },
+  {
+    "id": "chunk_61",
+    "filename": "rag_docs/01_programming_tools/04_ai_and_ml_libraries/04_numba.md",
+    "chunk_index": 2,
+    "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Potentially used to optimize critical audio processing or feature extraction routines.\n- Helps maintain real-time or near-real-time responsiveness during analysis."
+  },
+  {
+    "id": "chunk_62",
+    "filename": "rag_docs/01_programming_tools/04_ai_and_ml_libraries/02_scikit_learn.md",
+    "chunk_index": 0,
+    "text": "# Scikit-Learn\n\nScikit-Learn\n\n[Scikit-learn](https://scikit-learn.org/stable/) is a widely-used Python library for machine learning, featuring classification, regression, clustering, and dimensionality reduction algorithms."
+  },
+  {
+    "id": "chunk_63",
+    "filename": "rag_docs/01_programming_tools/04_ai_and_ml_libraries/02_scikit_learn.md",
+    "chunk_index": 1,
+    "text": "# Why Scikit-Learn?\n\nWhy Scikit-Learn?\n\n- **Extensive ML Algorithms:** Provides a wide range of tried-and-tested machine learning tools.\n- **Easy to Use:** Simple API for rapid experimentation.\n- **Performance:** Efficient implementations suitable for real-world data."
+  },
+  {
+    "id": "chunk_64",
+    "filename": "rag_docs/01_programming_tools/04_ai_and_ml_libraries/02_scikit_learn.md",
+    "chunk_index": 2,
+    "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Possibly used for feature extraction, classification, or clustering tasks related to audio analysis or AI feedback.\n- May assist in preprocessing or transforming audio features before feeding into AI models.\n\n*Note:* If not currently used, this may be reserved for future enhancements."
+  },
+  {
+    "id": "chunk_65",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/04_soundfile.md",
+    "chunk_index": 0,
+    "text": "# SoundFile\n\nSoundFile\n\n[SoundFile](https://pysoundfile.readthedocs.io/en/latest/) is a library to read and write sound files in various formats using libsndfile."
+  },
+  {
+    "id": "chunk_66",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/04_soundfile.md",
+    "chunk_index": 1,
+    "text": "# Why SoundFile?\n\nWhy SoundFile?\n\n- **File Format Support:** Handles reading and writing of many audio formats like WAV, FLAC, AIFF.\n- **Accurate Audio Data Access:** Provides precise sample data needed for analysis.\n- **Dependency for Librosa:** Librosa depends on SoundFile for audio I/O."
+  },
+  {
+    "id": "chunk_67",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/04_soundfile.md",
+    "chunk_index": 2,
+    "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Reads user-uploaded audio files for processing and analysis.\n- Provides audio data buffers consumed by Librosa and other analysis functions."
+  },
+  {
+    "id": "chunk_68",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/06_soxr.md",
+    "chunk_index": 0,
+    "text": "# Soxr\n\nSoxr\n\n[Soxr](https://github.com/rabitt/soxr-python) is a high-quality library for audio resampling."
+  },
+  {
+    "id": "chunk_69",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/06_soxr.md",
+    "chunk_index": 1,
+    "text": "# Why Soxr?\n\nWhy Soxr?\n\n- **Accurate Resampling:** Ensures audio sample rate conversions maintain fidelity.\n- **Optimized for Speed:** Fast processing suitable for real-time or batch workflows.\n- **Integration with Audio Pipelines:** Used to standardize audio input before analysis."
+  },
+  {
+    "id": "chunk_70",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/06_soxr.md",
+    "chunk_index": 2,
+    "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Resamples uploaded audio files to target sample rates expected by analysis tools.\n- Improves consistency and accuracy of feature extraction results."
+  },
+  {
+    "id": "chunk_71",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/03_pyloudnorm.md",
+    "chunk_index": 0,
+    "text": "# pyloudnorm\n\npyloudnorm\n\n[pyloudnorm](https://github.com/csteinmetz1/pyloudnorm) is a Python implementation of the ITU-R BS.1770 standard for loudness normalization."
+  },
+  {
+    "id": "chunk_72",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/03_pyloudnorm.md",
+    "chunk_index": 1,
+    "text": "# Why pyloudnorm?\n\nWhy pyloudnorm?\n\n- **LUFS Measurement:** Accurate calculation of loudness units relative to full scale, the industry standard.\n- **Compliance:** Meets broadcast loudness normalization standards.\n- **Precision:** Handles gating and measurement nuances necessary for realistic loudness perception."
+  },
+  {
+    "id": "chunk_73",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/03_pyloudnorm.md",
+    "chunk_index": 2,
+    "text": "# How it’s used in this project\n\nHow it’s used in this project\n\npyloudnorm measures integrated loudness (LUFS) of uploaded tracks, providing key data for loudness-based AI feedback.\n\n---"
+  },
+  {
+    "id": "chunk_74",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/01_librosa.md",
+    "chunk_index": 0,
+    "text": "# Librosa\n\nLibrosa\n\n[Librosa](https://librosa.org/) is a Python library for audio and music analysis."
+  },
+  {
+    "id": "chunk_75",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/01_librosa.md",
+    "chunk_index": 1,
+    "text": "# Why Librosa?\n\nWhy Librosa?\n\n- **Feature Extraction:** Provides key detection, tempo, onset detection, spectral features, and other audio descriptors.\n- **Audio Processing:** Supports loading, resampling, and transformations of audio signals.\n- **Widely Used:** Popular in audio and music information retrieval communities."
+  },
+  {
+    "id": "chunk_76",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/01_librosa.md",
+    "chunk_index": 2,
+    "text": "# How it’s used in this project\n\nHow it’s used in this project\n\nLibrosa performs the core audio analysis that extracts metrics like:\n\n- Musical key.\n- Tempo.\n- Transient strength.\n- Frequency bands energy.\n\nThis analysis informs the AI feedback about the sonic characteristics of uploaded tracks.\n\n---"
+  },
+  {
+    "id": "chunk_77",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/02_numpy.md",
+    "chunk_index": 0,
+    "text": "# NumPy\n\nNumPy\n\n[NumPy](https://numpy.org/) is the fundamental package for scientific computing with Python."
+  },
+  {
+    "id": "chunk_78",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/02_numpy.md",
+    "chunk_index": 1,
+    "text": "# Why NumPy?\n\nWhy NumPy?\n\n- **Array Operations:** Efficient multidimensional arrays and matrix math.\n- **Mathematical Functions:** Supports advanced mathematical operations needed for audio processing.\n- **Foundation:** Many audio and ML libraries are built on NumPy arrays."
+  },
+  {
+    "id": "chunk_79",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/02_numpy.md",
+    "chunk_index": 2,
+    "text": "# How it’s used in this project\n\nHow it’s used in this project\n\nNumPy is used extensively for:\n\n- Signal processing calculations.\n- Array manipulations during spectral analysis.\n- Numerical operations in loudness and dynamic range computation.\n\n---"
+  },
+  {
+    "id": "chunk_80",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/05_audioread.md",
+    "chunk_index": 0,
+    "text": "# audioread\n\naudioread\n\n[audioread](https://github.com/beetbox/audioread) is a cross-library (GStreamer, Core Audio, MAD, FFmpeg) audio decoding library for Python."
+  },
+  {
+    "id": "chunk_81",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/05_audioread.md",
+    "chunk_index": 1,
+    "text": "# Why audioread?\n\nWhy audioread?\n\n- **Broad Audio Support:** Decodes many audio formats reliably across platforms.\n- **Fallback Decoder:** Used as a fallback for audio file reading in Librosa.\n- **Cross-Platform:** Works on Windows, macOS, and Linux."
+  },
+  {
+    "id": "chunk_82",
+    "filename": "rag_docs/01_programming_tools/03_audio_and_signal_processing/05_audioread.md",
+    "chunk_index": 2,
+    "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Supports audio decoding for analysis pipelines when SoundFile cannot handle certain formats.\n- Enables flexibility in the audio input formats accepted by the system."
+  },
+  {
+    "id": "chunk_83",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/08_jinja2.md",
+    "chunk_index": 0,
+    "text": "# Jinja2\n\nJinja2\n\n[Jinja2](https://jinja.palletsprojects.com/en/3.1.x/) is a templating engine for Python."
+  },
+  {
+    "id": "chunk_84",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/08_jinja2.md",
+    "chunk_index": 1,
+    "text": "# Why Jinja2?\n\nWhy Jinja2?\n\n- **HTML Templating:** Enables dynamic HTML generation.\n- **Integration:** Often used with web frameworks like Flask and FastAPI.\n- **Extensible:** Supports custom filters and macros."
+  },
+  {
+    "id": "chunk_85",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/08_jinja2.md",
+    "chunk_index": 2,
+    "text": "# How it's used in this project\n\nHow it's used in this project\n\n- May be used for generating server-rendered HTML pages or email templates.\n- Helps structure frontend templates if needed."
+  },
+  {
+    "id": "chunk_86",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/05_python-multipart.md",
+    "chunk_index": 0,
+    "text": "# python-multipart\n\npython-multipart\n\n[python-multipart](https://github.com/andrew-d/python-multipart) is a streaming multipart parser for Python, used for handling form data and file uploads."
+  },
+  {
+    "id": "chunk_87",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/05_python-multipart.md",
+    "chunk_index": 1,
+    "text": "# Why python-multipart?\n\nWhy python-multipart?\n\n- **Multipart Form Data Parsing:** Essential for handling file uploads (audio tracks) in web requests.\n- **Streaming Support:** Efficiently processes large files without loading entire content into memory.\n- **Integration with FastAPI:** Works seamlessly with FastAPI's request handling."
+  },
+  {
+    "id": "chunk_88",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/05_python-multipart.md",
+    "chunk_index": 2,
+    "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Parses audio file uploads sent from the frontend to the backend.\n- Supports receiving metadata and audio content as multipart/form-data in API endpoints."
+  },
+  {
+    "id": "chunk_89",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/03_reportlab.md",
+    "chunk_index": 0,
+    "text": "# ReportLab\n\nReportLab\n\n[ReportLab](https://www.reportlab.com/) is a robust PDF generation library for Python."
+  },
+  {
+    "id": "chunk_90",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/03_reportlab.md",
+    "chunk_index": 1,
+    "text": "# Why ReportLab?\n\nWhy ReportLab?\n\n- **Dynamic PDF Creation:** Enables programmatic creation of complex, styled PDFs.\n- **Rich Features:** Supports text, images, tables, and custom layouts.\n- **Widely Used:** Trusted in many professional reporting applications."
+  },
+  {
+    "id": "chunk_91",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/03_reportlab.md",
+    "chunk_index": 2,
+    "text": "# How it’s used in this project\n\nHow it’s used in this project\n\nGenerates downloadable PDF reports for AI feedback and plugin preset recommendations, letting users save or print their guidance.\n\n---"
+  },
+  {
+    "id": "chunk_92",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/01_dotenv.md",
+    "chunk_index": 0,
+    "text": "# Dotenv\n\nDotenv\n\n[python-dotenv](https://github.com/theskumar/python-dotenv) reads key-value pairs from `.env` files and sets them as environment variables."
+  },
+  {
+    "id": "chunk_93",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/01_dotenv.md",
+    "chunk_index": 1,
+    "text": "# Why Dotenv?\n\nWhy Dotenv?\n\n- **Secure Config:** Keeps sensitive info like API keys out of source code.\n- **Convenience:** Easily manages environment-specific settings.\n- **Integration:** Works seamlessly with Python apps and deployment environments."
+  },
+  {
+    "id": "chunk_94",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/01_dotenv.md",
+    "chunk_index": 2,
+    "text": "# How it’s used in this project\n\nHow it’s used in this project\n\nLoads OpenAI API keys and other config data during app startup, ensuring safe and flexible configuration.\n\n---"
+  },
+  {
+    "id": "chunk_95",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/06_httpx.md",
+    "chunk_index": 0,
+    "text": "# HTTPX\n\nHTTPX\n\n[HTTPX](https://www.python-httpx.org/) is a fully featured HTTP client for Python with async support."
+  },
+  {
+    "id": "chunk_96",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/06_httpx.md",
+    "chunk_index": 1,
+    "text": "# Why HTTPX?\n\nWhy HTTPX?\n\n- **Async Capabilities:** Supports asynchronous HTTP requests natively.\n- **Sync and Async:** Can be used in both synchronous and asynchronous code.\n- **HTTP/2 and Connection Pooling:** Advanced HTTP features."
+  },
+  {
+    "id": "chunk_97",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/06_httpx.md",
+    "chunk_index": 2,
+    "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Possibly used to make HTTP requests to external APIs asynchronously.\n- Could facilitate calls to services like OpenAI or other third-party endpoints."
+  },
+  {
+    "id": "chunk_98",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/10_pathlib_and_shutil.md",
+    "chunk_index": 0,
+    "text": "# Python Standard Libraries: Pathlib and Shutil\n\nPython Standard Libraries: Pathlib and Shutil"
+  },
+  {
+    "id": "chunk_99",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/10_pathlib_and_shutil.md",
+    "chunk_index": 1,
+    "text": "# Pathlib\n\nPathlib\n\n- Object-oriented filesystem paths handling.\n- Simplifies path manipulation, compatible across OSes."
+  },
+  {
+    "id": "chunk_100",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/10_pathlib_and_shutil.md",
+    "chunk_index": 2,
+    "text": "# Shutil\n\nShutil\n\n- High-level file operations such as copying, moving, and deleting.\n- Useful for managing uploaded files and cleanup tasks."
+  },
+  {
+    "id": "chunk_101",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/10_pathlib_and_shutil.md",
+    "chunk_index": 3,
+    "text": "# How they're used in this project\n\nHow they're used in this project\n\n- Manage audio file uploads, organize storage directories.\n- Clean up old uploads and maintain file system hygiene."
+  },
+  {
+    "id": "chunk_102",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/09_logging_and_asyncio.md",
+    "chunk_index": 0,
+    "text": "# Python Standard Libraries: Logging and Asyncio\n\nPython Standard Libraries: Logging and Asyncio"
+  },
+  {
+    "id": "chunk_103",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/09_logging_and_asyncio.md",
+    "chunk_index": 1,
+    "text": "# Logging\n\nLogging\n\n- Provides a flexible framework for emitting log messages from Python programs.\n- Used extensively to record app behavior, errors, and debug information."
+  },
+  {
+    "id": "chunk_104",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/09_logging_and_asyncio.md",
+    "chunk_index": 2,
+    "text": "# Asyncio\n\nAsyncio\n\n- Supports writing concurrent code using async/await syntax.\n- Underpins asynchronous frameworks like FastAPI, enabling efficient I/O handling."
+  },
+  {
+    "id": "chunk_105",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/09_logging_and_asyncio.md",
+    "chunk_index": 3,
+    "text": "# How they're used in this project\n\nHow they're used in this project\n\n- Logging records key events and errors in backend services for troubleshooting.\n- Asyncio enables non-blocking handling of concurrent requests, file uploads, and AI calls."
+  },
+  {
+    "id": "chunk_106",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/07_aiohttp.md",
+    "chunk_index": 0,
+    "text": "# Aiohttp\n\nAiohttp\n\n[Aiohttp](https://docs.aiohttp.org/en/stable/) is an asynchronous HTTP client/server framework."
+  },
+  {
+    "id": "chunk_107",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/07_aiohttp.md",
+    "chunk_index": 1,
+    "text": "# Why Aiohttp?\n\nWhy Aiohttp?\n\n- **Async Server & Client:** Supports both HTTP client and server implementations.\n- **WebSocket Support:** Real-time communication.\n- **Used in Async Python Apps:** Often accompanies FastAPI or other async frameworks."
+  },
+  {
+    "id": "chunk_108",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/07_aiohttp.md",
+    "chunk_index": 2,
+    "text": "# How it's used in this project\n\nHow it's used in this project\n\n- May be used for async HTTP communication, especially for background tasks or event-driven workflows.\n- Supports efficient IO-bound operations alongside the FastAPI backend."
+  },
+  {
+    "id": "chunk_109",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/02_pydantic.md",
+    "chunk_index": 0,
+    "text": "# Pydantic\n\nPydantic\n\n[Pydantic](https://pydantic.dev/) is a Python library for data validation and settings management using Python type annotations. It plays a key role in ensuring robust, safe, and clear data handling within this AI-powered music assistant project."
+  },
+  {
+    "id": "chunk_110",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/02_pydantic.md",
+    "chunk_index": 1,
+    "text": "# Why Pydantic?\n\nWhy Pydantic?\n\n- **Input Validation:** Ensures all API requests contain the required fields with correct data types, preventing invalid data from causing errors downstream.\n- **Automatic Parsing:** Converts incoming JSON or form data into Python objects with properly typed attributes, simplifying backend logic.\n- **Clear Error Reporting:** Provides detailed error messages when validation fails, helping debug issues quickly.\n- **Seamless FastAPI Integration:** FastAPI uses Pydantic models to define request and response schemas, enabling automatic API documentation and developer-friendly interfaces.\n- **Maintains Explicit Data Contracts:** Makes your data models self-documenting and easy to maintain, which is especially valuable for complex AI feedback interactions."
+  },
+  {
+    "id": "chunk_111",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/02_pydantic.md",
+    "chunk_index": 2,
+    "text": "# How it's used in this project\n\nHow it's used in this project\n\nThe project uses Pydantic models to define the expected structure for key API endpoints:\n\n- **`FollowUpRequest`**: Defines all the data required to process a user's follow-up question to the AI feedback, including analysis texts, session and track IDs, and optional reference track data.\n- **`SummarizeRequest`**: Defines the parameters needed to summarize follow-up conversation threads, including session ID, track ID, and follow-up group index.\n\nUsing Pydantic allows the backend to robustly handle AI feedback workflows, providing structured and validated data to the AI models while maintaining clear communication protocols between frontend and backend.\n\n---\n\nThis approach improves both developer experience and reliability, making it an essential tool in the architecture of this AI mixing/mastering assistant."
+  },
+  {
+    "id": "chunk_112",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/04_typing_extensions.md",
+    "chunk_index": 0,
+    "text": "# typing-extensions\n\ntyping-extensions\n\n[typing-extensions](https://github.com/python/typing/blob/main/typing_extensions/README.md) provides backports of new type hinting features to older Python versions."
+  },
+  {
+    "id": "chunk_113",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/04_typing_extensions.md",
+    "chunk_index": 1,
+    "text": "# Why typing-extensions?\n\nWhy typing-extensions?\n\n- **Forward Compatibility:** Use modern Python typing features in older Python versions.\n- **Enhanced Type Safety:** Enables advanced type hints and annotations."
+  },
+  {
+    "id": "chunk_114",
+    "filename": "rag_docs/01_programming_tools/05_utilities_and_helpers/04_typing_extensions.md",
+    "chunk_index": 2,
+    "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Supports advanced type hinting in the codebase.\n- Improves code clarity and maintainability, especially in complex AI logic."
+  },
+  {
+    "id": "chunk_115",
+    "filename": "rag_docs/01_programming_tools/01_programming_languages/04_css.md",
+    "chunk_index": 0,
+    "text": "# CSS\n\nCSS\n\nCSS (Cascading Style Sheets) styles the HTML content, providing layout, colors, fonts, and responsive design features for the frontend interface."
+  },
+  {
+    "id": "chunk_116",
+    "filename": "rag_docs/01_programming_tools/01_programming_languages/04_css.md",
+    "chunk_index": 1,
+    "text": "# Why CSS?\n\nWhy CSS?\n\n- **Visual Styling:** Controls appearance of UI elements.\n- **Responsive Design:** Adapts layout for different screen sizes.\n- **Maintainability:** Separates content from presentation.\n- **Framework Compatibility:** Easily integrates with Tailwind CSS."
+  },
+  {
+    "id": "chunk_117",
+    "filename": "rag_docs/01_programming_tools/01_programming_languages/04_css.md",
+    "chunk_index": 2,
+    "text": "# How it’s used in this project\n\nHow it’s used in this project\n\n- Applies Tailwind CSS utility classes for rapid styling.\n- Custom styles for modals, dropdowns, buttons, and form elements.\n- Ensures a clean, modern, and user-friendly interface.\n\n---"
+  },
+  {
+    "id": "chunk_118",
+    "filename": "rag_docs/01_programming_tools/01_programming_languages/05_javascript.md",
+    "chunk_index": 0,
+    "text": "# JavaScript\n\nJavaScript\n\nJavaScript is the primary scripting language used to create dynamic, interactive frontend behavior in the music assistant app."
+  },
+  {
+    "id": "chunk_119",
+    "filename": "rag_docs/01_programming_tools/01_programming_languages/05_javascript.md",
+    "chunk_index": 1,
+    "text": "# Why JavaScript?\n\nWhy JavaScript?\n\n- **Interactivity:** Enables real-time UI updates and user input handling.\n- **Event Handling:** Responds to clicks, form submissions, and other user actions.\n- **API Communication:** Sends and receives data from the backend via AJAX/fetch.\n- **Browser Compatibility:** Runs on all modern browsers."
+  },
+  {
+    "id": "chunk_120",
+    "filename": "rag_docs/01_programming_tools/01_programming_languages/05_javascript.md",
+    "chunk_index": 2,
+    "text": "# How it’s used in this project\n\nHow it’s used in this project\n\n- Manages form submissions and file uploads.\n- Handles chat interface, follow-up questions, and feedback display.\n- Controls UI elements such as modals and dropdowns.\n- Stores session info and tokens in local storage for persistence.\n\n---"
+  },
+  {
+    "id": "chunk_121",
+    "filename": "rag_docs/01_programming_tools/01_programming_languages/01_python.md",
+    "chunk_index": 0,
+    "text": "# Python\n\nPython\n\nPython is the core programming language used in this AI-powered music mixing and mastering assistant project. Its versatility, extensive libraries, and readability make it ideal for rapid development and integration of audio analysis and AI components."
+  },
+  {
+    "id": "chunk_122",
+    "filename": "rag_docs/01_programming_tools/01_programming_languages/01_python.md",
+    "chunk_index": 1,
+    "text": "# Why Python?\n\nWhy Python?\n\n- **Rich Ecosystem:** Provides libraries like Librosa for audio processing and Pydantic for data validation.\n- **AI & ML Friendly:** Easy integration with OpenAI SDK and other AI tools.\n- **Fast Development:** Clear syntax speeds up prototyping and testing.\n- **Strong Community:** Extensive resources and support."
+  },
+  {
+    "id": "chunk_123",
+    "filename": "rag_docs/01_programming_tools/01_programming_languages/01_python.md",
+    "chunk_index": 2,
+    "text": "# How it’s used in this project\n\nHow it’s used in this project\n\n- Backend API and business logic are implemented in Python using FastAPI.\n- Audio analysis scripts rely on Python libraries like Librosa and pyloudnorm.\n- Integration with AI models via OpenAI Python SDK.\n- Data handling with SQLAlchemy ORM for database management.\n\n---"
+  },
+  {
+    "id": "chunk_124",
+    "filename": "rag_docs/01_programming_tools/01_programming_languages/02_pycharm.md",
+    "chunk_index": 0,
+    "text": "# PyCharm\n\nPyCharm\n\nPyCharm is the Integrated Development Environment (IDE) used for writing, debugging, and managing the Python backend code of this project."
+  },
+  {
+    "id": "chunk_125",
+    "filename": "rag_docs/01_programming_tools/01_programming_languages/02_pycharm.md",
+    "chunk_index": 1,
+    "text": "# Why PyCharm?\n\nWhy PyCharm?\n\n- **Powerful Code Editor:** Syntax highlighting, code completion, and refactoring tools.\n- **Integrated Debugger:** Helps identify and fix issues efficiently.\n- **Version Control Integration:** Supports Git and other VCS tools for code management.\n- **Project Management:** Organizes files and dependencies for complex projects."
+  },
+  {
+    "id": "chunk_126",
+    "filename": "rag_docs/01_programming_tools/01_programming_languages/02_pycharm.md",
+    "chunk_index": 2,
+    "text": "# How it’s used in this project\n\nHow it’s used in this project\n\n- Developing and testing FastAPI backend routes and audio analysis.\n- Managing virtual environments and package dependencies.\n- Running and debugging AI integration workflows.\n- Code navigation and documentation.\n\n---"
+  },
+  {
+    "id": "chunk_127",
+    "filename": "rag_docs/01_programming_tools/01_programming_languages/03_html.md",
+    "chunk_index": 0,
+    "text": "# HTML\n\nHTML\n\nHTML (HyperText Markup Language) is the foundational markup language for building the frontend user interface of the music assistant web app."
+  },
+  {
+    "id": "chunk_128",
+    "filename": "rag_docs/01_programming_tools/01_programming_languages/03_html.md",
+    "chunk_index": 1,
+    "text": "# Why HTML?\n\nWhy HTML?\n\n- **Structure:** Defines the layout and elements of web pages.\n- **Compatibility:** Supported by all web browsers.\n- **Accessibility:** Enables semantic, accessible content.\n- **Integration:** Works with CSS and JavaScript for styling and interactivity."
+  },
+  {
+    "id": "chunk_129",
+    "filename": "rag_docs/01_programming_tools/01_programming_languages/03_html.md",
+    "chunk_index": 2,
+    "text": "# How it’s used in this project\n\nHow it’s used in this project\n\n- Markup for pages where users upload tracks, view AI feedback, and interact with chat.\n- Defines forms, buttons, containers, and modal dialogs.\n- Works with Tailwind CSS for responsive design.\n\n---"
+  },
+  {
+    "id": "chunk_130",
+    "filename": "rag_docs/01_programming_tools/06_frontend_styling/01_tailwindcss.md",
+    "chunk_index": 0,
+    "text": "# Tailwind CSS\n\nTailwind CSS\n\n[Tailwind CSS](https://tailwindcss.com/) is a utility-first CSS framework for rapid UI development."
+  },
+  {
+    "id": "chunk_131",
+    "filename": "rag_docs/01_programming_tools/06_frontend_styling/01_tailwindcss.md",
+    "chunk_index": 1,
+    "text": "# Why Tailwind CSS?\n\nWhy Tailwind CSS?\n\n- **Utility-First:** Enables fast, consistent styling with composable CSS classes.\n- **Responsive Design:** Built-in responsiveness and mobile-first approach.\n- **Customizable:** Highly configurable for unique design systems."
+  },
+  {
+    "id": "chunk_132",
+    "filename": "rag_docs/01_programming_tools/06_frontend_styling/01_tailwindcss.md",
+    "chunk_index": 2,
+    "text": "# How it’s used in this project\n\nHow it’s used in this project\n\nStyles the frontend web interface, providing a modern, clean, and responsive user experience for audio upload, feedback display, and chat interaction.\n\n---"
+  },
+  {
+    "id": "chunk_133",
+    "filename": "rag_docs/01_programming_tools/02_backend_frameworks_and_apis/02_sql_alchemy.md",
+    "chunk_index": 0,
+    "text": "# SQLAlchemy\n\nSQLAlchemy\n\n[SQLAlchemy](https://www.sqlalchemy.org/) is the Python SQL toolkit and Object Relational Mapper (ORM) that gives application developers full power and flexibility of SQL."
+  },
+  {
+    "id": "chunk_134",
+    "filename": "rag_docs/01_programming_tools/02_backend_frameworks_and_apis/02_sql_alchemy.md",
+    "chunk_index": 1,
+    "text": "# Why SQLAlchemy?\n\nWhy SQLAlchemy?\n\n- **Robust ORM:** Simplifies interaction with the database by mapping Python classes to tables.\n- **Session Management:** Manages database transactions and connections efficiently.\n- **Cross-DB Compatibility:** Supports SQLite, PostgreSQL, MySQL, and more.\n- **Complex Queries:** Enables expressive query building and relationship management between models."
+  },
+  {
+    "id": "chunk_135",
+    "filename": "rag_docs/01_programming_tools/02_backend_frameworks_and_apis/02_sql_alchemy.md",
+    "chunk_index": 2,
+    "text": "# How it’s used in this project\n\nHow it’s used in this project\n\nSQLAlchemy manages:\n\n- Data models for sessions, tracks, analyses, and chat messages.\n- Persistent storage and retrieval of analysis and AI feedback data.\n- Relationship handling between sessions and multiple tracks or chat messages.\n\n---"
+  },
+  {
+    "id": "chunk_136",
+    "filename": "rag_docs/01_programming_tools/02_backend_frameworks_and_apis/03_uvicorn.md",
+    "chunk_index": 0,
+    "text": "# Uvicorn\n\nUvicorn\n\n[Uvicorn](https://www.uvicorn.org/) is a lightning-fast ASGI server implementation, using `uvloop` and `httptools`. It is commonly used to serve asynchronous Python web frameworks such as FastAPI."
+  },
+  {
+    "id": "chunk_137",
+    "filename": "rag_docs/01_programming_tools/02_backend_frameworks_and_apis/03_uvicorn.md",
+    "chunk_index": 1,
+    "text": "# Why Uvicorn?\n\nWhy Uvicorn?\n\n- **Asynchronous Server:** Supports high-performance asynchronous communication, essential for FastAPI’s async capabilities.\n- **Production Ready:** Suitable for running your app in production environments.\n- **Easy Integration:** Seamlessly runs FastAPI apps with minimal configuration.\n- **Hot Reload Support:** Enables automatic server reload during development."
+  },
+  {
+    "id": "chunk_138",
+    "filename": "rag_docs/01_programming_tools/02_backend_frameworks_and_apis/03_uvicorn.md",
+    "chunk_index": 2,
+    "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Runs the FastAPI backend, serving HTTP requests and managing event loops.\n- Handles concurrent client connections efficiently for file uploads, chat messages, and AI feedback generation."
+  },
+  {
+    "id": "chunk_139",
+    "filename": "rag_docs/01_programming_tools/02_backend_frameworks_and_apis/01_fast_api.md",
+    "chunk_index": 0,
+    "text": "# FastAPI\n\nFastAPI\n\n[FastAPI](https://fastapi.tiangolo.com/) is a modern, fast (high-performance) web framework for building APIs with Python 3.7+ based on standard Python type hints. It provides asynchronous capabilities and automatic interactive API documentation."
+  },
+  {
+    "id": "chunk_140",
+    "filename": "rag_docs/01_programming_tools/02_backend_frameworks_and_apis/01_fast_api.md",
+    "chunk_index": 1,
+    "text": "# Why FastAPI?\n\nWhy FastAPI?\n\n- **High Performance:** Supports asynchronous operations making it ideal for handling uploads, AI prompt calls, and multiple users concurrently.\n- **Easy API Design:** Leverages Python type hints to build clear and concise endpoints.\n- **Automatic Docs:** Generates Swagger/OpenAPI documentation automatically, aiding frontend-backend integration.\n- **Dependency Injection:** Simplifies managing database sessions and authentication with built-in dependency system.\n- **Built-in Validation:** Integrates tightly with Pydantic for request validation and response serialization."
+  },
+  {
+    "id": "chunk_141",
+    "filename": "rag_docs/01_programming_tools/02_backend_frameworks_and_apis/01_fast_api.md",
+    "chunk_index": 2,
+    "text": "# How it’s used in this project\n\nHow it’s used in this project\n\nFastAPI forms the backbone of the backend API, handling:\n\n- Audio file uploads.\n- Triggering audio analysis workflows.\n- Managing user sessions and tracks.\n- Generating AI feedback and follow-up responses.\n- Exporting feedback as PDFs.\n\n---"
+  },
+  {
+    "id": "chunk_142",
+    "filename": "rag_docs/00_overviews/02_ai_integration_overview.md",
+    "chunk_index": 0,
+    "text": "# AI Integration Overview\n\nAI Integration Overview\n\nThis section explains how AI feedback and interactive chat features are integrated into the music mixing and mastering assistant backend.\n\n---"
+  },
+  {
+    "id": "chunk_143",
+    "filename": "rag_docs/00_overviews/02_ai_integration_overview.md",
+    "chunk_index": 1,
+    "text": "# Key Components\n\nKey Components"
+  },
+  {
+    "id": "chunk_144",
+    "filename": "rag_docs/00_overviews/02_ai_integration_overview.md",
+    "chunk_index": 2,
+    "text": "# 1. Feedback Generation\n\n1. Feedback Generation\n\n- Receives user inputs such as track ID, session ID, genre, feedback type (mixdown, mastering, master review), and feedback profile (simple, detailed, pro).\n- Fetches the stored audio analysis data for the selected track from the database.\n- Normalizes user inputs like genre, type, and profile to ensure consistent processing.\n- Calls the feedback prompt generator to build a detailed AI prompt, embedding audio metrics, genre context, and communication style guidance.\n- Sends the prompt to the AI model to generate tailored feedback.\n- Stores the AI feedback as a chat message in the database for session persistence.\n- The generated feedback is displayed on the main user interface (e.g., `index.html`).\n\n---"
+  },
+  {
+    "id": "chunk_145",
+    "filename": "rag_docs/00_overviews/02_ai_integration_overview.md",
+    "chunk_index": 3,
+    "text": "# 2. Follow-Up Question Handling (`/ask-followup` endpoint)\n\n2. Follow-Up Question Handling (`/ask-followup` endpoint)\n\n- Supports multi-turn conversations by accepting follow-up user questions referencing prior analysis and feedback.\n- Retrieves the main track and optionally a reference track’s analysis data to provide context-aware comparison feedback.\n- Includes a conversation summary from prior follow-up messages to keep context concise.\n- Constructs a comprehensive follow-up prompt combining analysis, previous feedback, user question, and summary.\n- Generates AI response and stores both user question and AI answer as chat messages linked by session and follow-up group.\n- Implements automatic summarization of follow-up threads after several interactions to maintain concise context and improve response relevance.\n\n---"
+  },
+  {
+    "id": "chunk_146",
+    "filename": "rag_docs/00_overviews/02_ai_integration_overview.md",
+    "chunk_index": 4,
+    "text": "# 3. Prompt Construction & AI Calls\n\n3. Prompt Construction & AI Calls\n\n- Prompts contain multiple structured sections including:  \n  - Role-specific context describing the AI as a professional mixing or mastering engineer with genre expertise.  \n  - Communication style instructions matching user-selected feedback profile (simple, detailed, pro).  \n  - Embedded audio analysis data with loudness, dynamic range, transients, spectral balance, stereo width, and bass profile.  \n  - Conditional inclusion of reference track analysis for comparative feedback.  \n  - Format rules and example bullet point outputs guiding the AI’s response style.\n\n- AI calls use OpenAI’s GPT models (`gpt-4o-mini` currently) with messages formatted as user prompts.\n\n---"
+  },
+  {
+    "id": "chunk_147",
+    "filename": "rag_docs/00_overviews/02_ai_integration_overview.md",
+    "chunk_index": 5,
+    "text": "# 4. Data Persistence & Session Management\n\n4. Data Persistence & Session Management\n\n- Chat messages (user and assistant) are stored in a database table linked by session, track, and follow-up group identifiers.\n- Enables resuming conversations, retrieving message history, and supporting multi-turn dialogue.\n- Summaries generated after a set number of follow-ups optimize prompt length and AI context window usage.\n\n---"
+  },
+  {
+    "id": "chunk_148",
+    "filename": "rag_docs/00_overviews/02_ai_integration_overview.md",
+    "chunk_index": 6,
+    "text": "# Summary\n\nSummary\n\nThis AI integration combines precise audio analysis data with dynamic, role- and style-aware prompt construction to generate meaningful, user-tailored mixing and mastering feedback. It supports an interactive chat interface with follow-up questions and conversation summarization, creating a natural, continuous feedback experience for users."
+  },
+  {
+    "id": "chunk_149",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 0,
+    "text": "# Programming Tools, Libraries, and Project Overview\n\nProgramming Tools, Libraries, and Project Overview\n\nThis project uses a variety of programming languages, tools, and Python libraries chosen for their functionality, performance, and ease of integration to build a powerful AI-powered music mixing and mastering assistant.\n\n---"
+  },
+  {
+    "id": "chunk_150",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 1,
+    "text": "# Programming Languages & Tools\n\nProgramming Languages & Tools"
+  },
+  {
+    "id": "chunk_151",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 2,
+    "text": "# Python  \n\nPython  \nThe core language used to build the backend API, audio analysis, and AI integration."
+  },
+  {
+    "id": "chunk_152",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 3,
+    "text": "# PyCharm  \n\nPyCharm  \nThe primary Integrated Development Environment (IDE) used for writing, debugging, and managing the Python backend code."
+  },
+  {
+    "id": "chunk_153",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 4,
+    "text": "# HTML  \n\nHTML  \nThe foundational markup language used to structure the frontend web interface."
+  },
+  {
+    "id": "chunk_154",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 5,
+    "text": "# CSS  \n\nCSS  \nStyles the HTML, providing layout, colors, fonts, and responsive design."
+  },
+  {
+    "id": "chunk_155",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 6,
+    "text": "# JavaScript  \n\nJavaScript  \nAdds interactivity to the frontend, handles user events, and communicates asynchronously with the backend API.\n\n---"
+  },
+  {
+    "id": "chunk_156",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 7,
+    "text": "# Key Libraries and Their Roles\n\nKey Libraries and Their Roles"
+  },
+  {
+    "id": "chunk_157",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 8,
+    "text": "# FastAPI  \n\nFastAPI  \nProvides the web framework for building a high-performance, asynchronous backend API handling uploads, analysis, chat interactions, and export functions."
+  },
+  {
+    "id": "chunk_158",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 9,
+    "text": "# SQLAlchemy  \n\nSQLAlchemy  \nManages database models, sessions, and queries, allowing structured storage of sessions, tracks, audio analyses, and AI feedback."
+  },
+  {
+    "id": "chunk_159",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 10,
+    "text": "# Librosa  \n\nLibrosa  \nA widely used audio analysis library for feature extraction, including key detection, tempo analysis, transient detection, spectral features, and more."
+  },
+  {
+    "id": "chunk_160",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 11,
+    "text": "# NumPy  \n\nNumPy  \nCore numerical computing library used throughout for array operations, signal processing, and mathematical calculations."
+  },
+  {
+    "id": "chunk_161",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 12,
+    "text": "# pyloudnorm  \n\npyloudnorm  \nImplements loudness measurement compliant with the LUFS standard, crucial for accurate perceived loudness estimation in audio."
+  },
+  {
+    "id": "chunk_162",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 13,
+    "text": "# OpenAI SDK (`openai`)  \n\nOpenAI SDK (`openai`)  \nHandles interaction with GPT models to generate AI feedback, prompts, and follow-up responses."
+  },
+  {
+    "id": "chunk_163",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 14,
+    "text": "# ReportLab  \n\nReportLab  \nUsed to generate PDF exports of AI feedback and presets, enabling users to save or print their mixing/mastering guidance."
+  },
+  {
+    "id": "chunk_164",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 15,
+    "text": "# Dotenv  \n\nDotenv  \nLoads environment variables securely from `.env` files, including API keys and configuration."
+  },
+  {
+    "id": "chunk_165",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 16,
+    "text": "# Tailwind CSS (frontend)  \n\nTailwind CSS (frontend)  \nProvides utility-first CSS styling to build a responsive and modern user interface.\n\n---"
+  },
+  {
+    "id": "chunk_166",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 17,
+    "text": "# Special Notes\n\nSpecial Notes\n\n- A compatibility fix for NumPy deprecated aliases (like `np.complex`) ensures smooth operation across different NumPy versions.\n\n---\n\nThis comprehensive set of languages, tools, and libraries provides the foundation for the project’s architecture, enabling efficient audio processing, AI integration, and smooth user experience.\n\n\n---"
+  },
+  {
+    "id": "chunk_167",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 18,
+    "text": "# Project Overview\n\nProject Overview\n\nThis AI-powered music assistant helps users improve their mixes and masters by combining detailed audio analysis with intelligent, context-aware AI feedback."
+  },
+  {
+    "id": "chunk_168",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 19,
+    "text": "# Main Features and Workflow\n\nMain Features and Workflow\n\n1. **User Upload**  \n   - Users upload an audio track, optionally with a reference track.  \n   - They specify metadata: type of feedback desired (mixdown tips, mastering guidance, master review), genre/subgenre, and feedback detail level (simple, detailed, pro).\n\n2. **Audio Analysis**  \n   - The backend performs in-depth audio analysis extracting metrics such as loudness (LUFS), dynamic range, transient strength, spectral balance, stereo width, tempo, and key.  \n   - These metrics provide objective data describing the track’s sonic characteristics.\n\n3. **AI Feedback Generation**  \n   - Using OpenAI’s GPT models, the system generates tailored feedback prompts combining the audio analysis results and user metadata.  \n   - Users can ask follow-up questions, which the system answers using conversation context and summarization techniques to keep interactions concise."
+  },
+  {
+    "id": "chunk_169",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 20,
+    "text": "# Main Features and Workflow\n\n4. **Export and Presets**  \n   - Users can export the AI feedback as PDFs for offline reference.  \n   - The system can also generate plugin preset recommendations related to identified feedback issues."
+  },
+  {
+    "id": "chunk_170",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 21,
+    "text": "# Technology Stack\n\nTechnology Stack\n\n- **Backend**: Python 3.x, FastAPI framework, SQLAlchemy ORM for database interaction, OpenAI API for AI feedback.  \n- **Frontend**: HTML, CSS, JavaScript, styled with Tailwind CSS, and using local storage for user session data."
+  },
+  {
+    "id": "chunk_171",
+    "filename": "rag_docs/00_overviews/01_programming_tools_and_project_overview.md",
+    "chunk_index": 22,
+    "text": "# High-Level Architecture\n\nHigh-Level Architecture\n\n- The user interacts with a frontend web app styled via Tailwind CSS.  \n- The backend API handles audio file uploads, runs analysis functions (using `librosa`, `pyloudnorm`, and others), stores data in a relational database, and orchestrates AI feedback generation via the OpenAI API.  \n- AI chat interactions are maintained via session and chat message records in the database.  \n- Export features use ReportLab to generate PDFs dynamically.\n\n---\n\nThis overview and tooling information provides foundational knowledge about how the project is built and functions, supporting deeper explanations via the RAG system."
+  }
+]
