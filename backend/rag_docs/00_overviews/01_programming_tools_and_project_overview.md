@@ -1,41 +1,67 @@
 # Programming Tools, Libraries, and Project Overview
 
-## Programming Tools & Libraries
+This project uses a variety of programming languages, tools, and Python libraries chosen for their functionality, performance, and ease of integration to build a powerful AI-powered music mixing and mastering assistant.
 
-This project uses a variety of Python libraries and tools chosen for their functionality, performance, and ease of integration to build a powerful AI-powered music mixing and mastering assistant.
+---
 
-### Key Libraries and Their Roles
+## Programming Languages & Tools
 
-- **FastAPI**:  
-  Provides the web framework for building a high-performance, asynchronous backend API handling uploads, analysis, chat interactions, and export functions.
+### Python  
+The core language used to build the backend API, audio analysis, and AI integration.
 
-- **SQLAlchemy**:  
-  Manages database models, sessions, and queries, allowing structured storage of sessions, tracks, audio analyses, and AI feedback.
+### PyCharm  
+The primary Integrated Development Environment (IDE) used for writing, debugging, and managing the Python backend code.
 
-- **Librosa**:  
-  A widely used audio analysis library for feature extraction, including key detection, tempo analysis, transient detection, spectral features, and more.
+### HTML  
+The foundational markup language used to structure the frontend web interface.
 
-- **NumPy**:  
-  Core numerical computing library used throughout for array operations, signal processing, and mathematical calculations.
+### CSS  
+Styles the HTML, providing layout, colors, fonts, and responsive design.
 
-- **pyloudnorm**:  
-  Implements loudness measurement compliant with the LUFS standard, crucial for accurate perceived loudness estimation in audio.
+### JavaScript  
+Adds interactivity to the frontend, handles user events, and communicates asynchronously with the backend API.
 
-- **OpenAI SDK (`openai`)**:  
-  Handles interaction with GPT models to generate AI feedback, prompts, and follow-up responses.
+---
 
-- **ReportLab**:  
-  Used to generate PDF exports of AI feedback and presets, enabling users to save or print their mixing/mastering guidance.
+## Key Libraries and Their Roles
 
-- **Dotenv**:  
-  Loads environment variables securely from `.env` files, including API keys and configuration.
+### FastAPI  
+Provides the web framework for building a high-performance, asynchronous backend API handling uploads, analysis, chat interactions, and export functions.
 
-- **Tailwind CSS (frontend)**:  
-  Provides utility-first CSS styling to build a responsive and modern user interface.
+### SQLAlchemy  
+Manages database models, sessions, and queries, allowing structured storage of sessions, tracks, audio analyses, and AI feedback.
 
-### Special Notes
+### Librosa  
+A widely used audio analysis library for feature extraction, including key detection, tempo analysis, transient detection, spectral features, and more.
+
+### NumPy  
+Core numerical computing library used throughout for array operations, signal processing, and mathematical calculations.
+
+### pyloudnorm  
+Implements loudness measurement compliant with the LUFS standard, crucial for accurate perceived loudness estimation in audio.
+
+### OpenAI SDK (`openai`)  
+Handles interaction with GPT models to generate AI feedback, prompts, and follow-up responses.
+
+### ReportLab  
+Used to generate PDF exports of AI feedback and presets, enabling users to save or print their mixing/mastering guidance.
+
+### Dotenv  
+Loads environment variables securely from `.env` files, including API keys and configuration.
+
+### Tailwind CSS (frontend)  
+Provides utility-first CSS styling to build a responsive and modern user interface.
+
+---
+
+## Special Notes
 
 - A compatibility fix for NumPy deprecated aliases (like `np.complex`) ensures smooth operation across different NumPy versions.
+
+---
+
+This comprehensive set of languages, tools, and libraries provides the foundation for the project’s architecture, enabling efficient audio processing, AI integration, and smooth user experience.
+
 
 ---
 
