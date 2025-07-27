@@ -59,8 +59,8 @@ def generate_answer(prompt):
 
 
 def main():
-    index = load_faiss_index("backend/rag/rag_faiss.index")
-    metadata = load_metadata("backend/rag/rag_metadata.json")
+    index = load_faiss_index("backend/rag/combined_faiss.index")
+    metadata = load_metadata("backend/rag/combined_metadata.json")
 
     while True:
         query = input("\nAsk your question (or type 'exit' to quit): ")

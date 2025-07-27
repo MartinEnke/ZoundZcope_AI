@@ -150,7 +150,7 @@ def load_faiss_index(path):
     return faiss.read_index(path)
 
 
-def save_metadata(chunks, path):
+def save_metadata(chunks, out_path):
     """
     Save chunk metadata (without embeddings) for retrieval.
 
@@ -158,10 +158,18 @@ def save_metadata(chunks, path):
         chunks (list): List of chunk dicts.
         path (str): File path.
     """
-    metadata = [{"id": c["id"], "filename": c["filename"], "chunk_index": c["chunk_index"], "text": c["text"]} for c in
-                chunks]
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(metadata, f, ensure_ascii=False, indent=2)
+    metadata = []
+    for c in chunks:
+        metadata.append({
+            "id": c["id"],
+            "filename": c.get("filename", "unknown"),
+            "chunk_index": c.get("chunk_index", -1),  # use -1 or None if missing
+            "text": c.get("text", "")
+        })
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(metadata, f, indent=2, ensure_ascii=False)
+    print(f"Saved metadata for {len(metadata)} chunks to {out_path}")
 
 
 def load_metadata(path):

@@ -17,8 +17,8 @@ def embed_all_chunks(json_in, json_out):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", default="rag_chunks.json", help="Input chunks JSON file")
-    parser.add_argument("--output", default="rag_chunks_embedded.json", help="Output embedded chunks JSON file")
+    parser.add_argument("--input", default="function_chunks.json", help="Input chunks JSON file")
+    parser.add_argument("--output", default="function_chunks_embedded.json", help="Output embedded chunks JSON file")
     args = parser.parse_args()
 
     embed_all_chunks(args.input, args.output)

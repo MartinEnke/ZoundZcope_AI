@@ -1,1130 +1,1424 @@
 [
   {
-    "id": "chunk_1",
+    "id": "doc_chunk_1",
     "filename": "03_audio_analysis/08_generate_peak_issues_description.md",
     "chunk_index": 0,
     "text": "# Function: `generate_peak_issues_description(peak_db: float)`\n\nFunction: `generate_peak_issues_description(peak_db: float)`\n\nAnalyzes peak level to identify clipping risks or suboptimal gain staging.\n\n- Detects clipping risk, near clipping, or low peak levels.  \n- Provides detailed explanations and recommendations.\n\n**Input:**  \n- `peak_db`: Peak level in decibels (float).\n\n**Outputs:**  \n- List of detected issues (str).  \n- Explanation string detailing concerns.\n\n**Design Notes:**  \n- Supports best practices for peak management.  \n- Warns about common digital audio pitfalls."
   },
   {
-    "id": "chunk_2",
+    "id": "doc_chunk_2",
     "filename": "03_audio_analysis/04_describe_spectral_balance.md",
     "chunk_index": 0,
     "text": "# Function: `describe_spectral_balance(band_energies: dict, genre: str = \"electronic\")`\n\nFunction: `describe_spectral_balance(band_energies: dict, genre: str = \"electronic\")`\n\nAnalyzes and summarizes the spectral energy distribution into broad frequency regions and interprets the balance relative to genre norms.\n\n- Collapses bands into lows, mids, highs.  \n- Applies genre-specific logic to describe tonal balance and highlight potential issues.\n\n**Inputs:**  \n- `band_energies`: Dictionary of frequency band energies.  \n- `genre`: Genre string for contextual interpretation.\n\n**Output:**  \n- Descriptive string assessing spectral balance.\n\n**Design Notes:**  \n- Focuses on common production genres.  \n- Alerts to mix characteristics like muddiness or harshness."
   },
   {
-    "id": "chunk_3",
+    "id": "doc_chunk_3",
     "filename": "03_audio_analysis/02_compute_band_energies.md",
     "chunk_index": 0,
     "text": "# Function: `compute_band_energies(S, freqs)`\n\nFunction: `compute_band_energies(S, freqs)`\n\nCalculates the relative energy distribution across predefined frequency bands from a spectral power matrix.\n\n- Bands include sub-bass, low, low-mid, mid, high-mid, high, and air frequency ranges.\n- Normalizes energy per band relative to total spectral energy.\n- Returns a dictionary mapping band names to normalized energy values.\n\n**Inputs:**  \n- `S`: Power spectrogram (numpy array).  \n- `freqs`: Array of corresponding frequencies (numpy array).\n\n**Output:**  \n- Dictionary of normalized band energy ratios.\n\n**Design Notes:**  \n- Useful for spectral balance assessment.  \n- Designed for clear band separation in audio frequency spectrum."
   },
   {
-    "id": "chunk_4",
+    "id": "doc_chunk_4",
     "filename": "03_audio_analysis/09_analyze_audio.md",
     "chunk_index": 0,
     "text": "# Function: `analyze_audio(file_path, genre=None)`\n\nFunction: `analyze_audio(file_path, genre=None)`\n\nPerforms a comprehensive audio analysis extracting key metrics and descriptions.\n\n- Loads audio file, converts to mono and normalizes.  \n- Calculates peak level, loudness (LUFS), RMS average and peak.  \n- Detects tempo, musical key, dynamic range, and stereo width.  \n- Computes spectral band energies and low-end profile descriptions.  \n- Measures transient strengths and generates peak warnings.  \n- Returns a detailed dictionary summarizing all analysis results.\n\n**Inputs:**  \n- `file_path`: Path to the audio file.  \n- `genre`: Optional genre string to contextualize analysis.\n\n**Output:**  \n- Dictionary of audio analysis metrics and descriptive text fields.\n\n**Design Notes:**  \n- Combines signal processing with music knowledge for actionable feedback.  \n- Central to AI-driven mixing/mastering assistant workflow."
   },
   {
-    "id": "chunk_5",
+    "id": "doc_chunk_5",
     "filename": "03_audio_analysis/05_compute_windowed_rms_db.md",
     "chunk_index": 0,
     "text": "# Function: `compute_windowed_rms_db(y_mono, sr, window_duration=0.5)`\n\nFunction: `compute_windowed_rms_db(y_mono, sr, window_duration=0.5)`\n\nCalculates average and peak RMS (root mean square) loudness in dB over sliding windows.\n\n- Splits audio into overlapping windows.  \n- Computes RMS per window, then averages and finds the loudest 10% peak.  \n- Converts values to decibels (dB).\n\n**Inputs:**  \n- `y_mono`: Mono audio time series.  \n- `sr`: Sampling rate.  \n- `window_duration`: Duration of windows in seconds (default 0.5s).\n\n**Output:**  \n- Tuple of average RMS dB and peak RMS dB.\n\n**Design Notes:**  \n- Mimics perceptual loudness metrics.  \n- Helps identify loudness dynamics over time."
   },
   {
-    "id": "chunk_6",
+    "id": "doc_chunk_6",
     "filename": "03_audio_analysis/01_detect_key.md",
     "chunk_index": 0,
     "text": "# Function: `detect_key(y, sr)`\n\nFunction: `detect_key(y, sr)`\n\nDetermines the musical key of an audio signal by analyzing its chroma features.\n\n- Computes the chromagram using Constant-Q Transform (CQT).\n- Compares the chroma profile against predefined major and minor key templates using correlation.\n- Returns the best matching key as a string (e.g., \"C Major\", \"A minor\").\n\n**Inputs:**  \n- `y`: Audio time series (numpy array).  \n- `sr`: Sampling rate (int).\n\n**Output:**  \n- Detected musical key (str).\n\n**Design Notes:**  \n- Uses statistical correlation to identify key signature.  \n- Considers both major and minor possibilities for each root note."
   },
   {
-    "id": "chunk_7",
+    "id": "doc_chunk_7",
     "filename": "03_audio_analysis/07_describe_transients.md",
     "chunk_index": 0,
     "text": "# Function: `describe_transients(avg, max)`\n\nFunction: `describe_transients(avg, max)`\n\nGenerates a qualitative description of transient characteristics based on average and maximum strengths.\n\n- Categorizes transients as soft, balanced, punchy, or sharp.  \n- Adds notes on mix impact depending on transient range.\n\n**Inputs:**  \n- `avg`: Average transient strength (float).  \n- `max`: Maximum transient strength (float).\n\n**Output:**  \n- Human-readable description string.\n\n**Design Notes:**  \n- Helps users understand transient clarity and mix attack."
   },
   {
-    "id": "chunk_8",
+    "id": "doc_chunk_8",
     "filename": "03_audio_analysis/06_detect_transient_strength.md",
     "chunk_index": 0,
     "text": "# Function: `detect_transient_strength(y, sr)`\n\nFunction: `detect_transient_strength(y, sr)`\n\nMeasures the average and maximum transient strength in an audio signal.\n\n- Uses onset envelope estimation to quantify transient activity.  \n- Returns rounded average and max transient strengths.\n\n**Inputs:**  \n- `y`: Audio signal.  \n- `sr`: Sampling rate.\n\n**Output:**  \n- Tuple (average transient strength, max transient strength).\n\n**Design Notes:**  \n- Indicates punchiness or percussive energy in the mix.  \n- Useful for feedback about mix dynamics."
   },
   {
-    "id": "chunk_9",
+    "id": "doc_chunk_9",
     "filename": "03_audio_analysis/03_describe_low_end_profile.md",
     "chunk_index": 0,
     "text": "# Function: `describe_low_end_profile(ratio: float, genre: str = None)`\n\nFunction: `describe_low_end_profile(ratio: float, genre: str = None)`\n\nInterprets the low-end energy ratio relative to genre-specific expectations and returns a descriptive string.\n\n- Uses genre-specific thresholds to classify bass presence as light, balanced, elevated, or strong.\n- Provides tailored feedback on bass level appropriateness per genre category.\n\n**Inputs:**  \n- `ratio`: Proportion of low-end energy to total energy (float).  \n- `genre`: Optional genre string to guide interpretation.\n\n**Output:**  \n- Human-readable description of low-end profile.\n\n**Design Notes:**  \n- Supports genres grouped by bass emphasis.  \n- Provides actionable suggestions like boosting or checking clarity."
   },
   {
-    "id": "chunk_10",
+    "id": "doc_chunk_10",
     "filename": "06_models/02_class_session.md",
     "chunk_index": 0,
     "text": "# Class: Session\n\nClass: Session\n\nRepresents a user session grouping multiple tracks and chat messages."
   },
   {
-    "id": "chunk_11",
+    "id": "doc_chunk_11",
     "filename": "06_models/02_class_session.md",
     "chunk_index": 1,
     "text": "# Fields\n\nFields\n\n- `id` (String, Primary Key): Unique session identifier (e.g., UUID or normalized string).  \n- `user_id` (Integer, Foreign Key): Reference to the owning `User`.  \n- `session_name` (String): Human-readable session name.  \n- `created_at` (DateTime): Timestamp of session creation, set automatically."
   },
   {
-    "id": "chunk_12",
+    "id": "doc_chunk_12",
     "filename": "06_models/02_class_session.md",
     "chunk_index": 2,
     "text": "# Relationships\n\nRelationships\n\n- `user`: Many-to-one relationship to `User`.  \n- `tracks`: One-to-many relationship to `Track`.  \n- `chats`: One-to-many relationship to `ChatMessage`."
   },
   {
-    "id": "chunk_13",
+    "id": "doc_chunk_13",
     "filename": "06_models/05_class_chat_message.md",
     "chunk_index": 0,
     "text": "# Class: ChatMessage\n\nClass: ChatMessage\n\nRepresents a message in the chat history between user and AI assistant."
   },
   {
-    "id": "chunk_14",
+    "id": "doc_chunk_14",
     "filename": "06_models/05_class_chat_message.md",
     "chunk_index": 1,
     "text": "# Fields\n\nFields\n\n- `id` (Integer, Primary Key): Unique identifier.  \n- `session_id` (String, Foreign Key): Reference to the related `Session`.  \n- `track_id` (String, Foreign Key): Reference to the related `Track`.  \n- `sender` (String): Message sender, e.g., \"user\" or \"assistant\".  \n- `message` (Text): The message content.  \n- `timestamp` (DateTime): When the message was sent, set automatically.  \n- `feedback_profile` (String, Nullable): Feedback detail level context (e.g., \"simple\", \"pro\").  \n- `followup_group` (Integer, Nullable, Default=0): Grouping index for threaded follow-up conversations."
   },
   {
-    "id": "chunk_15",
+    "id": "doc_chunk_15",
     "filename": "06_models/05_class_chat_message.md",
     "chunk_index": 2,
     "text": "# Relationships\n\nRelationships\n\n- `session`: Many-to-one relationship to `Session`."
   },
   {
-    "id": "chunk_16",
+    "id": "doc_chunk_16",
     "filename": "06_models/03_class_track.md",
     "chunk_index": 0,
     "text": "# Class: Track\n\nClass: Track\n\nRepresents an uploaded audio track within a session."
   },
   {
-    "id": "chunk_17",
+    "id": "doc_chunk_17",
     "filename": "06_models/03_class_track.md",
     "chunk_index": 1,
     "text": "# Fields\n\nFields\n\n- `id` (String, Primary Key): Unique identifier (UUID).  \n- `session_id` (String, Foreign Key): Reference to the parent `Session`.  \n- `track_name` (String): Name of the track.  \n- `file_path` (String): Path to the stored audio file.  \n- `type` (String): Track type (e.g., \"mixdown\", \"mastering\", \"reference\").  \n- `uploaded_at` (DateTime): Timestamp when the track was uploaded, set automatically.  \n- `upload_group_id` (String, Not Null): UUID to group related uploads (e.g., original + reference track)."
   },
   {
-    "id": "chunk_18",
+    "id": "doc_chunk_18",
     "filename": "06_models/03_class_track.md",
     "chunk_index": 2,
     "text": "# Relationships\n\nRelationships\n\n- `session`: Many-to-one relationship to `Session`.  \n- `analysis`: One-to-one relationship to `AnalysisResult` containing audio features."
   },
   {
-    "id": "chunk_19",
+    "id": "doc_chunk_19",
     "filename": "06_models/01_class_user.md",
     "chunk_index": 0,
     "text": "# Class: User\n\nClass: User\n\nRepresents a registered user in the system."
   },
   {
-    "id": "chunk_20",
+    "id": "doc_chunk_20",
     "filename": "06_models/01_class_user.md",
     "chunk_index": 1,
     "text": "# Fields\n\nFields\n\n- `id` (Integer, Primary Key): Unique identifier for the user.  \n- `username` (String, Unique, Not Null): User’s chosen name.  \n- `email` (String, Unique, Not Null): User’s email address.  \n- `hashed_password` (String, Not Null): Securely stored password hash.  \n- `created_at` (DateTime): Timestamp of user creation, set automatically."
   },
   {
-    "id": "chunk_21",
+    "id": "doc_chunk_21",
     "filename": "06_models/01_class_user.md",
     "chunk_index": 2,
     "text": "# Relationships\n\nRelationships\n\n- `sessions`: One-to-many relationship to `Session`. A user can have multiple sessions."
   },
   {
-    "id": "chunk_22",
+    "id": "doc_chunk_22",
     "filename": "06_models/04_class_analysis_result.md",
     "chunk_index": 0,
     "text": "# Class: AnalysisResult\n\nClass: AnalysisResult\n\nStores detailed audio analysis results for a track."
   },
   {
-    "id": "chunk_23",
+    "id": "doc_chunk_23",
     "filename": "06_models/04_class_analysis_result.md",
     "chunk_index": 1,
     "text": "# Fields\n\nFields"
   },
   {
-    "id": "chunk_24",
+    "id": "doc_chunk_24",
     "filename": "06_models/04_class_analysis_result.md",
     "chunk_index": 2,
     "text": "# Fields\n\n- `id` (Integer, Primary Key): Unique identifier.  \n- `track_id` (String, Foreign Key): Reference to the associated `Track`.  \n- `peak_db` (Float): Peak decibel level.  \n- `rms_db_avg` (Float): Average RMS loudness.  \n- `rms_db_peak` (Float): Peak RMS loudness.  \n- `lufs` (Float): Loudness Units relative to Full Scale.  \n- `dynamic_range` (Float): Difference between peak and RMS levels.  \n- `stereo_width_ratio` (Float): Numeric stereo width metric.  \n- `stereo_width` (String): Descriptive stereo width label (e.g., \"narrow\").  \n- `key` (String): Detected musical key.  \n- `tempo` (Float): Estimated tempo in BPM.  \n- `low_end_energy_ratio` (Float): Ratio of low-frequency energy.  \n- `low_end_description` (String): Textual description of low-end character.  \n- `band_energies` (String): JSON string representing energy distribution by frequency bands.  \n- `spectral_balance_description` (String): Description of spectral balance characteristics.  \n- `issues` (Text): JSON array string describing detected issues (e.g., clipping).  \n- `peak_issue` (Text): Text describing peak-related issues.  \n- `peak_issue_explanation` (Text): Explanation for peak issues.  \n- `avg_transient_strength` (Float): Average transient strength metric.  \n- `max_transient_strength` (Float): Maximum transient strength metric.  \n- `transient_description` (Text): Descriptive text about transient quality."
   },
   {
-    "id": "chunk_25",
+    "id": "doc_chunk_25",
     "filename": "06_models/04_class_analysis_result.md",
     "chunk_index": 3,
     "text": "# Relationships\n\nRelationships\n\n- `track`: One-to-one relationship to `Track`."
   },
   {
-    "id": "chunk_26",
+    "id": "doc_chunk_26",
     "filename": "05_utils/01_utils_explanation.md",
     "chunk_index": 0,
     "text": "# Function Explanations: Utility Functions (utils.py)\n\nFunction Explanations: Utility Functions (utils.py)\n\n---"
   },
   {
-    "id": "chunk_27",
+    "id": "doc_chunk_27",
     "filename": "05_utils/01_utils_explanation.md",
     "chunk_index": 1,
     "text": "# `sanitize_input(input_str: str) -> str`\n\n`sanitize_input(input_str: str) -> str`\n\n- Trims whitespace, normalizes internal whitespace to single spaces.\n- Limits output to 100 characters.\n- Returns an empty string if input is not a string.\n- Used to clean general user inputs before further processing.\n\n---"
   },
   {
-    "id": "chunk_28",
+    "id": "doc_chunk_28",
     "filename": "05_utils/01_utils_explanation.md",
     "chunk_index": 2,
     "text": "# `sanitize_user_question(text: str) -> str`\n\n`sanitize_user_question(text: str) -> str`\n\n- Cleans user question strings by removing unwanted characters,\n  allowing common punctuation and symbols used in text queries.\n- Limits length to 400 characters.\n- Escapes HTML entities to prevent injection vulnerabilities.\n- Ensures safe inclusion of user queries in prompts or displays.\n\n---"
   },
   {
-    "id": "chunk_29",
+    "id": "doc_chunk_29",
     "filename": "05_utils/01_utils_explanation.md",
     "chunk_index": 3,
     "text": "# `normalize_session_name(name: str) -> str`\n\n`normalize_session_name(name: str) -> str`\n\n- Cleans session names by removing invalid characters,\n  only allowing letters, digits, spaces, dashes, and underscores.\n- Truncates to 60 characters.\n- Escapes HTML for safe UI rendering and prompt usage.\n- Returns empty string if input is invalid.\n\n---"
   },
   {
-    "id": "chunk_30",
+    "id": "doc_chunk_30",
     "filename": "05_utils/01_utils_explanation.md",
     "chunk_index": 4,
     "text": "# `safe_track_name(name, fallback_filename)`\n\n`safe_track_name(name, fallback_filename)`\n\n- Returns a sanitized track name if valid and meaningful.\n- Falls back to filename without extension if the provided name is missing,\n  empty, or a generic placeholder like \"string\".\n- Strips whitespace from name input.\n\n---"
   },
   {
-    "id": "chunk_31",
+    "id": "doc_chunk_31",
     "filename": "05_utils/01_utils_explanation.md",
     "chunk_index": 5,
     "text": "# `normalize_type(input_str: str) -> str`\n\n`normalize_type(input_str: str) -> str`\n\n- Sanitizes and validates track type inputs.\n- Allowed types: \"mixdown\", \"mastering\", \"master\".\n- Defaults to \"mixdown\" if input is invalid or unrecognized.\n\n---"
   },
   {
-    "id": "chunk_32",
+    "id": "doc_chunk_32",
     "filename": "05_utils/01_utils_explanation.md",
     "chunk_index": 6,
     "text": "# `normalize_profile(input_str: str) -> str`\n\n`normalize_profile(input_str: str) -> str`\n\n- Sanitizes and validates feedback profile inputs.\n- Allowed profiles: \"simple\", \"detailed\", \"pro\".\n- Defaults to \"simple\" if input is invalid or unrecognized.\n\n---"
   },
   {
-    "id": "chunk_33",
+    "id": "doc_chunk_33",
     "filename": "05_utils/01_utils_explanation.md",
     "chunk_index": 7,
     "text": "# `normalize_genre(input_str: str) -> str`\n\n`normalize_genre(input_str: str) -> str`\n\n- Sanitizes and validates genre inputs.\n- Allowed genres include popular styles such as electronic, pop, rock, hiphop, etc.\n- Defaults to \"electronic\" if input is invalid or unrecognized.\n\n---"
   },
   {
-    "id": "chunk_34",
+    "id": "doc_chunk_34",
     "filename": "05_utils/01_utils_explanation.md",
     "chunk_index": 8,
     "text": "# `normalize_subgenre(sub: str) -> str`\n\n`normalize_subgenre(sub: str) -> str`\n\n- Cleans and normalizes user-provided subgenre strings.\n- Allows ASCII letters, digits, spaces, dashes, ampersands, and apostrophes only.\n- Truncates to 50 characters.\n- Converts to title case (e.g., \"neo-soul\" → \"Neo-Soul\").\n- Escapes HTML entities for safe prompt inclusion.\n- Returns empty string if input is invalid.\n\n---\n\n*These utility functions form the basis for consistent and secure input handling across the application.*"
   },
   {
-    "id": "chunk_35",
+    "id": "doc_chunk_35",
     "filename": "02_ai_integration/02_ask_followup.md",
     "chunk_index": 0,
     "text": "# Function Explanation: ask_followup (chat.py)\n\nFunction Explanation: ask_followup (chat.py)\n\nThis function handles the API endpoint for managing AI-driven follow-up questions related to audio track feedback.\n\nKey responsibilities include:"
   },
   {
-    "id": "chunk_36",
+    "id": "doc_chunk_36",
     "filename": "02_ai_integration/02_ask_followup.md",
     "chunk_index": 1,
     "text": "# Function Explanation: ask_followup (chat.py)\n\n- Receiving a follow-up request containing the user’s question, previous AI feedback, session and track IDs, and other context.\n- Retrieving the main audio track’s analysis data from the database.\n- Optionally fetching a reference track’s analysis to provide comparative context.\n- Looking up any existing summary of previous follow-up messages to inform the AI prompt.\n- Constructing a detailed prompt for the AI that combines audio analysis, prior feedback, user question, and conversation context.\n- Sending the prompt to the AI model and capturing its response.\n- Saving both the user’s question and the AI’s answer as chat messages in the database to maintain conversation history.\n- Automatically generating a concise summary of the follow-up thread after a certain number of user questions, which aids future context management.\n\n---\n\n**Inputs:**"
   },
   {
-    "id": "chunk_37",
+    "id": "doc_chunk_37",
     "filename": "02_ai_integration/02_ask_followup.md",
     "chunk_index": 2,
     "text": "# Function Explanation: ask_followup (chat.py)\n\n- A `FollowUpRequest` Pydantic model containing fields such as `analysis_text`, `feedback_text`, `user_question`, `session_id`, `track_id`, `feedback_profile`, `followup_group`, and optional `ref_analysis_data`.\n- Database session for querying and saving track data and chat messages.\n\n---\n\n**Outputs:**\n\n- A JSON response containing the AI-generated answer.\n- Optionally indicates if a new summary of the follow-up thread was created.\n\n---\n\n**Design Notes:**"
   },
   {
-    "id": "chunk_38",
+    "id": "doc_chunk_38",
     "filename": "02_ai_integration/02_ask_followup.md",
     "chunk_index": 3,
     "text": "# Function Explanation: ask_followup (chat.py)\n\n- Utilizes a Pydantic model to validate and structure the incoming follow-up request.\n- Uses session and follow-up group IDs to manage threaded conversations and retrieve prior context.\n- Fetches reference track data to enable comparative feedback where applicable.\n- Implements logic to automatically summarize conversation threads to avoid prompt overload and improve AI efficiency.\n- Handles errors gracefully by raising HTTP exceptions if critical data (e.g., main track) is missing.\n- Persists both user and assistant messages for conversational continuity.\n\n---\n\n*The full function implementation, including the `FollowUpRequest` model and detailed database interactions, is stored separately and available for exact retrieval on request.*"
   },
   {
-    "id": "chunk_39",
+    "id": "doc_chunk_39",
     "filename": "02_ai_integration/04_generate_feedback_prompt.md",
     "chunk_index": 0,
     "text": "# AI Feedback Prompt Generation (gpt_utils.py)\n\nAI Feedback Prompt Generation (gpt_utils.py)\n\nThis module defines constants, templates, and the main function for dynamically assembling\na detailed AI prompt used to generate tailored mixing and mastering feedback for audio tracks.\n\n---"
   },
   {
-    "id": "chunk_40",
+    "id": "doc_chunk_40",
     "filename": "02_ai_integration/04_generate_feedback_prompt.md",
     "chunk_index": 1,
     "text": "# Key Components\n\nKey Components"
   },
   {
-    "id": "chunk_41",
+    "id": "doc_chunk_41",
     "filename": "02_ai_integration/04_generate_feedback_prompt.md",
     "chunk_index": 2,
     "text": "# Reference Track Instruction\n\nReference Track Instruction\n\n- A strict directive to the AI to compare the submitted track’s analysis with reference track data if available.  \n- Prevents the AI from mentioning a reference track when no reference data exists."
   },
   {
-    "id": "chunk_42",
+    "id": "doc_chunk_42",
     "filename": "02_ai_integration/04_generate_feedback_prompt.md",
     "chunk_index": 3,
     "text": "# Role Contexts\n\nRole Contexts\n\n- Defines the AI persona based on feedback type:  \n  - **mixdown engineer** for mix feedback  \n  - **mastering engineer** for mastering advice or master review  \n- Context is customized per genre and subgenre for precise, genre-aware feedback."
   },
   {
-    "id": "chunk_43",
+    "id": "doc_chunk_43",
     "filename": "02_ai_integration/04_generate_feedback_prompt.md",
     "chunk_index": 4,
     "text": "# Profile Guidance\n\nProfile Guidance\n\n- Controls the tone and technical complexity of the AI’s language:  \n  - *Simple*: Friendly, non-technical explanations for beginners  \n  - *Detailed*: Moderate technicality suitable for intermediate producers  \n  - *Pro*: Advanced jargon and precise terminology for experts"
   },
   {
-    "id": "chunk_44",
+    "id": "doc_chunk_44",
     "filename": "02_ai_integration/04_generate_feedback_prompt.md",
     "chunk_index": 5,
     "text": "# Format Rules\n\nFormat Rules\n\n- Specifies the bullet-point structure the AI must follow in its feedback, customized per profile.  \n- Ensures consistent, clear formatting with ISSUE and IMPROVEMENT parts."
   },
   {
-    "id": "chunk_45",
+    "id": "doc_chunk_45",
     "filename": "02_ai_integration/04_generate_feedback_prompt.md",
     "chunk_index": 6,
     "text": "# Example Outputs\n\nExample Outputs\n\n- Sample bullet points for each profile to guide AI response style and content.\n\n---"
   },
   {
-    "id": "chunk_46",
+    "id": "doc_chunk_46",
     "filename": "02_ai_integration/04_generate_feedback_prompt.md",
     "chunk_index": 7,
     "text": "# Main Function: `generate_feedback_prompt`\n\nMain Function: `generate_feedback_prompt`\n\nThis function constructs the final prompt string sent to the AI model by combining:\n\n- The role context (engineer persona) tailored by feedback type and genre.  \n- The communication style based on the selected profile.  \n- Audio analysis data from the submitted track (peak, LUFS, transient info, dynamic range, etc.).  \n- Optional reference track analysis to provide comparative feedback.  \n- Formatting instructions and examples to guide the AI’s output.  \n- A reasoning step encouraging the AI to reflect on analysis data before generating bullet points.\n\n---"
   },
   {
-    "id": "chunk_47",
+    "id": "doc_chunk_47",
     "filename": "02_ai_integration/04_generate_feedback_prompt.md",
     "chunk_index": 8,
     "text": "# Function Behavior\n\nFunction Behavior\n\n- Validates input parameters against allowed genres, subgenres, feedback types, and profiles.  \n- Escapes HTML characters in genre and subgenre for safe inclusion in prompts.  \n- Includes warnings if peak level issues exist in the analysis data.  \n- Returns a fully assembled prompt string adhering to the predefined style and format rules.\n\n---"
   },
   {
-    "id": "chunk_48",
+    "id": "doc_chunk_48",
     "filename": "02_ai_integration/04_generate_feedback_prompt.md",
     "chunk_index": 9,
     "text": "# Usage\n\nUsage\n\nThis prompt generation function is central to your AI feedback system, ensuring that the\nlanguage model receives detailed, context-aware instructions for generating actionable,\nclear, and style-appropriate mixing and mastering advice tailored to the user’s input.\n\n---\n\n*The full source code for this function, including constants and templates, is stored separately for exact retrieval.*"
   },
   {
-    "id": "chunk_49",
+    "id": "doc_chunk_49",
     "filename": "02_ai_integration/01_get_feedback.md",
     "chunk_index": 0,
     "text": "# Function: get_feedback (chat.py)\n\nFunction: get_feedback (chat.py)\n\nThis function serves as the FastAPI endpoint for generating AI-based mixing or mastering feedback\non a user’s uploaded audio track.\n\nIt performs the following key tasks:\n\n- Normalizes user input parameters such as genre, feedback type, and detail level.\n- Retrieves the pre-computed audio analysis data from the database associated with the track.\n- Constructs a detailed AI prompt using this data to tailor feedback precisely.\n- Sends the prompt to an AI language model to generate mixing/mastering guidance.\n- Saves the AI’s feedback response into the database for conversation history.\n- Returns the generated feedback text in JSON format to the frontend.\n\nThis separation of concerns allows the API endpoint to handle request validation,\ndatabase interaction, and AI integration cleanly.\n\n---\n\n**Inputs:**\n\n- `track_id`, `session_id`, `genre`, `type`, `feedback_profile`, and a DB session.\n\n**Output:**"
   },
   {
-    "id": "chunk_50",
+    "id": "doc_chunk_50",
     "filename": "02_ai_integration/01_get_feedback.md",
     "chunk_index": 1,
     "text": "# Function: get_feedback (chat.py)\n\n- A JSON response containing the AI-generated feedback or an error message.\n\n---\n\n**Design notes:**\n\n- The function relies heavily on helper functions like `normalize_genre` and `generate_feedback_prompt`.\n- Audio analysis data is pre-calculated and stored for efficiency.\n- Feedback is saved to enable chat-style interaction history for users.\n4. Optional: link or reference the full function chunk\nYou could add a note like:\n\nmarkdown\nCopy\n*The full function implementation is stored separately and can be retrieved on request.*\nOr, if you have a UI, provide a link or UI toggle to view the full code.\n\nFinal markdown chunk example:\nmarkdown\nCopy"
   },
   {
-    "id": "chunk_51",
+    "id": "doc_chunk_51",
     "filename": "02_ai_integration/01_get_feedback.md",
     "chunk_index": 2,
     "text": "# Function Explanation: get_feedback (chat.py)\n\nFunction Explanation: get_feedback (chat.py)\n\nThis function serves as the FastAPI endpoint for generating AI-based mixing or mastering feedback\non a user’s uploaded audio track.\n\nIt performs the following key tasks:\n\n- Normalizes user input parameters such as genre, feedback type, and detail level.\n- Retrieves the pre-computed audio analysis data from the database associated with the track.\n- Constructs a detailed AI prompt using this data to tailor feedback precisely.\n- Sends the prompt to an AI language model to generate mixing/mastering guidance.\n- Saves the AI’s feedback response into the database for conversation history.\n- Returns the generated feedback text in JSON format to the frontend.\n\n---\n\n**Inputs:**\n\n- `track_id`, `session_id`, `genre`, `type`, `feedback_profile`, and a DB session.\n\n**Output:**\n\n- A JSON response containing the AI-generated feedback or an error message.\n\n---\n\n**Design notes:**"
   },
   {
-    "id": "chunk_52",
+    "id": "doc_chunk_52",
     "filename": "02_ai_integration/01_get_feedback.md",
     "chunk_index": 3,
     "text": "# Function Explanation: get_feedback (chat.py)\n\n- The function relies heavily on helper functions like `normalize_genre` and `generate_feedback_prompt`.\n- Audio analysis data is pre-calculated and stored for efficiency.\n- Feedback is saved to enable chat-style interaction history for users.\n\n---\n\n*The full function implementation is stored separately and can be retrieved on request.*"
   },
   {
-    "id": "chunk_53",
+    "id": "doc_chunk_53",
     "filename": "02_ai_integration/03_summarize_thread.md",
     "chunk_index": 0,
     "text": "# Function Explanation: summarize_thread (chat.py)\n\nFunction Explanation: summarize_thread (chat.py)\n\nThis function defines an API endpoint to generate a concise summary of a follow-up conversation thread\nbetween a user and the AI assistant regarding audio track feedback.\n\nKey responsibilities include:\n\n- Receiving a summary request containing session ID, track ID, and follow-up group index.\n- Retrieving all chat messages within the specified session, track, and follow-up thread from the database.\n- Filtering messages to identify user inputs and assistant responses.\n- Formatting the conversation transcript as a role-labeled dialogue to provide context.\n- Creating an AI prompt that instructs the language model to produce a clear, actionable summary of the thread.\n- Returning the AI-generated summary as a JSON response.\n- Handling cases where no follow-up messages exist by returning an appropriate notice.\n\n---\n\n**Inputs:**"
   },
   {
-    "id": "chunk_54",
+    "id": "doc_chunk_54",
     "filename": "02_ai_integration/03_summarize_thread.md",
     "chunk_index": 1,
     "text": "# Function Explanation: summarize_thread (chat.py)\n\n- A `SummarizeRequest` Pydantic model with:\n  - `session_id`: User session identifier.\n  - `track_id`: Audio track identifier.\n  - `followup_group`: Index of the follow-up thread to summarize.\n- Database session for querying chat history.\n\n---\n\n**Outputs:**\n\n- JSON response containing the AI-generated summary text or a message if no follow-up messages are found.\n\n---\n\n**Design Notes:**\n\n- The function preserves the conversational order by sorting messages by timestamp.\n- User and assistant messages are explicitly labeled in the prompt for better AI understanding.\n- The prompt guides the AI to focus on distilling key improvement strategies from the conversation.\n- This summarization helps manage lengthy follow-up threads by creating digestible insights.\n- Handles empty threads gracefully to avoid unnecessary AI calls.\n\n---\n\n*The full function implementation and Pydantic model are stored separately and can be retrieved on demand.*"
   },
   {
-    "id": "chunk_55",
+    "id": "doc_chunk_55",
     "filename": "02_ai_integration/06_build_follow_up_prompt.md",
     "chunk_index": 0,
     "text": "# Follow-Up Prompt Construction (gpt_utils.py)\n\nFollow-Up Prompt Construction (gpt_utils.py)\n\nThis section describes the function responsible for assembling a detailed, context-aware prompt\nto guide the AI assistant in providing precise and relevant answers to user follow-up questions.\n\n---"
   },
   {
-    "id": "chunk_56",
+    "id": "doc_chunk_56",
     "filename": "02_ai_integration/06_build_follow_up_prompt.md",
     "chunk_index": 1,
     "text": "# Function: `build_followup_prompt`\n\nFunction: `build_followup_prompt`\n\n- Integrates multiple sources of context into a single prompt string:  \n  - Prior audio analysis text describing the submitted track’s attributes.  \n  - Previous AI feedback given to the user.  \n  - The user’s current follow-up question, sanitized and escaped for safety.  \n  - An optional summary of the previous conversation to maintain continuity and reduce prompt length.  \n  - Optional reference track analysis data for comparative feedback.\n\n- Sanitizes and truncates the user’s question to remove unwanted characters and limit length.  \n- Dynamically includes a reference track analysis section if such data is provided and valid.  \n- Structures the prompt with clear labeled sections to ensure the AI understands the context and stays focused.  \n- Provides explicit instructions to the AI to avoid repeating full prior text and to answer clearly and technically.\n\n---\n\n**Inputs:**"
   },
   {
-    "id": "chunk_57",
+    "id": "doc_chunk_57",
     "filename": "02_ai_integration/06_build_follow_up_prompt.md",
     "chunk_index": 2,
     "text": "# Function: `build_followup_prompt`\n\n- `analysis_text` (str): Description of the track’s audio analysis.  \n- `feedback_text` (str): The last AI-generated feedback text.  \n- `user_question` (str): The follow-up question from the user.  \n- `thread_summary` (str, optional): Summary of earlier follow-up conversation for context.  \n- `ref_analysis_data` (dict, optional): Reference track analysis for comparison.\n\n---\n\n**Output:**\n\n- A formatted prompt string, ready to be submitted to the AI model for generating the follow-up response.\n\n---\n\n**Design Notes:**\n\n- Ensures the prompt is concise and well-structured to optimize AI understanding and response quality.  \n- Handles missing or invalid reference data gracefully with warnings.  \n- Emphasizes professional, helpful, and focused assistant behavior.\n\n---\n\n*The complete source code for this function is stored separately for exact retrieval.*"
   },
   {
-    "id": "chunk_58",
+    "id": "doc_chunk_58",
     "filename": "02_ai_integration/05_ai_response_generation_functions.md",
     "chunk_index": 0,
     "text": "# AI Response Generation Functions (gpt_utils.py)\n\nAI Response Generation Functions (gpt_utils.py)\n\nThis section contains core functions responsible for interacting with the AI model:\nsending prompts and retrieving generated responses for both initial feedback and follow-up questions.\n\n---"
   },
   {
-    "id": "chunk_59",
+    "id": "doc_chunk_59",
     "filename": "02_ai_integration/05_ai_response_generation_functions.md",
     "chunk_index": 1,
     "text": "# Function: `generate_feedback_response`\n\nFunction: `generate_feedback_response`\n\n- Sends a fully constructed prompt string to the AI language model using OpenAI’s chat completion API (`gpt-4o-mini` model).  \n- Assumes the prompt includes all necessary context, instructions, and audio analysis data.  \n- Returns the textual feedback generated by the AI, trimmed of extraneous whitespace.  \n- Handles the communication with the API, encapsulating request and response parsing.\n\n---"
   },
   {
-    "id": "chunk_60",
+    "id": "doc_chunk_60",
     "filename": "02_ai_integration/05_ai_response_generation_functions.md",
     "chunk_index": 2,
     "text": "# Function: `generate_followup_response`\n\nFunction: `generate_followup_response`\n\n- Facilitates multi-turn conversational interactions by building a follow-up prompt that incorporates:  \n  - The original audio analysis text.  \n  - Previous AI feedback to maintain context.  \n  - The user’s latest follow-up question.  \n  - An optional summary of prior follow-up conversation threads to keep prompts concise and contextually rich.  \n- Uses the `build_followup_prompt` helper to construct the detailed prompt.  \n- Delegates actual AI communication to `generate_feedback_response`.  \n- Designed to support seamless, context-aware multi-step feedback sessions.\n\n---\n\n**Usage Notes:**\n\n- These functions form the backbone of AI communication in your project.  \n- They ensure prompts are sent and responses received cleanly and consistently.  \n- Designed for modularity: prompt construction and API calls are separated for easier maintenance and testing.\n\n---"
   },
   {
-    "id": "chunk_61",
+    "id": "doc_chunk_61",
     "filename": "02_ai_integration/05_ai_response_generation_functions.md",
     "chunk_index": 3,
     "text": "# Function: `generate_followup_response`\n\n*The full function implementations, including API integration details, are stored separately for exact retrieval.*"
   },
   {
-    "id": "chunk_62",
+    "id": "doc_chunk_62",
     "filename": "01_programming_tools/04_ai_and_ml_libraries/01_openai_sdk.md",
     "chunk_index": 0,
     "text": "# OpenAI SDK (`openai`)\n\nOpenAI SDK (`openai`)\n\n[OpenAI Python SDK](https://github.com/openai/openai-python) is the official Python client for OpenAI’s API."
   },
   {
-    "id": "chunk_63",
+    "id": "doc_chunk_63",
     "filename": "01_programming_tools/04_ai_and_ml_libraries/01_openai_sdk.md",
     "chunk_index": 1,
     "text": "# Why OpenAI SDK?\n\nWhy OpenAI SDK?\n\n- **Simplified API Calls:** Abstracts REST API interactions to send prompts and retrieve completions.\n- **Supports Latest Models:** Easy access to GPT-4o-mini and other models.\n- **Integration Friendly:** Fits well into asynchronous backend frameworks."
   },
   {
-    "id": "chunk_64",
+    "id": "doc_chunk_64",
     "filename": "01_programming_tools/04_ai_and_ml_libraries/01_openai_sdk.md",
     "chunk_index": 2,
     "text": "# How it’s used in this project\n\nHow it’s used in this project\n\nHandles:\n\n- Sending formatted prompts based on analysis and user input.\n- Receiving AI-generated feedback and follow-up answers.\n- Maintaining conversation context with chat completions.\n\n---"
   },
   {
-    "id": "chunk_65",
+    "id": "doc_chunk_65",
     "filename": "01_programming_tools/04_ai_and_ml_libraries/03_joblib.md",
     "chunk_index": 0,
     "text": "# Joblib\n\nJoblib\n\n[Joblib](https://joblib.readthedocs.io/en/latest/) is a set of tools to provide lightweight pipelining in Python."
   },
   {
-    "id": "chunk_66",
+    "id": "doc_chunk_66",
     "filename": "01_programming_tools/04_ai_and_ml_libraries/03_joblib.md",
     "chunk_index": 1,
     "text": "# Why Joblib?\n\nWhy Joblib?\n\n- **Efficient Serialization:** Speeds up saving/loading of large numpy arrays and machine learning models.\n- **Parallel Processing:** Provides simple helpers for parallelizing tasks.\n- **Integration:** Commonly used alongside scikit-learn for model persistence."
   },
   {
-    "id": "chunk_67",
+    "id": "doc_chunk_67",
     "filename": "01_programming_tools/04_ai_and_ml_libraries/03_joblib.md",
     "chunk_index": 2,
     "text": "# How it's used in this project\n\nHow it's used in this project\n\n- May be used to cache or serialize intermediate audio features or AI model outputs.\n- Supports performance optimizations in ML workflows if applicable."
   },
   {
-    "id": "chunk_68",
+    "id": "doc_chunk_68",
     "filename": "01_programming_tools/04_ai_and_ml_libraries/04_numba.md",
     "chunk_index": 0,
     "text": "# Numba\n\nNumba\n\n[Numba](https://numba.pydata.org/) is a just-in-time compiler for Python that speeds up numerical functions by compiling to machine code."
   },
   {
-    "id": "chunk_69",
+    "id": "doc_chunk_69",
     "filename": "01_programming_tools/04_ai_and_ml_libraries/04_numba.md",
     "chunk_index": 1,
     "text": "# Why Numba?\n\nWhy Numba?\n\n- **Performance:** Dramatically accelerates CPU-bound numerical Python code.\n- **Easy to Use:** Annotate functions with decorators to compile them.\n- **Compatibility:** Works well with NumPy arrays and scientific computing."
   },
   {
-    "id": "chunk_70",
+    "id": "doc_chunk_70",
     "filename": "01_programming_tools/04_ai_and_ml_libraries/04_numba.md",
     "chunk_index": 2,
     "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Potentially used to optimize critical audio processing or feature extraction routines.\n- Helps maintain real-time or near-real-time responsiveness during analysis."
   },
   {
-    "id": "chunk_71",
+    "id": "doc_chunk_71",
     "filename": "01_programming_tools/04_ai_and_ml_libraries/02_scikit_learn.md",
     "chunk_index": 0,
     "text": "# Scikit-Learn\n\nScikit-Learn\n\n[Scikit-learn](https://scikit-learn.org/stable/) is a widely-used Python library for machine learning, featuring classification, regression, clustering, and dimensionality reduction algorithms."
   },
   {
-    "id": "chunk_72",
+    "id": "doc_chunk_72",
     "filename": "01_programming_tools/04_ai_and_ml_libraries/02_scikit_learn.md",
     "chunk_index": 1,
     "text": "# Why Scikit-Learn?\n\nWhy Scikit-Learn?\n\n- **Extensive ML Algorithms:** Provides a wide range of tried-and-tested machine learning tools.\n- **Easy to Use:** Simple API for rapid experimentation.\n- **Performance:** Efficient implementations suitable for real-world data."
   },
   {
-    "id": "chunk_73",
+    "id": "doc_chunk_73",
     "filename": "01_programming_tools/04_ai_and_ml_libraries/02_scikit_learn.md",
     "chunk_index": 2,
     "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Possibly used for feature extraction, classification, or clustering tasks related to audio analysis or AI feedback.\n- May assist in preprocessing or transforming audio features before feeding into AI models.\n\n*Note:* If not currently used, this may be reserved for future enhancements."
   },
   {
-    "id": "chunk_74",
+    "id": "doc_chunk_74",
     "filename": "01_programming_tools/03_audio_and_signal_processing/04_soundfile.md",
     "chunk_index": 0,
     "text": "# SoundFile\n\nSoundFile\n\n[SoundFile](https://pysoundfile.readthedocs.io/en/latest/) is a library to read and write sound files in various formats using libsndfile."
   },
   {
-    "id": "chunk_75",
+    "id": "doc_chunk_75",
     "filename": "01_programming_tools/03_audio_and_signal_processing/04_soundfile.md",
     "chunk_index": 1,
     "text": "# Why SoundFile?\n\nWhy SoundFile?\n\n- **File Format Support:** Handles reading and writing of many audio formats like WAV, FLAC, AIFF.\n- **Accurate Audio Data Access:** Provides precise sample data needed for analysis.\n- **Dependency for Librosa:** Librosa depends on SoundFile for audio I/O."
   },
   {
-    "id": "chunk_76",
+    "id": "doc_chunk_76",
     "filename": "01_programming_tools/03_audio_and_signal_processing/04_soundfile.md",
     "chunk_index": 2,
     "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Reads user-uploaded audio files for processing and analysis.\n- Provides audio data buffers consumed by Librosa and other analysis functions."
   },
   {
-    "id": "chunk_77",
+    "id": "doc_chunk_77",
     "filename": "01_programming_tools/03_audio_and_signal_processing/06_soxr.md",
     "chunk_index": 0,
     "text": "# Soxr\n\nSoxr\n\n[Soxr](https://github.com/rabitt/soxr-python) is a high-quality library for audio resampling."
   },
   {
-    "id": "chunk_78",
+    "id": "doc_chunk_78",
     "filename": "01_programming_tools/03_audio_and_signal_processing/06_soxr.md",
     "chunk_index": 1,
     "text": "# Why Soxr?\n\nWhy Soxr?\n\n- **Accurate Resampling:** Ensures audio sample rate conversions maintain fidelity.\n- **Optimized for Speed:** Fast processing suitable for real-time or batch workflows.\n- **Integration with Audio Pipelines:** Used to standardize audio input before analysis."
   },
   {
-    "id": "chunk_79",
+    "id": "doc_chunk_79",
     "filename": "01_programming_tools/03_audio_and_signal_processing/06_soxr.md",
     "chunk_index": 2,
     "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Resamples uploaded audio files to target sample rates expected by analysis tools.\n- Improves consistency and accuracy of feature extraction results."
   },
   {
-    "id": "chunk_80",
+    "id": "doc_chunk_80",
     "filename": "01_programming_tools/03_audio_and_signal_processing/03_pyloudnorm.md",
     "chunk_index": 0,
     "text": "# pyloudnorm\n\npyloudnorm\n\n[pyloudnorm](https://github.com/csteinmetz1/pyloudnorm) is a Python implementation of the ITU-R BS.1770 standard for loudness normalization."
   },
   {
-    "id": "chunk_81",
+    "id": "doc_chunk_81",
     "filename": "01_programming_tools/03_audio_and_signal_processing/03_pyloudnorm.md",
     "chunk_index": 1,
     "text": "# Why pyloudnorm?\n\nWhy pyloudnorm?\n\n- **LUFS Measurement:** Accurate calculation of loudness units relative to full scale, the industry standard.\n- **Compliance:** Meets broadcast loudness normalization standards.\n- **Precision:** Handles gating and measurement nuances necessary for realistic loudness perception."
   },
   {
-    "id": "chunk_82",
+    "id": "doc_chunk_82",
     "filename": "01_programming_tools/03_audio_and_signal_processing/03_pyloudnorm.md",
     "chunk_index": 2,
     "text": "# How it’s used in this project\n\nHow it’s used in this project\n\npyloudnorm measures integrated loudness (LUFS) of uploaded tracks, providing key data for loudness-based AI feedback.\n\n---"
   },
   {
-    "id": "chunk_83",
+    "id": "doc_chunk_83",
     "filename": "01_programming_tools/03_audio_and_signal_processing/01_librosa.md",
     "chunk_index": 0,
     "text": "# Librosa\n\nLibrosa\n\n[Librosa](https://librosa.org/) is a Python library for audio and music analysis."
   },
   {
-    "id": "chunk_84",
+    "id": "doc_chunk_84",
     "filename": "01_programming_tools/03_audio_and_signal_processing/01_librosa.md",
     "chunk_index": 1,
     "text": "# Why Librosa?\n\nWhy Librosa?\n\n- **Feature Extraction:** Provides key detection, tempo, onset detection, spectral features, and other audio descriptors.\n- **Audio Processing:** Supports loading, resampling, and transformations of audio signals.\n- **Widely Used:** Popular in audio and music information retrieval communities."
   },
   {
-    "id": "chunk_85",
+    "id": "doc_chunk_85",
     "filename": "01_programming_tools/03_audio_and_signal_processing/01_librosa.md",
     "chunk_index": 2,
     "text": "# How it’s used in this project\n\nHow it’s used in this project\n\nLibrosa performs the core audio analysis that extracts metrics like:\n\n- Musical key.\n- Tempo.\n- Transient strength.\n- Frequency bands energy.\n\nThis analysis informs the AI feedback about the sonic characteristics of uploaded tracks.\n\n---"
   },
   {
-    "id": "chunk_86",
+    "id": "doc_chunk_86",
     "filename": "01_programming_tools/03_audio_and_signal_processing/02_numpy.md",
     "chunk_index": 0,
     "text": "# NumPy\n\nNumPy\n\n[NumPy](https://numpy.org/) is the fundamental package for scientific computing with Python."
   },
   {
-    "id": "chunk_87",
+    "id": "doc_chunk_87",
     "filename": "01_programming_tools/03_audio_and_signal_processing/02_numpy.md",
     "chunk_index": 1,
     "text": "# Why NumPy?\n\nWhy NumPy?\n\n- **Array Operations:** Efficient multidimensional arrays and matrix math.\n- **Mathematical Functions:** Supports advanced mathematical operations needed for audio processing.\n- **Foundation:** Many audio and ML libraries are built on NumPy arrays."
   },
   {
-    "id": "chunk_88",
+    "id": "doc_chunk_88",
     "filename": "01_programming_tools/03_audio_and_signal_processing/02_numpy.md",
     "chunk_index": 2,
     "text": "# How it’s used in this project\n\nHow it’s used in this project\n\nNumPy is used extensively for:\n\n- Signal processing calculations.\n- Array manipulations during spectral analysis.\n- Numerical operations in loudness and dynamic range computation.\n\n---"
   },
   {
-    "id": "chunk_89",
+    "id": "doc_chunk_89",
     "filename": "01_programming_tools/03_audio_and_signal_processing/05_audioread.md",
     "chunk_index": 0,
     "text": "# audioread\n\naudioread\n\n[audioread](https://github.com/beetbox/audioread) is a cross-library (GStreamer, Core Audio, MAD, FFmpeg) audio decoding library for Python."
   },
   {
-    "id": "chunk_90",
+    "id": "doc_chunk_90",
     "filename": "01_programming_tools/03_audio_and_signal_processing/05_audioread.md",
     "chunk_index": 1,
     "text": "# Why audioread?\n\nWhy audioread?\n\n- **Broad Audio Support:** Decodes many audio formats reliably across platforms.\n- **Fallback Decoder:** Used as a fallback for audio file reading in Librosa.\n- **Cross-Platform:** Works on Windows, macOS, and Linux."
   },
   {
-    "id": "chunk_91",
+    "id": "doc_chunk_91",
     "filename": "01_programming_tools/03_audio_and_signal_processing/05_audioread.md",
     "chunk_index": 2,
     "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Supports audio decoding for analysis pipelines when SoundFile cannot handle certain formats.\n- Enables flexibility in the audio input formats accepted by the system."
   },
   {
-    "id": "chunk_92",
+    "id": "doc_chunk_92",
     "filename": "01_programming_tools/05_utilities_and_helpers/08_jinja2.md",
     "chunk_index": 0,
     "text": "# Jinja2\n\nJinja2\n\n[Jinja2](https://jinja.palletsprojects.com/en/3.1.x/) is a templating engine for Python."
   },
   {
-    "id": "chunk_93",
+    "id": "doc_chunk_93",
     "filename": "01_programming_tools/05_utilities_and_helpers/08_jinja2.md",
     "chunk_index": 1,
     "text": "# Why Jinja2?\n\nWhy Jinja2?\n\n- **HTML Templating:** Enables dynamic HTML generation.\n- **Integration:** Often used with web frameworks like Flask and FastAPI.\n- **Extensible:** Supports custom filters and macros."
   },
   {
-    "id": "chunk_94",
+    "id": "doc_chunk_94",
     "filename": "01_programming_tools/05_utilities_and_helpers/08_jinja2.md",
     "chunk_index": 2,
     "text": "# How it's used in this project\n\nHow it's used in this project\n\n- May be used for generating server-rendered HTML pages or email templates.\n- Helps structure frontend templates if needed."
   },
   {
-    "id": "chunk_95",
+    "id": "doc_chunk_95",
     "filename": "01_programming_tools/05_utilities_and_helpers/05_python-multipart.md",
     "chunk_index": 0,
     "text": "# python-multipart\n\npython-multipart\n\n[python-multipart](https://github.com/andrew-d/python-multipart) is a streaming multipart parser for Python, used for handling form data and file uploads."
   },
   {
-    "id": "chunk_96",
+    "id": "doc_chunk_96",
     "filename": "01_programming_tools/05_utilities_and_helpers/05_python-multipart.md",
     "chunk_index": 1,
     "text": "# Why python-multipart?\n\nWhy python-multipart?\n\n- **Multipart Form Data Parsing:** Essential for handling file uploads (audio tracks) in web requests.\n- **Streaming Support:** Efficiently processes large files without loading entire content into memory.\n- **Integration with FastAPI:** Works seamlessly with FastAPI's request handling."
   },
   {
-    "id": "chunk_97",
+    "id": "doc_chunk_97",
     "filename": "01_programming_tools/05_utilities_and_helpers/05_python-multipart.md",
     "chunk_index": 2,
     "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Parses audio file uploads sent from the frontend to the backend.\n- Supports receiving metadata and audio content as multipart/form-data in API endpoints."
   },
   {
-    "id": "chunk_98",
+    "id": "doc_chunk_98",
     "filename": "01_programming_tools/05_utilities_and_helpers/03_reportlab.md",
     "chunk_index": 0,
     "text": "# ReportLab\n\nReportLab\n\n[ReportLab](https://www.reportlab.com/) is a robust PDF generation library for Python."
   },
   {
-    "id": "chunk_99",
+    "id": "doc_chunk_99",
     "filename": "01_programming_tools/05_utilities_and_helpers/03_reportlab.md",
     "chunk_index": 1,
     "text": "# Why ReportLab?\n\nWhy ReportLab?\n\n- **Dynamic PDF Creation:** Enables programmatic creation of complex, styled PDFs.\n- **Rich Features:** Supports text, images, tables, and custom layouts.\n- **Widely Used:** Trusted in many professional reporting applications."
   },
   {
-    "id": "chunk_100",
+    "id": "doc_chunk_100",
     "filename": "01_programming_tools/05_utilities_and_helpers/03_reportlab.md",
     "chunk_index": 2,
     "text": "# How it’s used in this project\n\nHow it’s used in this project\n\nGenerates downloadable PDF reports for AI feedback and plugin preset recommendations, letting users save or print their guidance.\n\n---"
   },
   {
-    "id": "chunk_101",
+    "id": "doc_chunk_101",
     "filename": "01_programming_tools/05_utilities_and_helpers/01_dotenv.md",
     "chunk_index": 0,
     "text": "# Dotenv\n\nDotenv\n\n[python-dotenv](https://github.com/theskumar/python-dotenv) reads key-value pairs from `.env` files and sets them as environment variables."
   },
   {
-    "id": "chunk_102",
+    "id": "doc_chunk_102",
     "filename": "01_programming_tools/05_utilities_and_helpers/01_dotenv.md",
     "chunk_index": 1,
     "text": "# Why Dotenv?\n\nWhy Dotenv?\n\n- **Secure Config:** Keeps sensitive info like API keys out of source code.\n- **Convenience:** Easily manages environment-specific settings.\n- **Integration:** Works seamlessly with Python apps and deployment environments."
   },
   {
-    "id": "chunk_103",
+    "id": "doc_chunk_103",
     "filename": "01_programming_tools/05_utilities_and_helpers/01_dotenv.md",
     "chunk_index": 2,
     "text": "# How it’s used in this project\n\nHow it’s used in this project\n\nLoads OpenAI API keys and other config data during app startup, ensuring safe and flexible configuration.\n\n---"
   },
   {
-    "id": "chunk_104",
+    "id": "doc_chunk_104",
     "filename": "01_programming_tools/05_utilities_and_helpers/06_httpx.md",
     "chunk_index": 0,
     "text": "# HTTPX\n\nHTTPX\n\n[HTTPX](https://www.python-httpx.org/) is a fully featured HTTP client for Python with async support."
   },
   {
-    "id": "chunk_105",
+    "id": "doc_chunk_105",
     "filename": "01_programming_tools/05_utilities_and_helpers/06_httpx.md",
     "chunk_index": 1,
     "text": "# Why HTTPX?\n\nWhy HTTPX?\n\n- **Async Capabilities:** Supports asynchronous HTTP requests natively.\n- **Sync and Async:** Can be used in both synchronous and asynchronous code.\n- **HTTP/2 and Connection Pooling:** Advanced HTTP features."
   },
   {
-    "id": "chunk_106",
+    "id": "doc_chunk_106",
     "filename": "01_programming_tools/05_utilities_and_helpers/06_httpx.md",
     "chunk_index": 2,
     "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Possibly used to make HTTP requests to external APIs asynchronously.\n- Could facilitate calls to services like OpenAI or other third-party endpoints."
   },
   {
-    "id": "chunk_107",
+    "id": "doc_chunk_107",
     "filename": "01_programming_tools/05_utilities_and_helpers/10_pathlib_and_shutil.md",
     "chunk_index": 0,
     "text": "# Python Standard Libraries: Pathlib and Shutil\n\nPython Standard Libraries: Pathlib and Shutil"
   },
   {
-    "id": "chunk_108",
+    "id": "doc_chunk_108",
     "filename": "01_programming_tools/05_utilities_and_helpers/10_pathlib_and_shutil.md",
     "chunk_index": 1,
     "text": "# Pathlib\n\nPathlib\n\n- Object-oriented filesystem paths handling.\n- Simplifies path manipulation, compatible across OSes."
   },
   {
-    "id": "chunk_109",
+    "id": "doc_chunk_109",
     "filename": "01_programming_tools/05_utilities_and_helpers/10_pathlib_and_shutil.md",
     "chunk_index": 2,
     "text": "# Shutil\n\nShutil\n\n- High-level file operations such as copying, moving, and deleting.\n- Useful for managing uploaded files and cleanup tasks."
   },
   {
-    "id": "chunk_110",
+    "id": "doc_chunk_110",
     "filename": "01_programming_tools/05_utilities_and_helpers/10_pathlib_and_shutil.md",
     "chunk_index": 3,
     "text": "# How they're used in this project\n\nHow they're used in this project\n\n- Manage audio file uploads, organize storage directories.\n- Clean up old uploads and maintain file system hygiene."
   },
   {
-    "id": "chunk_111",
+    "id": "doc_chunk_111",
     "filename": "01_programming_tools/05_utilities_and_helpers/09_logging_and_asyncio.md",
     "chunk_index": 0,
     "text": "# Python Standard Libraries: Logging and Asyncio\n\nPython Standard Libraries: Logging and Asyncio"
   },
   {
-    "id": "chunk_112",
+    "id": "doc_chunk_112",
     "filename": "01_programming_tools/05_utilities_and_helpers/09_logging_and_asyncio.md",
     "chunk_index": 1,
     "text": "# Logging\n\nLogging\n\n- Provides a flexible framework for emitting log messages from Python programs.\n- Used extensively to record app behavior, errors, and debug information."
   },
   {
-    "id": "chunk_113",
+    "id": "doc_chunk_113",
     "filename": "01_programming_tools/05_utilities_and_helpers/09_logging_and_asyncio.md",
     "chunk_index": 2,
     "text": "# Asyncio\n\nAsyncio\n\n- Supports writing concurrent code using async/await syntax.\n- Underpins asynchronous frameworks like FastAPI, enabling efficient I/O handling."
   },
   {
-    "id": "chunk_114",
+    "id": "doc_chunk_114",
     "filename": "01_programming_tools/05_utilities_and_helpers/09_logging_and_asyncio.md",
     "chunk_index": 3,
     "text": "# How they're used in this project\n\nHow they're used in this project\n\n- Logging records key events and errors in backend services for troubleshooting.\n- Asyncio enables non-blocking handling of concurrent requests, file uploads, and AI calls."
   },
   {
-    "id": "chunk_115",
+    "id": "doc_chunk_115",
     "filename": "01_programming_tools/05_utilities_and_helpers/07_aiohttp.md",
     "chunk_index": 0,
     "text": "# Aiohttp\n\nAiohttp\n\n[Aiohttp](https://docs.aiohttp.org/en/stable/) is an asynchronous HTTP client/server framework."
   },
   {
-    "id": "chunk_116",
+    "id": "doc_chunk_116",
     "filename": "01_programming_tools/05_utilities_and_helpers/07_aiohttp.md",
     "chunk_index": 1,
     "text": "# Why Aiohttp?\n\nWhy Aiohttp?\n\n- **Async Server & Client:** Supports both HTTP client and server implementations.\n- **WebSocket Support:** Real-time communication.\n- **Used in Async Python Apps:** Often accompanies FastAPI or other async frameworks."
   },
   {
-    "id": "chunk_117",
+    "id": "doc_chunk_117",
     "filename": "01_programming_tools/05_utilities_and_helpers/07_aiohttp.md",
     "chunk_index": 2,
     "text": "# How it's used in this project\n\nHow it's used in this project\n\n- May be used for async HTTP communication, especially for background tasks or event-driven workflows.\n- Supports efficient IO-bound operations alongside the FastAPI backend."
   },
   {
-    "id": "chunk_118",
+    "id": "doc_chunk_118",
     "filename": "01_programming_tools/05_utilities_and_helpers/02_pydantic.md",
     "chunk_index": 0,
     "text": "# Pydantic\n\nPydantic\n\n[Pydantic](https://pydantic.dev/) is a Python library for data validation and settings management using Python type annotations. It plays a key role in ensuring robust, safe, and clear data handling within this AI-powered music assistant project."
   },
   {
-    "id": "chunk_119",
+    "id": "doc_chunk_119",
     "filename": "01_programming_tools/05_utilities_and_helpers/02_pydantic.md",
     "chunk_index": 1,
     "text": "# Why Pydantic?\n\nWhy Pydantic?\n\n- **Input Validation:** Ensures all API requests contain the required fields with correct data types, preventing invalid data from causing errors downstream.\n- **Automatic Parsing:** Converts incoming JSON or form data into Python objects with properly typed attributes, simplifying backend logic.\n- **Clear Error Reporting:** Provides detailed error messages when validation fails, helping debug issues quickly.\n- **Seamless FastAPI Integration:** FastAPI uses Pydantic models to define request and response schemas, enabling automatic API documentation and developer-friendly interfaces.\n- **Maintains Explicit Data Contracts:** Makes your data models self-documenting and easy to maintain, which is especially valuable for complex AI feedback interactions."
   },
   {
-    "id": "chunk_120",
+    "id": "doc_chunk_120",
     "filename": "01_programming_tools/05_utilities_and_helpers/02_pydantic.md",
     "chunk_index": 2,
     "text": "# How it's used in this project\n\nHow it's used in this project\n\nThe project uses Pydantic models to define the expected structure for key API endpoints:\n\n- **`FollowUpRequest`**: Defines all the data required to process a user's follow-up question to the AI feedback, including analysis texts, session and track IDs, and optional reference track data.\n- **`SummarizeRequest`**: Defines the parameters needed to summarize follow-up conversation threads, including session ID, track ID, and follow-up group index.\n\nUsing Pydantic allows the backend to robustly handle AI feedback workflows, providing structured and validated data to the AI models while maintaining clear communication protocols between frontend and backend.\n\n---\n\nThis approach improves both developer experience and reliability, making it an essential tool in the architecture of this AI mixing/mastering assistant."
   },
   {
-    "id": "chunk_121",
+    "id": "doc_chunk_121",
     "filename": "01_programming_tools/05_utilities_and_helpers/04_typing_extensions.md",
     "chunk_index": 0,
     "text": "# typing-extensions\n\ntyping-extensions\n\n[typing-extensions](https://github.com/python/typing/blob/main/typing_extensions/README.md) provides backports of new type hinting features to older Python versions."
   },
   {
-    "id": "chunk_122",
+    "id": "doc_chunk_122",
     "filename": "01_programming_tools/05_utilities_and_helpers/04_typing_extensions.md",
     "chunk_index": 1,
     "text": "# Why typing-extensions?\n\nWhy typing-extensions?\n\n- **Forward Compatibility:** Use modern Python typing features in older Python versions.\n- **Enhanced Type Safety:** Enables advanced type hints and annotations."
   },
   {
-    "id": "chunk_123",
+    "id": "doc_chunk_123",
     "filename": "01_programming_tools/05_utilities_and_helpers/04_typing_extensions.md",
     "chunk_index": 2,
     "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Supports advanced type hinting in the codebase.\n- Improves code clarity and maintainability, especially in complex AI logic."
   },
   {
-    "id": "chunk_124",
+    "id": "doc_chunk_124",
     "filename": "01_programming_tools/01_programming_languages/04_css.md",
     "chunk_index": 0,
     "text": "# CSS\n\nCSS\n\nCSS (Cascading Style Sheets) styles the HTML content, providing layout, colors, fonts, and responsive design features for the frontend interface."
   },
   {
-    "id": "chunk_125",
+    "id": "doc_chunk_125",
     "filename": "01_programming_tools/01_programming_languages/04_css.md",
     "chunk_index": 1,
     "text": "# Why CSS?\n\nWhy CSS?\n\n- **Visual Styling:** Controls appearance of UI elements.\n- **Responsive Design:** Adapts layout for different screen sizes.\n- **Maintainability:** Separates content from presentation.\n- **Framework Compatibility:** Easily integrates with Tailwind CSS."
   },
   {
-    "id": "chunk_126",
+    "id": "doc_chunk_126",
     "filename": "01_programming_tools/01_programming_languages/04_css.md",
     "chunk_index": 2,
     "text": "# How it’s used in this project\n\nHow it’s used in this project\n\n- Applies Tailwind CSS utility classes for rapid styling.\n- Custom styles for modals, dropdowns, buttons, and form elements.\n- Ensures a clean, modern, and user-friendly interface.\n\n---"
   },
   {
-    "id": "chunk_127",
+    "id": "doc_chunk_127",
     "filename": "01_programming_tools/01_programming_languages/05_javascript.md",
     "chunk_index": 0,
     "text": "# JavaScript\n\nJavaScript\n\nJavaScript is the primary scripting language used to create dynamic, interactive frontend behavior in the music assistant app."
   },
   {
-    "id": "chunk_128",
+    "id": "doc_chunk_128",
     "filename": "01_programming_tools/01_programming_languages/05_javascript.md",
     "chunk_index": 1,
     "text": "# Why JavaScript?\n\nWhy JavaScript?\n\n- **Interactivity:** Enables real-time UI updates and user input handling.\n- **Event Handling:** Responds to clicks, form submissions, and other user actions.\n- **API Communication:** Sends and receives data from the backend via AJAX/fetch.\n- **Browser Compatibility:** Runs on all modern browsers."
   },
   {
-    "id": "chunk_129",
+    "id": "doc_chunk_129",
     "filename": "01_programming_tools/01_programming_languages/05_javascript.md",
     "chunk_index": 2,
     "text": "# How it’s used in this project\n\nHow it’s used in this project\n\n- Manages form submissions and file uploads.\n- Handles chat interface, follow-up questions, and feedback display.\n- Controls UI elements such as modals and dropdowns.\n- Stores session info and tokens in local storage for persistence.\n\n---"
   },
   {
-    "id": "chunk_130",
+    "id": "doc_chunk_130",
     "filename": "01_programming_tools/01_programming_languages/01_python.md",
     "chunk_index": 0,
     "text": "# Python\n\nPython\n\nPython is the core programming language used in this AI-powered music mixing and mastering assistant project. Its versatility, extensive libraries, and readability make it ideal for rapid development and integration of audio analysis and AI components."
   },
   {
-    "id": "chunk_131",
+    "id": "doc_chunk_131",
     "filename": "01_programming_tools/01_programming_languages/01_python.md",
     "chunk_index": 1,
     "text": "# Why Python?\n\nWhy Python?\n\n- **Rich Ecosystem:** Provides libraries like Librosa for audio processing and Pydantic for data validation.\n- **AI & ML Friendly:** Easy integration with OpenAI SDK and other AI tools.\n- **Fast Development:** Clear syntax speeds up prototyping and testing.\n- **Strong Community:** Extensive resources and support."
   },
   {
-    "id": "chunk_132",
+    "id": "doc_chunk_132",
     "filename": "01_programming_tools/01_programming_languages/01_python.md",
     "chunk_index": 2,
     "text": "# How it’s used in this project\n\nHow it’s used in this project\n\n- Backend API and business logic are implemented in Python using FastAPI.\n- Audio analysis scripts rely on Python libraries like Librosa and pyloudnorm.\n- Integration with AI models via OpenAI Python SDK.\n- Data handling with SQLAlchemy ORM for database management.\n\n---"
   },
   {
-    "id": "chunk_133",
+    "id": "doc_chunk_133",
     "filename": "01_programming_tools/01_programming_languages/02_pycharm.md",
     "chunk_index": 0,
     "text": "# PyCharm\n\nPyCharm\n\nPyCharm is the Integrated Development Environment (IDE) used for writing, debugging, and managing the Python backend code of this project."
   },
   {
-    "id": "chunk_134",
+    "id": "doc_chunk_134",
     "filename": "01_programming_tools/01_programming_languages/02_pycharm.md",
     "chunk_index": 1,
     "text": "# Why PyCharm?\n\nWhy PyCharm?\n\n- **Powerful Code Editor:** Syntax highlighting, code completion, and refactoring tools.\n- **Integrated Debugger:** Helps identify and fix issues efficiently.\n- **Version Control Integration:** Supports Git and other VCS tools for code management.\n- **Project Management:** Organizes files and dependencies for complex projects."
   },
   {
-    "id": "chunk_135",
+    "id": "doc_chunk_135",
     "filename": "01_programming_tools/01_programming_languages/02_pycharm.md",
     "chunk_index": 2,
     "text": "# How it’s used in this project\n\nHow it’s used in this project\n\n- Developing and testing FastAPI backend routes and audio analysis.\n- Managing virtual environments and package dependencies.\n- Running and debugging AI integration workflows.\n- Code navigation and documentation.\n\n---"
   },
   {
-    "id": "chunk_136",
+    "id": "doc_chunk_136",
     "filename": "01_programming_tools/01_programming_languages/03_html.md",
     "chunk_index": 0,
     "text": "# HTML\n\nHTML\n\nHTML (HyperText Markup Language) is the foundational markup language for building the frontend user interface of the music assistant web app."
   },
   {
-    "id": "chunk_137",
+    "id": "doc_chunk_137",
     "filename": "01_programming_tools/01_programming_languages/03_html.md",
     "chunk_index": 1,
     "text": "# Why HTML?\n\nWhy HTML?\n\n- **Structure:** Defines the layout and elements of web pages.\n- **Compatibility:** Supported by all web browsers.\n- **Accessibility:** Enables semantic, accessible content.\n- **Integration:** Works with CSS and JavaScript for styling and interactivity."
   },
   {
-    "id": "chunk_138",
+    "id": "doc_chunk_138",
     "filename": "01_programming_tools/01_programming_languages/03_html.md",
     "chunk_index": 2,
     "text": "# How it’s used in this project\n\nHow it’s used in this project\n\n- Markup for pages where users upload tracks, view AI feedback, and interact with chat.\n- Defines forms, buttons, containers, and modal dialogs.\n- Works with Tailwind CSS for responsive design.\n\n---"
   },
   {
-    "id": "chunk_139",
+    "id": "doc_chunk_139",
     "filename": "01_programming_tools/06_frontend_styling/01_tailwindcss.md",
     "chunk_index": 0,
     "text": "# Tailwind CSS\n\nTailwind CSS\n\n[Tailwind CSS](https://tailwindcss.com/) is a utility-first CSS framework for rapid UI development."
   },
   {
-    "id": "chunk_140",
+    "id": "doc_chunk_140",
     "filename": "01_programming_tools/06_frontend_styling/01_tailwindcss.md",
     "chunk_index": 1,
     "text": "# Why Tailwind CSS?\n\nWhy Tailwind CSS?\n\n- **Utility-First:** Enables fast, consistent styling with composable CSS classes.\n- **Responsive Design:** Built-in responsiveness and mobile-first approach.\n- **Customizable:** Highly configurable for unique design systems."
   },
   {
-    "id": "chunk_141",
+    "id": "doc_chunk_141",
     "filename": "01_programming_tools/06_frontend_styling/01_tailwindcss.md",
     "chunk_index": 2,
     "text": "# How it’s used in this project\n\nHow it’s used in this project\n\nStyles the frontend web interface, providing a modern, clean, and responsive user experience for audio upload, feedback display, and chat interaction.\n\n---"
   },
   {
-    "id": "chunk_142",
+    "id": "doc_chunk_142",
     "filename": "01_programming_tools/02_backend_frameworks_and_apis/02_sql_alchemy.md",
     "chunk_index": 0,
     "text": "# SQLAlchemy\n\nSQLAlchemy\n\n[SQLAlchemy](https://www.sqlalchemy.org/) is the Python SQL toolkit and Object Relational Mapper (ORM) that gives application developers full power and flexibility of SQL."
   },
   {
-    "id": "chunk_143",
+    "id": "doc_chunk_143",
     "filename": "01_programming_tools/02_backend_frameworks_and_apis/02_sql_alchemy.md",
     "chunk_index": 1,
     "text": "# Why SQLAlchemy?\n\nWhy SQLAlchemy?\n\n- **Robust ORM:** Simplifies interaction with the database by mapping Python classes to tables.\n- **Session Management:** Manages database transactions and connections efficiently.\n- **Cross-DB Compatibility:** Supports SQLite, PostgreSQL, MySQL, and more.\n- **Complex Queries:** Enables expressive query building and relationship management between models."
   },
   {
-    "id": "chunk_144",
+    "id": "doc_chunk_144",
     "filename": "01_programming_tools/02_backend_frameworks_and_apis/02_sql_alchemy.md",
     "chunk_index": 2,
     "text": "# How it’s used in this project\n\nHow it’s used in this project\n\nSQLAlchemy manages:\n\n- Data models for sessions, tracks, analyses, and chat messages.\n- Persistent storage and retrieval of analysis and AI feedback data.\n- Relationship handling between sessions and multiple tracks or chat messages.\n\n---"
   },
   {
-    "id": "chunk_145",
+    "id": "doc_chunk_145",
     "filename": "01_programming_tools/02_backend_frameworks_and_apis/03_uvicorn.md",
     "chunk_index": 0,
     "text": "# Uvicorn\n\nUvicorn\n\n[Uvicorn](https://www.uvicorn.org/) is a lightning-fast ASGI server implementation, using `uvloop` and `httptools`. It is commonly used to serve asynchronous Python web frameworks such as FastAPI."
   },
   {
-    "id": "chunk_146",
+    "id": "doc_chunk_146",
     "filename": "01_programming_tools/02_backend_frameworks_and_apis/03_uvicorn.md",
     "chunk_index": 1,
     "text": "# Why Uvicorn?\n\nWhy Uvicorn?\n\n- **Asynchronous Server:** Supports high-performance asynchronous communication, essential for FastAPI’s async capabilities.\n- **Production Ready:** Suitable for running your app in production environments.\n- **Easy Integration:** Seamlessly runs FastAPI apps with minimal configuration.\n- **Hot Reload Support:** Enables automatic server reload during development."
   },
   {
-    "id": "chunk_147",
+    "id": "doc_chunk_147",
     "filename": "01_programming_tools/02_backend_frameworks_and_apis/03_uvicorn.md",
     "chunk_index": 2,
     "text": "# How it's used in this project\n\nHow it's used in this project\n\n- Runs the FastAPI backend, serving HTTP requests and managing event loops.\n- Handles concurrent client connections efficiently for file uploads, chat messages, and AI feedback generation."
   },
   {
-    "id": "chunk_148",
+    "id": "doc_chunk_148",
     "filename": "01_programming_tools/02_backend_frameworks_and_apis/01_fast_api.md",
     "chunk_index": 0,
     "text": "# FastAPI\n\nFastAPI\n\n[FastAPI](https://fastapi.tiangolo.com/) is a modern, fast (high-performance) web framework for building APIs with Python 3.7+ based on standard Python type hints. It provides asynchronous capabilities and automatic interactive API documentation."
   },
   {
-    "id": "chunk_149",
+    "id": "doc_chunk_149",
     "filename": "01_programming_tools/02_backend_frameworks_and_apis/01_fast_api.md",
     "chunk_index": 1,
     "text": "# Why FastAPI?\n\nWhy FastAPI?\n\n- **High Performance:** Supports asynchronous operations making it ideal for handling uploads, AI prompt calls, and multiple users concurrently.\n- **Easy API Design:** Leverages Python type hints to build clear and concise endpoints.\n- **Automatic Docs:** Generates Swagger/OpenAPI documentation automatically, aiding frontend-backend integration.\n- **Dependency Injection:** Simplifies managing database sessions and authentication with built-in dependency system.\n- **Built-in Validation:** Integrates tightly with Pydantic for request validation and response serialization."
   },
   {
-    "id": "chunk_150",
+    "id": "doc_chunk_150",
     "filename": "01_programming_tools/02_backend_frameworks_and_apis/01_fast_api.md",
     "chunk_index": 2,
     "text": "# How it’s used in this project\n\nHow it’s used in this project\n\nFastAPI forms the backbone of the backend API, handling:\n\n- Audio file uploads.\n- Triggering audio analysis workflows.\n- Managing user sessions and tracks.\n- Generating AI feedback and follow-up responses.\n- Exporting feedback as PDFs.\n\n---"
   },
   {
-    "id": "chunk_151",
+    "id": "doc_chunk_151",
     "filename": "00_overviews/02_ai_integration_overview.md",
     "chunk_index": 0,
     "text": "# AI Integration Overview\n\nAI Integration Overview\n\nThis section explains how AI feedback and interactive chat features are integrated into the music mixing and mastering assistant backend.\n\n---"
   },
   {
-    "id": "chunk_152",
+    "id": "doc_chunk_152",
     "filename": "00_overviews/02_ai_integration_overview.md",
     "chunk_index": 1,
     "text": "# Key Components\n\nKey Components"
   },
   {
-    "id": "chunk_153",
+    "id": "doc_chunk_153",
     "filename": "00_overviews/02_ai_integration_overview.md",
     "chunk_index": 2,
     "text": "# 1. Feedback Generation\n\n1. Feedback Generation\n\n- Receives user inputs such as track ID, session ID, genre, feedback type (mixdown, mastering, master review), and feedback profile (simple, detailed, pro).\n- Fetches the stored audio analysis data for the selected track from the database.\n- Normalizes user inputs like genre, type, and profile to ensure consistent processing.\n- Calls the feedback prompt generator to build a detailed AI prompt, embedding audio metrics, genre context, and communication style guidance.\n- Sends the prompt to the AI model to generate tailored feedback.\n- Stores the AI feedback as a chat message in the database for session persistence.\n- The generated feedback is displayed on the main user interface (e.g., `index.html`).\n\n---"
   },
   {
-    "id": "chunk_154",
+    "id": "doc_chunk_154",
     "filename": "00_overviews/02_ai_integration_overview.md",
     "chunk_index": 3,
     "text": "# 2. Follow-Up Question Handling (`/ask-followup` endpoint)\n\n2. Follow-Up Question Handling (`/ask-followup` endpoint)\n\n- Supports multi-turn conversations by accepting follow-up user questions referencing prior analysis and feedback.\n- Retrieves the main track and optionally a reference track’s analysis data to provide context-aware comparison feedback.\n- Includes a conversation summary from prior follow-up messages to keep context concise.\n- Constructs a comprehensive follow-up prompt combining analysis, previous feedback, user question, and summary.\n- Generates AI response and stores both user question and AI answer as chat messages linked by session and follow-up group.\n- Implements automatic summarization of follow-up threads after several interactions to maintain concise context and improve response relevance.\n\n---"
   },
   {
-    "id": "chunk_155",
+    "id": "doc_chunk_155",
     "filename": "00_overviews/02_ai_integration_overview.md",
     "chunk_index": 4,
     "text": "# 3. Prompt Construction & AI Calls\n\n3. Prompt Construction & AI Calls\n\n- Prompts contain multiple structured sections including:  \n  - Role-specific context describing the AI as a professional mixing or mastering engineer with genre expertise.  \n  - Communication style instructions matching user-selected feedback profile (simple, detailed, pro).  \n  - Embedded audio analysis data with loudness, dynamic range, transients, spectral balance, stereo width, and bass profile.  \n  - Conditional inclusion of reference track analysis for comparative feedback.  \n  - Format rules and example bullet point outputs guiding the AI’s response style.\n\n- AI calls use OpenAI’s GPT models (`gpt-4o-mini` currently) with messages formatted as user prompts.\n\n---"
   },
   {
-    "id": "chunk_156",
+    "id": "doc_chunk_156",
     "filename": "00_overviews/02_ai_integration_overview.md",
     "chunk_index": 5,
     "text": "# 4. Data Persistence & Session Management\n\n4. Data Persistence & Session Management\n\n- Chat messages (user and assistant) are stored in a database table linked by session, track, and follow-up group identifiers.\n- Enables resuming conversations, retrieving message history, and supporting multi-turn dialogue.\n- Summaries generated after a set number of follow-ups optimize prompt length and AI context window usage.\n\n---"
   },
   {
-    "id": "chunk_157",
+    "id": "doc_chunk_157",
     "filename": "00_overviews/02_ai_integration_overview.md",
     "chunk_index": 6,
     "text": "# Summary\n\nSummary\n\nThis AI integration combines precise audio analysis data with dynamic, role- and style-aware prompt construction to generate meaningful, user-tailored mixing and mastering feedback. It supports an interactive chat interface with follow-up questions and conversation summarization, creating a natural, continuous feedback experience for users."
   },
   {
-    "id": "chunk_158",
+    "id": "doc_chunk_158",
     "filename": "00_overviews/04_upload_overview.md",
     "chunk_index": 0,
     "text": "# Audio Upload and Analysis Endpoint Overview\n\nAudio Upload and Analysis Endpoint Overview\n\nThis module defines the FastAPI endpoint responsible for handling audio file uploads,\nperforming comprehensive audio analysis, saving data to the database,\nand generating AI-driven feedback based on the analysis.\n\n---\n\nKey features:\n\n- Supports uploading both a main audio track and an optional reference track.\n- Normalizes and validates input parameters such as session ID, track name, genre, and feedback profile.\n- Saves uploaded files with timestamped unique filenames to avoid collisions.\n- Computes RMS chunks for frontend waveform visualization and saves as JSON.\n- Analyzes audio tracks for loudness, key, spectral balance, transient strength, and more.\n- Stores analysis results and metadata in the database, maintaining session and track records.\n- Generates AI feedback prompts using both main and reference track analyses.\n- Returns detailed JSON response including analysis data, AI feedback, and file paths.\n\n---"
   },
   {
-    "id": "chunk_159",
+    "id": "doc_chunk_159",
     "filename": "00_overviews/04_upload_overview.md",
     "chunk_index": 1,
     "text": "# Audio Upload and Analysis Endpoint Overview\n\nError handling includes logging exceptions and returning HTTP 500 responses with error details.\n\nThis endpoint is central to the project’s workflow, linking user uploads, audio analysis, and AI feedback generation."
   },
   {
-    "id": "chunk_160",
+    "id": "doc_chunk_160",
     "filename": "00_overviews/06_models_overview.md",
     "chunk_index": 0,
     "text": "# Database Models Overview (models.py)\n\nDatabase Models Overview (models.py)\n\nThis module defines the SQLAlchemy ORM models used for persistent storage of users, sessions, tracks, audio analysis results, and chat history.\n\nIt establishes relationships between entities, enforces schema constraints, and supports complex queries necessary for the music AI feedback system.\n\nThe models include:\n\n- **User**: Stores authentication and profile information.  \n- **Session**: Represents user sessions grouping tracks and chat messages.  \n- **Track**: Represents uploaded audio tracks with metadata.  \n- **AnalysisResult**: Stores detailed audio analysis data linked to tracks.  \n- **ChatMessage**: Records conversational history between users and the AI assistant.\n\n---"
   },
   {
-    "id": "chunk_161",
+    "id": "doc_chunk_161",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 0,
     "text": "# Programming Tools, Libraries, and Project Overview\n\nProgramming Tools, Libraries, and Project Overview\n\nThis project uses a variety of programming languages, tools, and Python libraries chosen for their functionality, performance, and ease of integration to build a powerful AI-powered music mixing and mastering assistant.\n\n---"
   },
   {
-    "id": "chunk_162",
+    "id": "doc_chunk_162",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 1,
     "text": "# Programming Languages & Tools\n\nProgramming Languages & Tools"
   },
   {
-    "id": "chunk_163",
+    "id": "doc_chunk_163",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 2,
     "text": "# Python  \n\nPython  \nThe core language used to build the backend API, audio analysis, and AI integration."
   },
   {
-    "id": "chunk_164",
+    "id": "doc_chunk_164",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 3,
     "text": "# PyCharm  \n\nPyCharm  \nThe primary Integrated Development Environment (IDE) used for writing, debugging, and managing the Python backend code."
   },
   {
-    "id": "chunk_165",
+    "id": "doc_chunk_165",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 4,
     "text": "# HTML  \n\nHTML  \nThe foundational markup language used to structure the frontend web interface."
   },
   {
-    "id": "chunk_166",
+    "id": "doc_chunk_166",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 5,
     "text": "# CSS  \n\nCSS  \nStyles the HTML, providing layout, colors, fonts, and responsive design."
   },
   {
-    "id": "chunk_167",
+    "id": "doc_chunk_167",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 6,
     "text": "# JavaScript  \n\nJavaScript  \nAdds interactivity to the frontend, handles user events, and communicates asynchronously with the backend API.\n\n---"
   },
   {
-    "id": "chunk_168",
+    "id": "doc_chunk_168",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 7,
     "text": "# Key Libraries and Their Roles\n\nKey Libraries and Their Roles"
   },
   {
-    "id": "chunk_169",
+    "id": "doc_chunk_169",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 8,
     "text": "# FastAPI  \n\nFastAPI  \nProvides the web framework for building a high-performance, asynchronous backend API handling uploads, analysis, chat interactions, and export functions."
   },
   {
-    "id": "chunk_170",
+    "id": "doc_chunk_170",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 9,
     "text": "# SQLAlchemy  \n\nSQLAlchemy  \nManages database models, sessions, and queries, allowing structured storage of sessions, tracks, audio analyses, and AI feedback."
   },
   {
-    "id": "chunk_171",
+    "id": "doc_chunk_171",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 10,
     "text": "# Librosa  \n\nLibrosa  \nA widely used audio analysis library for feature extraction, including key detection, tempo analysis, transient detection, spectral features, and more."
   },
   {
-    "id": "chunk_172",
+    "id": "doc_chunk_172",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 11,
     "text": "# NumPy  \n\nNumPy  \nCore numerical computing library used throughout for array operations, signal processing, and mathematical calculations."
   },
   {
-    "id": "chunk_173",
+    "id": "doc_chunk_173",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 12,
     "text": "# pyloudnorm  \n\npyloudnorm  \nImplements loudness measurement compliant with the LUFS standard, crucial for accurate perceived loudness estimation in audio."
   },
   {
-    "id": "chunk_174",
+    "id": "doc_chunk_174",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 13,
     "text": "# OpenAI SDK (`openai`)  \n\nOpenAI SDK (`openai`)  \nHandles interaction with GPT models to generate AI feedback, prompts, and follow-up responses."
   },
   {
-    "id": "chunk_175",
+    "id": "doc_chunk_175",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 14,
     "text": "# ReportLab  \n\nReportLab  \nUsed to generate PDF exports of AI feedback and presets, enabling users to save or print their mixing/mastering guidance."
   },
   {
-    "id": "chunk_176",
+    "id": "doc_chunk_176",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 15,
     "text": "# Dotenv  \n\nDotenv  \nLoads environment variables securely from `.env` files, including API keys and configuration."
   },
   {
-    "id": "chunk_177",
+    "id": "doc_chunk_177",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 16,
     "text": "# Tailwind CSS (frontend)  \n\nTailwind CSS (frontend)  \nProvides utility-first CSS styling to build a responsive and modern user interface.\n\n---"
   },
   {
-    "id": "chunk_178",
+    "id": "doc_chunk_178",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 17,
     "text": "# Special Notes\n\nSpecial Notes\n\n- A compatibility fix for NumPy deprecated aliases (like `np.complex`) ensures smooth operation across different NumPy versions.\n\n---\n\nThis comprehensive set of languages, tools, and libraries provides the foundation for the project’s architecture, enabling efficient audio processing, AI integration, and smooth user experience.\n\n\n---"
   },
   {
-    "id": "chunk_179",
+    "id": "doc_chunk_179",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 18,
     "text": "# Project Overview\n\nProject Overview\n\nThis AI-powered music assistant helps users improve their mixes and masters by combining detailed audio analysis with intelligent, context-aware AI feedback."
   },
   {
-    "id": "chunk_180",
+    "id": "doc_chunk_180",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 19,
     "text": "# Main Features and Workflow\n\nMain Features and Workflow\n\n1. **User Upload**  \n   - Users upload an audio track, optionally with a reference track.  \n   - They specify metadata: type of feedback desired (mixdown tips, mastering guidance, master review), genre/subgenre, and feedback detail level (simple, detailed, pro).\n\n2. **Audio Analysis**  \n   - The backend performs in-depth audio analysis extracting metrics such as loudness (LUFS), dynamic range, transient strength, spectral balance, stereo width, tempo, and key.  \n   - These metrics provide objective data describing the track’s sonic characteristics.\n\n3. **AI Feedback Generation**  \n   - Using OpenAI’s GPT models, the system generates tailored feedback prompts combining the audio analysis results and user metadata.  \n   - Users can ask follow-up questions, which the system answers using conversation context and summarization techniques to keep interactions concise."
   },
   {
-    "id": "chunk_181",
+    "id": "doc_chunk_181",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 20,
     "text": "# Main Features and Workflow\n\n4. **Export and Presets**  \n   - Users can export the AI feedback as PDFs for offline reference.  \n   - The system can also generate plugin preset recommendations related to identified feedback issues."
   },
   {
-    "id": "chunk_182",
+    "id": "doc_chunk_182",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 21,
     "text": "# Technology Stack\n\nTechnology Stack\n\n- **Backend**: Python 3.x, FastAPI framework, SQLAlchemy ORM for database interaction, OpenAI API for AI feedback.  \n- **Frontend**: HTML, CSS, JavaScript, styled with Tailwind CSS, and using local storage for user session data."
   },
   {
-    "id": "chunk_183",
+    "id": "doc_chunk_183",
     "filename": "00_overviews/01_programming_tools_and_project_overview.md",
     "chunk_index": 22,
     "text": "# High-Level Architecture\n\nHigh-Level Architecture\n\n- The user interacts with a frontend web app styled via Tailwind CSS.  \n- The backend API handles audio file uploads, runs analysis functions (using `librosa`, `pyloudnorm`, and others), stores data in a relational database, and orchestrates AI feedback generation via the OpenAI API.  \n- AI chat interactions are maintained via session and chat message records in the database.  \n- Export features use ReportLab to generate PDFs dynamically.\n\n---\n\nThis overview and tooling information provides foundational knowledge about how the project is built and functions, supporting deeper explanations via the RAG system."
   },
   {
-    "id": "chunk_184",
+    "id": "doc_chunk_184",
     "filename": "00_overviews/05_utils_overview.md",
     "chunk_index": 0,
     "text": "# Utility Functions Overview (utils.py)\n\nUtility Functions Overview (utils.py)\n\nThis module provides helper functions for sanitizing, normalizing, and validating\nuser inputs related to session names, track types, genres, feedback profiles,\nand user questions within the music AI feedback system.\n\nThese utilities ensure consistent, safe, and clean data handling across the application,\npreventing injection attacks, input errors, and unexpected values.\n\nKey features:\n\n- Sanitization of arbitrary text inputs with length and character restrictions.\n- Normalization of session names to safe, HTML-escaped strings.\n- Safe generation of track names with fallback logic.\n- Validation against allowed sets of types, profiles, and genres.\n- Title casing and safe escaping of subgenre strings.\n\nThis module is foundational for maintaining data integrity and user experience."
   },
   {
-    "id": "chunk_185",
+    "id": "doc_chunk_185",
     "filename": "00_overviews/03_audio_analysis_overview.md",
     "chunk_index": 0,
     "text": "# Audio Analysis Module (audio_analysis.py)\n\nAudio Analysis Module (audio_analysis.py)\n\nThis module contains core audio analysis utilities used to extract musical and technical features from audio data to support AI feedback generation in the music mixing and mastering assistant.\n\nThe functions cover a wide range of analyses including:\n\n- Detecting the musical key of an audio track.\n- Computing energy distribution across frequency bands.\n- Describing the low-end profile relative to music genres.\n- Assessing spectral balance in mixes.\n- Measuring loudness and dynamic range with RMS calculations.\n- Detecting transient strength and characterizing transient quality.\n- Identifying peak level issues such as clipping risks.\n- Performing comprehensive audio feature extraction combining multiple analyses.\n\nEach function is documented separately for detailed explanations and usage notes.\n\n---\n\n*This overview serves as the high-level context for all audio analysis functions used in the project.*"
   },
   {
-    "id": "chunk_186",
+    "id": "doc_chunk_186",
     "filename": "04_upload/01_upload_explanation.md",
     "chunk_index": 0,
     "text": "# Function Explanation: `upload_audio` (upload endpoint)\n\nFunction Explanation: `upload_audio` (upload endpoint)\n\nThis API endpoint handles the full process triggered when a user uploads an audio file.\n\n**Workflow:**\n\n1. **Input Normalization:**  \n   Normalizes `session_id`, `session_name`, `genre`, `subgenre`, `type`, and `feedback_profile` to standardized forms.\n\n2. **File Saving:**  \n   Saves the uploaded main audio file and optionally a reference audio file with unique timestamped filenames in the designated upload folder.\n\n3. **RMS Chunk Computation:**  \n   Computes RMS values over time windows for waveform visualization and saves the results as a JSON file accessible by the frontend.\n\n4. **Audio Analysis:**  \n   Uses the `analyze_audio` function to extract loudness, key, transient strength, spectral balance, and other audio features from the main and reference tracks."
   },
   {
-    "id": "chunk_187",
+    "id": "doc_chunk_187",
     "filename": "04_upload/01_upload_explanation.md",
     "chunk_index": 1,
     "text": "# Function Explanation: `upload_audio` (upload endpoint)\n\n5. **Database Operations:**  \n   - Cleans up old tracks linked to the session to avoid stale files.  \n   - Creates or updates session records.  \n   - Saves new track metadata and analysis results, including linking reference tracks by a shared group ID.\n\n6. **AI Feedback Generation:**  \n   Constructs a detailed prompt with audio analysis data (and optional reference analysis) using `generate_feedback_prompt`.  \n   Sends the prompt to the AI model and stores the assistant's response as chat history.\n\n7. **Response Construction:**  \n   Returns a comprehensive JSON payload containing track details, analyses, AI feedback, and URLs to uploaded files and RMS data.\n\n---\n\n**Error Handling:**  \nCaptures exceptions during upload or processing, logs full stack traces, and returns HTTP 500 JSON error responses.\n\n---"
   },
   {
-    "id": "chunk_188",
+    "id": "doc_chunk_188",
     "filename": "04_upload/01_upload_explanation.md",
     "chunk_index": 2,
     "text": "# Function Explanation: `upload_audio` (upload endpoint)\n\n**Design Notes:**  \n- Timestamped filenames prevent file overwrites and maintain upload history.  \n- Reference tracks are optional but enable comparative feedback for users.  \n- Database cleanup ensures disk space is managed by removing outdated session tracks.  \n- Tight integration with AI prompt generation provides contextual and personalized feedback.  \n- Modular helper functions keep the endpoint code readable and maintainable.\n\n---\n\n*This explanation focuses on the overall logic and flow rather than low-level code details, which are documented separately.*"
+  },
+  {
+    "id": "func_cleanup.py_cleanup_old_uploads",
+    "filename": "cleanup.py",
+    "chunk_index": -1,
+    "text": "## Function: cleanup_old_uploads (cleanup.py)\n\n```python\ndef cleanup_old_uploads():\n    logger.info(\"Starting cleanup of old uploads...\")\n    print(\"Current working dir:\", os.getcwd())\n    print(\"BASE_DIR:\", BASE_DIR)\n    print(\"UPLOAD_FOLDER:\", UPLOAD_FOLDER)\n    print(\"RMS_ANALYSIS_FOLDER:\", RMS_ANALYSIS_FOLDER)\n    now = time.time()\n    db = SessionLocal()\n    try:\n        # Delete old audio files tracked in DB and remove their DB records\n        old_tracks = db.query(Track).all()\n        print(f\"Found {len(old_tracks)} tracks in DB\")\n        for track in old_tracks:\n            file_path_str = track.file_path\n            if not file_path_str:\n                print(\"Track has no file_path, skipping\")\n                continue\n\n            file_path = Path(file_path_str)\n            print(f\"Checking track file path: {file_path}\")\n\n            if file_path.exists():\n                file_age = now - file_path.stat().st_mtime\n                print(f\"File age (seconds): {file_age}\")\n                if file_age > MAX_FILE_AGE_SECONDS:\n                    try:\n                        file_path.unlink()\n                        logger.info(f\"Deleted old track file: {file_path}\")\n\n                        # Also delete associated RMS file if exists\n                        rms_filename = f\"{file_path.name}_rms.json\"\n                        rms_file_path = RMS_ANALYSIS_FOLDER / rms_filename\n                        if rms_file_path.exists():\n                            try:\n                                rms_file_path.unlink()\n                                logger.info(f\"Deleted RMS file: {rms_file_path}\")\n                            except Exception as e:\n                                logger.error(f\"Error deleting RMS file {rms_file_path}: {e}\")\n\n                        # Delete related analysis_results\n                        deleted_count = db.query(AnalysisResult).filter(AnalysisResult.track_id == track.id).delete()\n                        logger.info(f\"Deleted {deleted_count} analysis results for track {track.id}\")\n\n                        # Instead of deleting Track, just clear the file_path\n                        track.file_path = None\n                        db.add(track)  # mark for update\n\n                    except Exception as e:\n                        logger.error(f\"Error deleting files or DB record for {file_path}: {e}\")\n                else:\n                    print(f\"File not old enough to delete: {file_path}\")\n            else:\n                print(f\"File path does not exist: {file_path}\")\n\n        db.commit()  # Commit deletions after all done\n\n        # Delete all old orphan files in the UPLOAD_FOLDER (files not tracked in DB)\n        print(\"Checking for orphan files in upload folder...\")\n        for file_path in UPLOAD_FOLDER.iterdir():\n            if file_path.is_file():\n                file_age = now - file_path.stat().st_mtime\n                print(f\"Orphan file {file_path}, age: {file_age}\")\n                if file_age > MAX_FILE_AGE_SECONDS:\n                    try:\n                        file_path.unlink()\n                        logger.info(f\"Deleted orphan upload file: {file_path}\")\n                    except Exception as e:\n                        logger.error(f\"Error deleting orphan upload file {file_path}: {e}\")\n\n        # Delete all old RMS JSON files in the RMS_ANALYSIS_FOLDER (cleanup orphan RMS files)\n        print(\"Checking for orphan RMS JSON files...\")\n        for rms_file in RMS_ANALYSIS_FOLDER.glob(\"*.json\"):\n            file_age = now - rms_file.stat().st_mtime\n            print(f\"RMS file {rms_file}, age: {file_age}\")\n            if file_age > MAX_FILE_AGE_SECONDS:\n                try:\n                    rms_file.unlink()\n                    logger.info(f\"Deleted orphan RMS JSON file: {rms_file}\")\n                except Exception as e:\n                    logger.error(f\"Error deleting orphan RMS file {rms_file}: {e}\")\n\n    finally:\n        db.close()\n    logger.info(\"Cleanup finished.\")\n```\n"
+  },
+  {
+    "id": "func_utils.py_sanitize_input",
+    "filename": "utils.py",
+    "chunk_index": -1,
+    "text": "## Function: sanitize_input (utils.py)\n\n```python\ndef sanitize_input(input_str: str) -> str:\n    \"\"\"Sanitize string: trim, normalize whitespace, limit length.\"\"\"\n    if not isinstance(input_str, str):\n        return \"\"\n    return re.sub(r\"\\s+\", \" \", input_str.strip())[:100]\n```\n"
+  },
+  {
+    "id": "func_utils.py_sanitize_user_question",
+    "filename": "utils.py",
+    "chunk_index": -1,
+    "text": "## Function: sanitize_user_question (utils.py)\n\n```python\ndef sanitize_user_question(text: str) -> str:\n    if not isinstance(text, str):\n        return \"\"\n    # Remove unwanted characters (allow common punctuation)\n    cleaned = re.sub(r\"[^\\w\\s.,!?@&$()\\-+=:;\\'\\\"/]\", \"\", text.strip())\n    # Limit length to 400 chars (adjust as needed)\n    cleaned = cleaned[:400]\n    # Escape HTML entities to prevent injection\n    return html.escape(cleaned)\n```\n"
+  },
+  {
+    "id": "func_utils.py_normalize_session_name",
+    "filename": "utils.py",
+    "chunk_index": -1,
+    "text": "## Function: normalize_session_name (utils.py)\n\n```python\ndef normalize_session_name(name: str) -> str:\n    \"\"\"\n    Sanitize user-provided session name:\n    - Trim whitespace\n    - Allow only letters, numbers, spaces, dashes, and underscores\n    - Truncate to 60 characters\n    - Escape HTML for safety in prompts/UI\n    \"\"\"\n    if not isinstance(name, str):\n        return \"\"\n    name = name.strip()\n    name = re.sub(r\"[^\\w\\s\\-]\", \"\", name)  # Keep alphanumeric, space, dash, underscore\n    name = name[:60]\n    return html.escape(name)\n```\n"
+  },
+  {
+    "id": "func_utils.py_safe_track_name",
+    "filename": "utils.py",
+    "chunk_index": -1,
+    "text": "## Function: safe_track_name (utils.py)\n\n```python\ndef safe_track_name(name, fallback_filename):\n    name = name.strip() if name else \"\"\n    return name if name and name.lower() != \"string\" else os.path.splitext(fallback_filename)[0]\n```\n"
+  },
+  {
+    "id": "func_utils.py_normalize_type",
+    "filename": "utils.py",
+    "chunk_index": -1,
+    "text": "## Function: normalize_type (utils.py)\n\n```python\ndef normalize_type(input_str: str) -> str:\n    \"\"\"Sanitize and validate track type.\"\"\"\n    val = sanitize_input(input_str).lower()\n    return val if val in ALLOWED_TYPES else \"mixdown\"\n```\n"
+  },
+  {
+    "id": "func_utils.py_normalize_profile",
+    "filename": "utils.py",
+    "chunk_index": -1,
+    "text": "## Function: normalize_profile (utils.py)\n\n```python\ndef normalize_profile(input_str: str) -> str:\n    \"\"\"Sanitize and validate feedback profile.\"\"\"\n    val = sanitize_input(input_str).lower()\n    return val if val in ALLOWED_PROFILES else \"simple\"\n```\n"
+  },
+  {
+    "id": "func_utils.py_normalize_genre",
+    "filename": "utils.py",
+    "chunk_index": -1,
+    "text": "## Function: normalize_genre (utils.py)\n\n```python\ndef normalize_genre(input_str: str) -> str:\n    \"\"\"Sanitize and validate genre.\"\"\"\n    val = sanitize_input(input_str).lower()\n    return val if val in ALLOWED_GENRES else \"electronic\"\n```\n"
+  },
+  {
+    "id": "func_utils.py_normalize_subgenre",
+    "filename": "utils.py",
+    "chunk_index": -1,
+    "text": "## Function: normalize_subgenre (utils.py)\n\n```python\ndef normalize_subgenre(sub: str) -> str:\n    \"\"\"\n    Sanitize and normalize a user-provided subgenre string.\n\n    - Strips leading/trailing whitespace\n    - Limits to ASCII letters, digits, spaces, dashes, ampersands, and apostrophes\n    - Truncates to 50 characters\n    - Escapes HTML for safe injection into prompts\n    - Converts to title case (e.g., 'neo-soul' → 'Neo-Soul')\n    \"\"\"\n    if not isinstance(sub, str):\n        return \"\"\n\n    # Basic cleanup\n    sub = sub.strip()\n\n    # Remove unwanted characters (but allow dashes, ampersands, apostrophes)\n    sub = re.sub(r\"[^a-zA-Z0-9 &\\-']\", \"\", sub)\n\n    # Truncate to prevent abuse or overflow\n    sub = sub[:50]\n\n    # Convert to title case\n    sub = sub.title()\n\n    # Escape for prompt safety\n    return html.escape(sub)\n```\n"
+  },
+  {
+    "id": "func_gpt_utils.py_generate_feedback_prompt",
+    "filename": "gpt_utils.py",
+    "chunk_index": -1,
+    "text": "## Function: generate_feedback_prompt (gpt_utils.py)\n\n```python\ndef generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data: dict, feedback_profile: str, ref_analysis_data: dict = None) -> str:\n    \"\"\"\n            Constructs a detailed AI prompt combining role context, communication style,\n            audio analysis data, reference track data (optional), and formatting instructions.\n\n            Parameters:\n                genre (str): Music genre, normalized.\n                subgenre (str): Music subgenre, normalized.\n                type (str): Feedback type ('mixdown', 'mastering', 'master').\n                analysis_data (dict): Audio analysis metrics of the submitted track.\n                feedback_profile (str): Desired feedback complexity ('simple', 'detailed', 'pro').\n                ref_analysis_data (dict, optional): Reference track analysis for comparison.\n\n            Returns:\n                str: Formatted prompt string ready to be sent to the AI model.\n            \"\"\"\n\n    type = normalize_type(type)\n    if type not in ROLE_CONTEXTS:\n        raise ValueError(f\"Unknown type: {type}\")\n    genre = normalize_genre(genre)\n    if genre not in ALLOWED_GENRES:\n        raise ValueError(f\"Unknown genre: {genre}\")\n    subgenre = normalize_subgenre(subgenre)\n    feedback_profile = normalize_profile(feedback_profile)\n    if feedback_profile not in PROFILE_GUIDANCE:\n        raise ValueError(f\"Unknown feedback_profile: {feedback_profile}\")\n\n    context = (\n            REFERENCE_TRACK_INSTRUCTION + \"\\n\\n\" + ROLE_CONTEXTS[type].format(\n        genre=html.escape(genre),\n        subgenre=html.escape(subgenre)\n    )\n    )\n    communication_style = PROFILE_GUIDANCE[feedback_profile]\n\n    # Add reference track data section if available\n    ref_section = \"\"\n    if ref_analysis_data:\n        ref_section = f\"\"\"\n    ### Reference Track Analysis (for comparison)\n    - Peak: {ref_analysis_data['peak_db']} dB\n    - RMS Peak: {ref_analysis_data['rms_db_peak']} dB\n    - LUFS: {ref_analysis_data['lufs']}\n    - Transients: {ref_analysis_data['transient_description']}\n    - Spectral balance note: {ref_analysis_data['spectral_balance_description']}\n    - Dynamic range: {ref_analysis_data['dynamic_range']}\n    - Stereo width: {ref_analysis_data['stereo_width']}\n    - Bass profile: {ref_analysis_data.get('low_end_description', '')}\n    \"\"\"\n\n    peak_warning = \"\"\n    if analysis_data.get(\"peak_issue_explanation\"):\n        peak_warning = f\"\\n⚠️ Peak warning: {analysis_data['peak_issue_explanation']}\\n\"\n\n    format_rule = FORMAT_RULES.get(feedback_profile, FORMAT_RULES[\"detailed\"])\n\n    example_output = EXAMPLE_OUTPUTS.get(feedback_profile, \"\")\n\n    # Final assembly\n    return f\"\"\"\n### Context\n{context}\n\n- **Respect the genre context**. F.e. only suggest reducing bass if clearly excessive relative to the genre’s typical sound.\n\n### Communication Style\n{communication_style}\n\n### Track Analysis Data\n- Peak: {analysis_data['peak_db']} dB\n- RMS Peak: {analysis_data['rms_db_peak']} dB\n- LUFS: {analysis_data['lufs']}\n- Avg Transient Strength: {analysis_data['avg_transient_strength']}\n- Max Transient Strength: {analysis_data['max_transient_strength']}\n- Transients: {analysis_data['transient_description']}\nIf low-end is flagged as strong but typical for the genre, do NOT treat it as a problem unless masking, muddiness, or translation concerns are clearly implied.\n- Spectral balance note: {analysis_data['spectral_balance_description']}\n- Dynamic range: {analysis_data['dynamic_range']}\n- Stereo width: {analysis_data['stereo_width']}\n- Bass profile: {analysis_data.get('low_end_description', '')}\n  (Genre: {genre} — please consider if the low-end level suits this genre’s typical sound.)\n\n### REFERENCE TRACK\nHere is analysis data for the reference track. Use this data to inform your feedback and compare where appropriate.\n{ref_section}\n\n{peak_warning}\n\n### Reasoning Step\nUse the reference track when provided as a benchmark to guide specific suggestions even when not typical for genre etc..\nBefore writing the bullet points, briefly reflect on what stands out from the analysis data.\nWrite 2–3 sentences summarizing key characteristics or concerns about the mix (this part will not be shown to the user).\n\n### Bullet Point Feedback\nNow return exactly 2–3 bullet points.\n\n{format_rule.strip()}\n\n⚠️ Do **not** include a title, greeting, summary, or closing line.\n\n{example_output}\n\"\"\".strip()\n```\n"
+  },
+  {
+    "id": "func_gpt_utils.py_generate_feedback_response",
+    "filename": "gpt_utils.py",
+    "chunk_index": -1,
+    "text": "## Function: generate_feedback_response (gpt_utils.py)\n\n```python\ndef generate_feedback_response(prompt: str) -> str:\n    \"\"\"\n        Sends a prompt string to the AI model and returns the generated feedback text.\n\n        Parameters:\n            prompt (str): The fully constructed prompt containing context, instructions, and analysis data.\n\n        Returns:\n            str: The AI-generated feedback text, stripped of leading/trailing whitespace.\n        \"\"\"\n    response = client.chat.completions.create(\n        model=\"gpt-4o-mini\",\n        messages=[{\"role\": \"user\", \"content\": prompt}]\n    )\n    # response = client.chat.completions.create(\n    #     model=\"mistralai/Mixtral-8x7B-Instruct-v0.1\",\n    #     messages=[{\"role\": \"user\", \"content\": prompt}]\n    # )\n    return response.choices[0].message.content.strip()\n```\n"
+  },
+  {
+    "id": "func_gpt_utils.py_generate_followup_response",
+    "filename": "gpt_utils.py",
+    "chunk_index": -1,
+    "text": "## Function: generate_followup_response (gpt_utils.py)\n\n```python\ndef generate_followup_response(analysis_text: str, feedback_text: str, user_question: str, thread_summary: str = \"\") -> str:\n    \"\"\"\n        Builds a follow-up prompt incorporating prior analysis, feedback, user question,\n        and optionally a summary of the follow-up conversation thread, then sends it to the AI.\n\n        Parameters:\n            analysis_text (str): Text description of the audio analysis.\n            feedback_text (str): Previous AI feedback given to the user.\n            user_question (str): The user's follow-up question.\n            thread_summary (str, optional): Summary of previous follow-up messages for context.\n\n        Returns:\n            str: AI-generated answer to the follow-up question.\n        \"\"\"\n    prompt = build_followup_prompt(analysis_text, feedback_text, user_question, thread_summary)\n    return generate_feedback_response(prompt)\n```\n"
+  },
+  {
+    "id": "func_gpt_utils.py_build_followup_prompt",
+    "filename": "gpt_utils.py",
+    "chunk_index": -1,
+    "text": "## Function: build_followup_prompt (gpt_utils.py)\n\n```python\ndef build_followup_prompt(\n    analysis_text: str,\n    feedback_text: str,\n    user_question: str,\n    thread_summary: str = \"\",\n    ref_analysis_data: dict = None,   # NEW parameter\n) -> str:\n    \"\"\"\n        Constructs a detailed prompt for AI follow-up feedback based on prior analysis,\n        previous feedback, the user’s follow-up question, optional conversation summary,\n        and optionally reference track analysis data.\n\n        Parameters:\n            analysis_text (str): Text description of the audio analysis.\n            feedback_text (str): Previous AI feedback text.\n            user_question (str): User’s follow-up question.\n            thread_summary (str, optional): Summary of prior follow-up conversation for context.\n            ref_analysis_data (dict, optional): Reference track analysis for comparison.\n\n        Returns:\n            str: A formatted prompt string ready for submission to the AI model.\n        \"\"\"\n\n    # Clean and escape user question\n    user_question = re.sub(r\"[^\\w\\s.,!?@&$()\\-+=:;\\'\\\"/]\", \"\", user_question.strip())[:400]\n    user_question = html.escape(user_question)\n\n    ref_section = \"\"\n    if ref_analysis_data and isinstance(ref_analysis_data, dict):\n        ref_section = f\"\"\"\n        ### Reference Track Analysis (for comparison)\n        - Peak: {ref_analysis_data.get('peak_db', 'N/A')} dB\n        - RMS Peak: {ref_analysis_data.get('rms_db_peak', 'N/A')} dB\n        - LUFS: {ref_analysis_data.get('lufs', 'N/A')}\n        - Transients: {ref_analysis_data.get('transient_description', 'N/A')}\n        - Spectral balance note: {ref_analysis_data.get('spectral_balance_description', 'N/A')}\n        - Dynamic range: {ref_analysis_data.get('dynamic_range', 'N/A')}\n        - Stereo width: {ref_analysis_data.get('stereo_width', 'N/A')}\n        - Bass profile: {ref_analysis_data.get('low_end_description', '')}\n        \"\"\"\n    else:\n        print(\"Warning: ref_analysis_data missing or invalid:\", ref_analysis_data)\n\n    return f\"\"\"\nYou are a helpful and professional **audio engineer assistant**.\n\n{\"### Summary of Previous Conversation\\n\" + thread_summary + \"\\n\" if thread_summary else \"\"}\n\n### Track Analysis\n{analysis_text}\n\n{ref_section}\n\n### Prior Feedback\n{feedback_text}\n\n### User's Follow-Up Question\n\"{user_question}\"\n\n### Instructions\n- Use the analysis, feedback, and summary above as context.\n- Do **not** repeat the full analysis or feedback.\n- Answer the follow-up clearly and concisely.\n- Stay on topic and be technically helpful.\n- If the question is vague, use the existing context to infer intent.\n\nRespond below:\n\"\"\"\n```\n"
+  },
+  {
+    "id": "func_audio_analysis.py_detect_key",
+    "filename": "audio_analysis.py",
+    "chunk_index": -1,
+    "text": "## Function: detect_key (audio_analysis.py)\n\n```python\ndef detect_key(y, sr):\n    chroma = librosa.feature.chroma_cqt(y=y, sr=sr)\n    chroma_mean = np.mean(chroma, axis=1)\n\n    major_profile = np.array([6.35, 2.23, 3.48, 2.33, 4.38, 4.09,\n                              2.52, 5.19, 2.39, 3.66, 2.29, 2.88])\n    minor_profile = np.array([6.33, 2.68, 3.52, 5.38, 2.60, 3.53,\n                              2.54, 4.75, 3.98, 2.69, 3.34, 3.17])\n\n    best_corr = -1\n    best_key = \"\"\n    note_names = ['C', 'C#', 'D', 'D#', 'E', 'F',\n                  'F#', 'G', 'G#', 'A', 'A#', 'B']\n    for i in range(12):\n        corr_major = np.corrcoef(np.roll(major_profile, i), chroma_mean)[0, 1]\n        corr_minor = np.corrcoef(np.roll(minor_profile, i), chroma_mean)[0, 1]\n\n        if corr_major > best_corr:\n            best_corr = corr_major\n            best_key = f\"{note_names[i]} Major\"\n        if corr_minor > best_corr:\n            best_corr = corr_minor\n            best_key = f\"{note_names[i]} minor\"\n\n    return best_key\n```\n"
+  },
+  {
+    "id": "func_audio_analysis.py_compute_band_energies",
+    "filename": "audio_analysis.py",
+    "chunk_index": -1,
+    "text": "## Function: compute_band_energies (audio_analysis.py)\n\n```python\ndef compute_band_energies(S, freqs):\n    bands = {\n        \"sub\": (20, 60),\n        \"low\": (60, 250),\n        \"low-mid\": (250, 500),\n        \"mid\": (500, 2000),\n        \"high-mid\": (2000, 4000),\n        \"high\": (4000, 8000),\n        \"air\": (8000, 16000)\n    }\n\n    total_energy = np.sum(S)\n    band_energies = {}\n\n    for band, (low, high) in bands.items():\n        mask = (freqs >= low) & (freqs < high)\n        band_energy = np.sum(S[mask])\n        band_energies[band] = round(float(band_energy / (total_energy + 1e-9)), 4)\n\n    return band_energies\n```\n"
+  },
+  {
+    "id": "func_audio_analysis.py_describe_low_end_profile",
+    "filename": "audio_analysis.py",
+    "chunk_index": -1,
+    "text": "## Function: describe_low_end_profile (audio_analysis.py)\n\n```python\ndef describe_low_end_profile(ratio: float, genre: str = None) -> str:\n    genre = (genre or \"\").lower()\n\n    bass_driven = {\"electronic\", \"hiphop\", \"rnb\"}\n    balanced = {\"pop\", \"rock\", \"indie\", \"reggae\", \"funk\", \"soul\", \"classic\"}\n    less_bassy = {\"punk\", \"metal\", \"jazz\", \"country\", \"folk\"}\n\n    if genre in bass_driven:\n        if ratio < 0.08:\n            return f\"Low-end is light for {genre}. Consider boosting the bass or sub for fullness.\"\n        elif ratio < 0.28:\n            return f\"Low-end feels balanced for bass-driven music.\"\n        elif ratio < 0.45:\n            return f\"Low-end is elevated — still genre-typical. No changes needed unless masking is audible.\"\n        else:\n            return f\"Low-end is very strong — double-check clarity in the sub region.\"\n\n    elif genre in balanced:\n        if ratio < 0.05:\n            return f\"Low-end is light — may sound thin or underpowered for {genre}.\"\n        elif ratio < 0.20:\n            return f\"Low-end feels appropriate and balanced for this style.\"\n        elif ratio < 0.35:\n            return f\"Low-end is strong — possibly a stylistic choice, but check for mud or masking.\"\n        else:\n            return f\"Low-end is very heavy — could overwhelm mids or make the mix feel boomy.\"\n\n    elif genre in less_bassy:\n        if ratio < 0.03:\n            return f\"Low-end is very light — likely appropriate for {genre}.\"\n        elif ratio < 0.12:\n            return f\"Low-end feels balanced and controlled for this genre.\"\n        elif ratio < 0.25:\n            return f\"Low-end is on the heavier side — may still work, but ensure it doesn't obscure midrange clarity.\"\n        else:\n            return f\"Low-end is unusually strong for {genre} — might overpower vocals or acoustic instruments.\"\n\n    else:\n        # Fallback for unknown genres\n        if ratio < 0.05:\n            return \"Low-end is very light — might feel thin unless intentional.\"\n        elif ratio < 0.15:\n            return \"Low-end is on the light side, but may be fine for minimal or acoustic styles.\"\n        elif ratio < 0.30:\n            return \"Low-end appears balanced — acceptable for many genres.\"\n        elif ratio < 0.45:\n            return \"Low-end is strong — stylistic, but check for muddiness.\"\n        else:\n            return \"Low-end is very dominant — could overwhelm mids or cause translation issues.\"\n```\n"
+  },
+  {
+    "id": "func_audio_analysis.py_describe_spectral_balance",
+    "filename": "audio_analysis.py",
+    "chunk_index": -1,
+    "text": "## Function: describe_spectral_balance (audio_analysis.py)\n\n```python\ndef describe_spectral_balance(band_energies: dict, genre: str = \"electronic\") -> str:\n    # Collapse to simple groups\n    sub = band_energies.get(\"sub\", 0)\n    low = band_energies.get(\"low\", 0)\n    low_mid = band_energies.get(\"low-mid\", 0)\n    mid = band_energies.get(\"mid\", 0)\n    high_mid = band_energies.get(\"high-mid\", 0)\n    high = band_energies.get(\"high\", 0)\n    air = band_energies.get(\"air\", 0)\n\n    lows = sub + low\n    mids = low_mid + mid + high_mid\n    highs = high + air\n\n    genre = genre.lower()\n\n    if genre in {\"electronic\", \"hiphop\", \"rnb\"}:\n        if lows > 0.75:\n            return \"Low-end is very strong — often genre-typical, but worth a clarity check.\"\n        elif lows > 0.55:\n            return \"Low end is prominent, which is typical for this genre. No action needed unless masking is audible.\"\n        elif mids > 0.5:\n            return \"Mid frequencies dominate — may sound boxy or congested for this genre.\"\n        elif highs > 0.35:\n            return \"Highs are bright — ensure they don’t make the mix feel harsh or distract from the bass foundation.\"\n        else:\n            return \"Spectral balance appears well suited for a bass-driven style.\"\n\n    elif genre in {\"pop\", \"rock\", \"indie\", \"reggae\", \"funk\", \"soul\", \"classic\"}:\n        if lows > 0.6:\n            return \"Low end is strong — may be stylistic, but check for any mud or masking.\"\n        elif lows > 0.45:\n            return \"Low end is moderately elevated — still acceptable depending on artistic intent.\"\n        elif mids > 0.5:\n            return \"Midrange is quite strong — might sound rich, or a bit crowded.\"\n        elif highs > 0.45:\n            return \"Highs are crisp — could add brilliance, or cause sharpness if overdone.\"\n        else:\n            return \"Spectral balance is fairly even and typical for a balanced genre.\"\n\n    elif genre in {\"punk\", \"metal\", \"jazz\", \"country\", \"folk\"}:\n        if lows > 0.50:\n            return \"Low end is elevated — uncommon in this genre, so check for rumble or mud.\"\n        elif mids > 0.55:\n            return \"Midrange is dominant — can sound raw or aggressive, which fits this style.\"\n        elif highs > 0.5:\n            return \"Highs are very pronounced — this can be typical but may fatigue the ear.\"\n        else:\n            return \"Spectral balance looks appropriate for a mid/high-forward genre.\"\n\n    return \"Spectral balance analyzed, but genre could not be matched precisely.\"\n```\n"
+  },
+  {
+    "id": "func_audio_analysis.py_compute_windowed_rms_db",
+    "filename": "audio_analysis.py",
+    "chunk_index": -1,
+    "text": "## Function: compute_windowed_rms_db (audio_analysis.py)\n\n```python\ndef compute_windowed_rms_db(y_mono, sr, window_duration=0.5):\n    window_size = int(sr * window_duration)\n    hop_size = int(window_size / 2)\n\n    rms_blocks = []\n    for i in range(0, len(y_mono) - window_size, hop_size):\n        block = y_mono[i:i + window_size]\n        rms = np.sqrt(np.mean(block ** 2))\n        rms_blocks.append(rms)\n\n    # Now calculate:\n    rms_blocks = np.array(rms_blocks)\n    rms_db_avg = 20 * np.log10(np.mean(rms_blocks) + 1e-9)\n\n    # Loudest 10%\n    sorted_rms = np.sort(rms_blocks)\n    top_10 = sorted_rms[int(len(sorted_rms) * 0.9):]\n    rms_db_peak = 20 * np.log10(np.mean(top_10) + 1e-9)\n\n    return round(rms_db_avg, 2), round(rms_db_peak, 2)\n```\n"
+  },
+  {
+    "id": "func_audio_analysis.py_detect_transient_strength",
+    "filename": "audio_analysis.py",
+    "chunk_index": -1,
+    "text": "## Function: detect_transient_strength (audio_analysis.py)\n\n```python\ndef detect_transient_strength(y, sr):\n    onset_env = librosa.onset.onset_strength(y=y, sr=sr)\n    avg_transient_strength = float(np.mean(onset_env))\n    max_transient_strength = float(np.max(onset_env))\n    return round(avg_transient_strength, 4), round(max_transient_strength, 4)\n```\n"
+  },
+  {
+    "id": "func_audio_analysis.py_describe_transients",
+    "filename": "audio_analysis.py",
+    "chunk_index": -1,
+    "text": "## Function: describe_transients (audio_analysis.py)\n\n```python\ndef describe_transients(avg, max):\n    if avg < 1.5:\n        quality = \"very soft or buried\"\n    elif avg < 3.5:\n        quality = \"balanced\"\n    elif avg < 7:\n        quality = \"punchy and defined\"\n    else:\n        quality = \"sharp or overly spiky\"\n\n    if max > 30:\n        note = \"The track has extremely spiky transients — possibly over-accentuated drums or uncompressed attacks.\"\n    elif max > 15:\n        note = \"Transients are strong and pronounced — mix might feel punchy or aggressive.\"\n    elif max < 5:\n        note = \"Transients appear soft throughout — the mix may lack snap or attack.\"\n    else:\n        note = \"Transient range appears normal for most styles.\"\n\n    return f\"Transients are {quality}. {note}\"\n```\n"
+  },
+  {
+    "id": "func_audio_analysis.py_generate_peak_issues_description",
+    "filename": "audio_analysis.py",
+    "chunk_index": -1,
+    "text": "## Function: generate_peak_issues_description (audio_analysis.py)\n\n```python\ndef generate_peak_issues_description(peak_db: float):\n    issues = []\n    explanation_parts = []\n\n    if peak_db > 0.0:\n        issues.append(\"Clipping risk\")\n        explanation_parts.append(\n            \"The track peaks above 0.0 dBFS, which can result in digital clipping. \"\n            \"Even if your DAW meters show 0.0 dB, intersample peaks may exceed this in real-world playback. \"\n            \"Consider using a true peak limiter set to -1.0 dBTP to avoid distortion.\"\n        )\n    elif -0.3 < peak_db <= 0.0:\n        issues.append(\"Near-clipping warning\")\n        explanation_parts.append(\n            \"The track peaks very close to 0.0 dBFS. While it may not clip outright, \"\n            \"there is a risk of intersample peaks causing distortion on some playback systems. \"\n            \"A ceiling of -1.0 dBTP is generally safer.\"\n        )\n    elif peak_db < -5.0:\n        issues.append(\"Low peak level\")\n        explanation_parts.append(\n            \"The track peaks well below typical full-scale levels. \"\n            \"This might indicate improper gain staging and can affect metering or plugin behavior. \"\n            \"Consider raising the level during export to reach closer to 0 dBFS without clipping.\"\n        )\n\n    return issues, \" \".join(explanation_parts)\n```\n"
+  },
+  {
+    "id": "func_audio_analysis.py_analyze_audio",
+    "filename": "audio_analysis.py",
+    "chunk_index": -1,
+    "text": "## Function: analyze_audio (audio_analysis.py)\n\n```python\ndef analyze_audio(file_path, genre=None):\n    y, sr = librosa.load(file_path, mono=False)\n    print(f\"y shape: {y.shape}, ndim: {y.ndim}\")\n\n    y_mono = librosa.to_mono(y)\n\n    # 🎯 True peak measurement (preserved)\n    peak_amp = np.max(np.abs(y_mono))\n    peak_db = 20 * np.log10(peak_amp + 1e-9)\n\n    # ✅ Normalize to 0 dBFS for consistent analysis\n    y_norm = y_mono / (peak_amp + 1e-9)\n\n    # ✅ Compute loudness + RMS on normalized audio\n    rms_db_avg, rms_db_peak = compute_windowed_rms_db(y_norm, sr)\n    meter = pyln.Meter(sr)\n    loudness = meter.integrated_loudness(y_norm)\n\n    # 🧠 Get peak issue info from unnormalized peak\n    peak_issues, peak_explanation_parts = generate_peak_issues_description(peak_db)\n    peak_explanation_parts = [peak_explanation_parts] if isinstance(peak_explanation_parts,\n                                                                    str) else peak_explanation_parts\n    issues = []\n    pass\n\n    # ✅ warn user if peak is low *and* RMS is still high\n    if peak_db < -3.0 and rms_db_avg > -15.0:\n        peak_issues.append(\"Low peak level without dynamic benefit\")\n        peak_explanation_parts.append(\n            \"The track peaks well below 0 dBFS, but the average loudness remains high. \"\n            \"This suggests the level was lowered without gaining extra dynamic range. \"\n            \"Consider exporting at full scale unless you're preparing for mastering.\"\n        )\n\n    # ✅ Transient strength (on normalized signal)\n    avg_transients, max_transients = detect_transient_strength(y_norm, sr)\n\n    # ✅ Tempo and key detection on normalized audio\n    tempo_arr, _ = librosa.beat.beat_track(y=y_norm, sr=sr)\n    tempo = float(tempo_arr)\n    key = detect_key(y_norm, sr)\n\n    # 🧮 Dynamic range (still meaningful with normalized signal)\n    dynamic_range = peak_db - rms_db_avg  # This reflects actual range even after norm\n\n    # ✅ Stereo width (must use original y to retain L/R difference)\n    width_ratio = 0.0\n    if y.ndim == 1:\n        stereo_width_label = \"narrow\"\n    else:\n        mid = (y[0] + y[1]) / 2\n        side = (y[0] - y[1]) / 2\n        width_ratio = np.mean(np.abs(side)) / (np.mean(np.abs(mid)) + 1e-9)\n\n        if not math.isfinite(width_ratio):\n            width_ratio = 0.0\n            stereo_width_label = \"narrow\"\n        elif width_ratio < 0.25:\n            stereo_width_label = \"narrow\"\n        elif width_ratio < 0.6:\n            stereo_width_label = \"medium\"\n        elif width_ratio < 1.2:\n            stereo_width_label = \"wide\"\n        else:\n            stereo_width_label = \"too wide\"\n\n    # ✅ Spectral analysis (on normalized signal)\n    S = np.abs(librosa.stft(y_norm, n_fft=2048, hop_length=512)) ** 2\n    freqs = librosa.fft_frequencies(sr=sr)\n    total_energy = np.sum(S)\n\n    low_end_mask = freqs <= 150\n    low_end_energy = np.sum(S[low_end_mask])\n    normalized_low_end = low_end_energy / (total_energy + 1e-9)\n    low_end_description = describe_low_end_profile(normalized_low_end, genre=genre)\n\n    if normalized_low_end < 0.1:\n        bass_profile = \"light\"\n    elif normalized_low_end < 0.3:\n        bass_profile = \"balanced\"\n    else:\n        bass_profile = \"bass heavy\"\n\n    band_energies = compute_band_energies(S, freqs)\n    spectral_description = describe_spectral_balance(band_energies, genre=genre)\n\n    return {\n        \"peak_db\": f\"{peak_db:.2f}\",\n        \"rms_db_avg\": round(float(rms_db_avg), 2),\n        \"rms_db_peak\": round(float(rms_db_peak), 2),\n        \"tempo\": f\"{tempo:.2f}\",\n        \"key\": key,\n        \"lufs\": f\"{loudness:.2f}\",\n        \"dynamic_range\": f\"{dynamic_range:.2f}\",\n        \"stereo_width_ratio\": f\"{width_ratio:.2f}\",\n        \"stereo_width\": stereo_width_label,\n        \"low_end_energy_ratio\": f\"{normalized_low_end:.2f}\",\n        \"low_end_description\": low_end_description,\n        \"band_energies\": json.dumps(band_energies),\n        \"spectral_balance_description\": spectral_description,\n        \"peak_issue\": \", \".join(peak_issues) if peak_issues else None,\n        \"peak_issue_explanation\": \" \".join(peak_explanation_parts),\n        \"avg_transient_strength\": avg_transients,\n        \"max_transient_strength\": max_transients,\n        \"transient_description\": describe_transients(avg_transients, max_transients),\n        \"issues\": json.dumps(issues)\n    }\n```\n"
+  },
+  {
+    "id": "func_analysis_rms_chunks.py_compute_rms_chunks",
+    "filename": "analysis_rms_chunks.py",
+    "chunk_index": -1,
+    "text": "## Function: compute_rms_chunks (analysis_rms_chunks.py)\n\n```python\ndef compute_rms_chunks(file_path, chunk_duration=0.5, json_output_path=None):\n    print(\"🔍 Writing RMS JSON to:\", json_output_path)\n    y, sr = librosa.load(file_path, mono=True)\n    samples_per_chunk = int(sr * chunk_duration)\n    total_chunks = len(y) // samples_per_chunk\n\n    rms_chunks = []\n    for i in range(total_chunks):\n        start = i * samples_per_chunk\n        end = start + samples_per_chunk\n        chunk = y[start:end]\n        if len(chunk) == 0:\n            continue\n        rms = np.sqrt(np.mean(chunk ** 2))\n        rms_db = 20 * np.log10(rms + 1e-9)\n        rms_chunks.append(float(np.round(rms_db, 2)))\n\n    # ✅ Write JSON only if path is provided\n    if json_output_path:\n        json_path = Path(json_output_path)\n        json_path.parent.mkdir(parents=True, exist_ok=True)\n        with open(json_path, \"w\") as f:\n            json.dump(rms_chunks, f)\n\n    return rms_chunks\n```\n"
+  },
+  {
+    "id": "func_analysis_rms_chunks.py_process_reference_track",
+    "filename": "analysis_rms_chunks.py",
+    "chunk_index": -1,
+    "text": "## Function: process_reference_track (analysis_rms_chunks.py)\n\n```python\ndef process_reference_track(ref_track_path, rms_json_output_dir):\n    # Define output JSON path (e.g., alongside ref track)\n    json_output_path = Path(rms_json_output_dir) / (Path(ref_track_path).stem + \"_rms.json\")\n\n    # Compute RMS chunks using your function\n    rms_chunks = compute_rms_chunks(str(ref_track_path), chunk_duration=0.5, json_output_path=str(json_output_path))\n\n    print(f\"Reference track RMS JSON saved at: {json_output_path}\")\n    return json_output_path\n```\n"
+  },
+  {
+    "id": "func_sessions.py_get_db",
+    "filename": "sessions.py",
+    "chunk_index": -1,
+    "text": "## Function: get_db (sessions.py)\n\n```python\ndef get_db():\n    db = SessionLocal()\n    try:\n        yield db\n    finally:\n        db.close()\n```\n"
+  },
+  {
+    "id": "func_sessions.py_create_or_get_session",
+    "filename": "sessions.py",
+    "chunk_index": -1,
+    "text": "## Function: create_or_get_session (sessions.py)\n\n```python\n@router.post(\"/\")\ndef create_or_get_session(\n    session_name: str = Body(...),\n    user_id: int = Body(...),\n    db: Session = Depends(get_db)\n):\n    existing = db.query(UserSession).filter_by(session_name=session_name, user_id=user_id).first()\n    if existing:\n        return {\"id\": existing.id, \"session_name\": existing.session_name}\n\n    session_id = str(uuid.uuid4())\n    new_session = UserSession(id=session_id, session_name=session_name, user_id=user_id)\n    db.add(new_session)\n    db.commit()\n    db.refresh(new_session)\n    return {\"id\": new_session.id, \"session_name\": new_session.session_name}\n```\n"
+  },
+  {
+    "id": "func_sessions.py_list_sessions",
+    "filename": "sessions.py",
+    "chunk_index": -1,
+    "text": "## Function: list_sessions (sessions.py)\n\n```python\n@router.get(\"/\")\ndef list_sessions(db: Session = Depends(get_db)):\n    sessions = db.query(UserSession).all()\n    return [{\"id\": s.id, \"session_name\": s.session_name} for s in sessions]\n```\n"
+  },
+  {
+    "id": "func_sessions.py_get_session",
+    "filename": "sessions.py",
+    "chunk_index": -1,
+    "text": "## Function: get_session (sessions.py)\n\n```python\n@router.get(\"/{id}\")\ndef get_session(id: str, db: Session = Depends(get_db)):\n    session = db.query(UserSession).filter(UserSession.id == id).first()\n    if not session:\n        raise HTTPException(status_code=404, detail=\"Session not found\")\n    return session\n```\n"
+  },
+  {
+    "id": "func_sessions.py_get_tracks_for_session",
+    "filename": "sessions.py",
+    "chunk_index": -1,
+    "text": "## Function: get_tracks_for_session (sessions.py)\n\n```python\n@router.get(\"/{id}/tracks\")\ndef get_tracks_for_session(\n    id: str,\n    type: str = Query(default=None, description=\"Filter by track type\"),\n    track_name: str = Query(default=None, description=\"Filter by partial name match\"),\n    sort_by: str = Query(default=\"uploaded_at\", enum=[\"uploaded_at\", \"track_name\"]),\n    sort_order: str = Query(default=\"desc\", enum=[\"asc\", \"desc\"]),\n    db: Session = Depends(get_db)\n):\n    try:\n        print(f\"🟡 Looking up session ID: {id}\")\n        session = db.query(UserSession).filter(UserSession.id == id).first()\n        if not session:\n            print(\"⚠️ No session found for that ID.\")\n            raise HTTPException(status_code=404, detail=\"Session not found\")\n\n\n        # ✅ FIX: Use correct ID for feedback query\n        feedback_lookup = {\n            msg.track_id: msg.message\n            for msg in db.query(ChatMessage)\n            .filter(ChatMessage.session_id == id, ChatMessage.sender == \"assistant\", ChatMessage.track_id != None)\n            .order_by(ChatMessage.timestamp.desc())\n            .all()\n        }\n\n        query = db.query(Track).filter(Track.session_id == id)\n\n        # Exclude reference tracks by name\n        query = query.filter(~Track.track_name.ilike('%(Reference)%'))\n\n        if type:\n            query = query.filter(Track.type.ilike(type))\n        if track_name:\n            query = query.filter(Track.track_name.ilike(f\"%{track_name}%\"))\n\n        if sort_by == \"uploaded_at\":\n            query = query.order_by(Track.uploaded_at.desc() if sort_order == \"desc\" else Track.uploaded_at.asc())\n        else:\n            query = query.order_by(Track.track_name.desc() if sort_order == \"desc\" else Track.track_name.asc())\n\n        tracks = query.all()\n\n        result = []\n        for track in tracks:\n            band_energies = {}\n            issues = []\n            analysis_data = None\n\n            if track.analysis:\n                try:\n                    band_energies = json.loads(track.analysis.band_energies or \"{}\")\n                except Exception as e:\n                    print(f\"⚠️ Failed to parse band_energies for track {track.id}: {e}\")\n\n                try:\n                    issues = json.loads(track.analysis.issues or \"[]\")\n                except Exception as e:\n                    print(f\"⚠️ Failed to parse issues for track {track.id}: {e}\")\n\n                analysis_data = {\n                    \"peak_db\": track.analysis.peak_db,\n                    \"rms_db\": track.analysis.rms_db_peak,\n                    \"lufs\": track.analysis.lufs,\n                    \"dynamic_range\": track.analysis.dynamic_range,\n                    \"stereo_width_ratio\": track.analysis.stereo_width_ratio,\n                    \"stereo_width\": track.analysis.stereo_width,\n                    \"key\": track.analysis.key,\n                    \"tempo\": track.analysis.tempo,\n                    \"low_end_energy_ratio\": track.analysis.low_end_energy_ratio,\n                    \"band_energies\": band_energies,\n                    \"issues\": issues,\n                }\n\n            result.append({\n                \"id\": track.id,\n                \"track_name\": track.track_name,\n                \"type\": track.type,\n                \"file_path\": track.file_path,\n                \"uploaded_at\": track.uploaded_at,\n                \"analysis\": analysis_data,\n                \"feedback\": feedback_lookup.get(track.id, \"\")\n            })\n\n        return result\n\n    except Exception as e:\n        print(\"❌ INTERNAL ERROR in /sessions/{id}/tracks:\", e)\n        raise HTTPException(status_code=500, detail=str(e))\n```\n"
+  },
+  {
+    "id": "func_sessions.py_update_session_name",
+    "filename": "sessions.py",
+    "chunk_index": -1,
+    "text": "## Function: update_session_name (sessions.py)\n\n```python\n@router.put(\"/{id}\")\ndef update_session_name(\n    id: str,\n    new_name: str = Form(...),\n    db: Session = Depends(get_db)\n):\n    session = db.query(UserSession).filter(UserSession.id == id).first()\n    if not session:\n        raise HTTPException(status_code=404, detail=\"Session not found\")\n    session.session_name = new_name\n    db.commit()\n    return {\"message\": \"Session updated\", \"session\": session}\n```\n"
+  },
+  {
+    "id": "func_sessions.py_delete_session",
+    "filename": "sessions.py",
+    "chunk_index": -1,
+    "text": "## Function: delete_session (sessions.py)\n\n```python\n@router.delete(\"/{id}\")\ndef delete_session(id: str, db: Session = Depends(get_db)):\n    session = db.query(UserSession).filter(UserSession.id == id).first()\n    if not session:\n        raise HTTPException(status_code=404, detail=\"Session not found\")\n\n    # Get all track IDs related to this session\n    track_ids = [t.id for t in db.query(Track.id).filter(Track.session_id == id).all()]\n\n    if track_ids:\n        # Delete chat messages related to these tracks\n        deleted_chats = db.query(ChatMessage).filter(ChatMessage.track_id.in_(track_ids)).delete(synchronize_session=False)\n        print(f\"Deleted {deleted_chats} chat messages linked to session {id}\")\n\n        # Delete analysis results related to these tracks\n        deleted_analysis = db.query(AnalysisResult).filter(AnalysisResult.track_id.in_(track_ids)).delete(synchronize_session=False)\n        print(f\"Deleted {deleted_analysis} analysis results linked to session {id}\")\n\n        # Delete tracks themselves\n        deleted_tracks = db.query(Track).filter(Track.session_id == id).delete(synchronize_session=False)\n        print(f\"Deleted {deleted_tracks} tracks linked to session {id}\")\n\n    # Finally delete the session itself\n    db.delete(session)\n    db.commit()\n\n    return {\"message\": f\"Session and all related tracks, analysis, and chats deleted\"}\n```\n"
+  },
+  {
+    "id": "func_tracks.py_get_db",
+    "filename": "tracks.py",
+    "chunk_index": -1,
+    "text": "## Function: get_db (tracks.py)\n\n```python\ndef get_db():\n    db = SessionLocal()\n    try:\n        yield db\n    finally:\n        db.close()\n```\n"
+  },
+  {
+    "id": "func_tracks.py_get_single_track",
+    "filename": "tracks.py",
+    "chunk_index": -1,
+    "text": "## Function: get_single_track (tracks.py)\n\n```python\n@router.get(\"/{track_id}\")\ndef get_single_track(track_id: str, db: Session = Depends(get_db)):\n    track = db.query(Track).filter(Track.id == track_id).first()\n    if not track:\n        raise HTTPException(status_code=404, detail=\"Track not found\")\n\n    return {\n        \"id\": track.id,\n        \"track_name\": track.track_name,\n        \"type\": track.type,\n        \"session_id\": track.session_id,\n        \"file_path\": track.file_path\n    }\n```\n"
+  },
+  {
+    "id": "func_tracks.py_update_track",
+    "filename": "tracks.py",
+    "chunk_index": -1,
+    "text": "## Function: update_track (tracks.py)\n\n```python\n@router.put(\"/{id}\")\ndef update_track(\n    id: str,\n    track_name: str = Form(...),\n    db: Session = Depends(get_db)\n):\n    track = db.query(Track).filter(Track.id == id).first()\n    if not track:\n        raise HTTPException(status_code=404, detail=\"Track not found\")\n    track.track_name = track_name\n    db.commit()\n    return {\"message\": \"Track updated\", \"track\": track}\n```\n"
+  },
+  {
+    "id": "func_tracks.py_delete_track",
+    "filename": "tracks.py",
+    "chunk_index": -1,
+    "text": "## Function: delete_track (tracks.py)\n\n```python\n@router.delete(\"/{id}\")\ndef delete_track(id: str, db: Session = Depends(get_db)):\n    print(\"Deleting track:\", id)\n    track = db.query(Track).filter(Track.id == id).first()\n    if not track:\n        raise HTTPException(status_code=404, detail=\"Track not found\")\n\n    # Delete associated analysis result if any\n    if track.analysis:\n        db.delete(track.analysis)\n\n    # Delete related chat messages\n    deleted_chats = db.query(ChatMessage).filter(ChatMessage.track_id == track.id).delete()\n    print(f\"Deleted {deleted_chats} chat messages for track {track.id}\")\n\n    # Safely delete file if file_path is set and file exists\n    if track.file_path:\n        try:\n            if os.path.exists(track.file_path):\n                os.remove(track.file_path)\n                print(f\"Deleted file: {track.file_path}\")\n            else:\n                print(f\"File path does not exist: {track.file_path}\")\n        except Exception as e:\n            print(f\"Warning: Failed to delete file {track.file_path}: {e}\")\n\n    # Delete track from DB\n    db.delete(track)\n    db.commit()\n\n    return {\"message\": \"Track, analysis, and chat messages deleted\"}\n```\n"
+  },
+  {
+    "id": "func_upload.py_upload_audio",
+    "filename": "upload.py",
+    "chunk_index": -1,
+    "text": "## Function: upload_audio (upload.py)\n\n```python\n@router.post(\"/\")\ndef upload_audio(\n    file: UploadFile = File(...),\n    ref_file: Optional[UploadFile] = File(None),\n    session_id: str = Form(...),\n    session_name: Optional[str] = Form(default=\"Untitled Session\"),\n    track_name: Optional[str] = Form(default=None),\n    type: str = Form(...),\n    genre: str = Form(...),\n    subgenre: Optional[str] = Form(default=None),\n    feedback_profile: str = Form(...),\n):\n    # Normalize inputs\n    session_id = normalize_session_name(session_id)\n    session_name = normalize_session_name(session_name)\n    type = type.strip().lower()\n    genre = normalize_genre(genre)\n    subgenre = normalize_subgenre(subgenre) if subgenre else \"\"\n    feedback_profile = normalize_profile(feedback_profile)\n    group_id = str(uuid.uuid4())\n\n    try:\n        print(\"Incoming upload:\", {\n            \"session_id\": session_id,\n            \"track_name\": track_name,\n            \"type\": type,\n            \"genre\": genre,\n            \"subgenre\": subgenre,\n            \"feedback_profile\": feedback_profile\n        })\n\n        # Save original track\n        ext = os.path.splitext(file.filename)[1]\n        timestamped_name = f\"{int(time.time())}_{file.filename}\"\n        file_location = os.path.join(UPLOAD_FOLDER, timestamped_name)\n        with open(file_location, \"wb\") as buffer:\n            shutil.copyfileobj(file.file, buffer)\n\n        # Save reference track if uploaded\n        ref_file_location = None\n        ref_analysis = None\n        ref_timestamped_name = None\n\n        if ref_file and ref_file.filename:\n            ref_ext = os.path.splitext(ref_file.filename)[1]\n            ref_timestamped_name = f\"{int(time.time())}_ref_{ref_file.filename}\"\n            ref_file_location = os.path.join(UPLOAD_FOLDER, ref_timestamped_name)\n            with open(ref_file_location, \"wb\") as buffer:\n                shutil.copyfileobj(ref_file.file, buffer)\n\n            ref_analysis = analyze_audio(ref_file_location, genre=genre)\n        else:\n            ref_file_location = None\n            ref_analysis = None\n\n        print(\"Passing ref_analysis to prompt:\", ref_analysis is not None)\n\n            # Optional: delete reference file after analysis if you don't want to keep it on disk\n            # os.remove(ref_file_location)\n\n        BASE_DIR = Path(__file__).resolve().parents[3]\n        rms_filename = f\"{timestamped_name}_rms.json\"\n        rms_output_path = BASE_DIR / \"frontend-html\" / \"static\" / \"analysis\" / rms_filename\n        compute_rms_chunks(file_location, json_output_path=str(rms_output_path))\n        print(\"✅ RMS saved to:\", rms_output_path)\n\n        # Analyze original track\n        analysis = analyze_audio(file_location, genre=genre)\n\n        # Database operations\n        db = SessionLocal()\n\n        # Cleanup old main track files for the same session before saving new upload\n        old_tracks = db.query(Track).filter(Track.session_id == session_id).all()\n        for old_track in old_tracks:\n            # Delete audio file\n            try:\n                if old_track.file_path and os.path.exists(old_track.file_path):\n                    os.remove(old_track.file_path)\n                    print(f\"Deleted old main track file: {old_track.file_path}\")\n            except Exception as e:\n                print(f\"Error deleting old main track file {old_track.file_path}: {e}\")\n\n        existing_session = db.query(UserSession).filter(UserSession.id == session_id).first()\n        if not existing_session:\n            new_session = UserSession(id=session_id, user_id=1, session_name=session_name)\n            db.add(new_session)\n            db.commit()\n\n        filename_without_ext = os.path.splitext(file.filename)[0]\n        safe_name = safe_track_name(filename_without_ext, file.filename)\n        track_name = track_name or safe_name\n\n        track = Track(\n            session_id=session_id,\n            track_name=track_name,\n            file_path=file_location,\n            type=type.lower(),\n            upload_group_id = group_id\n        )\n        db.add(track)\n        db.commit()\n        db.refresh(track)\n\n        result = AnalysisResult(track_id=track.id, **analysis)\n        db.add(result)\n        db.commit()\n\n        print(\"Analysis data for main track:\", analysis)\n        if ref_file_location:\n            # Analyze reference track first\n            ref_analysis = analyze_audio(ref_file_location, genre=genre)\n            print(\"Reference track analysis data:\", ref_analysis)\n\n            # Create the reference track in DB with same upload_group_id\n            ref_track_name = f\"{track_name} (Reference)\"\n            ref_track = Track(\n                session_id=session_id,\n                track_name=ref_track_name,\n                file_path=ref_file_location,\n                type=\"reference\",\n                upload_group_id=group_id  # assign the same group id here!\n            )\n            db.add(ref_track)\n            db.commit()\n            db.refresh(ref_track)\n\n            # Save analysis result for reference track\n            ref_result = AnalysisResult(track_id=ref_track.id, **ref_analysis)\n            db.add(ref_result)\n            db.commit()\n        else:\n            ref_analysis = None\n\n        print(\"Passing ref_analysis to prompt:\", ref_analysis is not None)\n\n        # Generate GPT feedback with both original and ref analysis\n        prompt = generate_feedback_prompt(\n            genre=genre,\n            subgenre=subgenre,\n            type=type,\n            analysis_data=analysis,\n            feedback_profile=feedback_profile,\n            ref_analysis_data=ref_analysis  # pass ref analysis here\n        )\n\n        feedback = generate_feedback_response(prompt)\n\n        chat = ChatMessage(\n            session_id=session_id,\n            track_id=track.id,\n            sender=\"assistant\",\n            message=feedback,\n            feedback_profile=feedback_profile\n        )\n        db.add(chat)\n        db.commit()\n        db.close()\n\n        return {\n            \"track_name\": track_name,\n            \"genre\": genre,\n            \"subgenre\": subgenre,\n            \"type\": type,\n            \"analysis\": analysis,\n            \"ref_analysis\": ref_analysis,  # included in response\n            \"feedback\": feedback,\n            \"track_path\": f\"/uploads/{timestamped_name}\",\n            \"ref_track_path\": f\"/uploads/{ref_timestamped_name}\" if ref_timestamped_name else None,\n            \"rms_path\": f\"/static/analysis/{rms_filename}\"\n        }\n\n\n    except Exception as e:\n        import traceback\n        traceback.print_exc()  # prints full stack trace in console\n        print(\"UPLOAD ERROR:\", e)\n        return JSONResponse(status_code=500, content={\"detail\": str(e)})\n```\n"
+  },
+  {
+    "id": "func_export.py_get_db",
+    "filename": "export.py",
+    "chunk_index": -1,
+    "text": "## Function: get_db (export.py)\n\n```python\ndef get_db():\n    db = SessionLocal()\n    try:\n        yield db\n    finally:\n        db.close()\n```\n"
+  },
+  {
+    "id": "func_export.py_get_feedback_text",
+    "filename": "export.py",
+    "chunk_index": -1,
+    "text": "## Function: get_feedback_text (export.py)\n\n```python\ndef get_feedback_text(session_id: str, track_id: str, db: Session) -> str:\n    messages = (\n        db.query(ChatMessage)\n        .filter_by(session_id=session_id, track_id=track_id, sender='assistant')\n        .order_by(ChatMessage.timestamp)\n        .all()\n    )\n    return \"\\n\\n\".join(msg.message for msg in messages)\n```\n"
+  },
+  {
+    "id": "func_export.py_generate_preset_text_from_feedback",
+    "filename": "export.py",
+    "chunk_index": -1,
+    "text": "## Function: generate_preset_text_from_feedback (export.py)\n\n```python\ndef generate_preset_text_from_feedback(feedback_text: str) -> str:\n    prompt = f\"\"\"\n\nHere is the AI feedback you generated previously:\n\n\\\"\\\"\\\"\n{feedback_text}\n\\\"\\\"\\\"\n\nYou are generating a report for ZoundZcope AI.\n\nPlease output the content exactly as follows, with these section headings and formatting:\n\n---\n\nZoundZcope AI\n\nMixing & Mastering Feedback and Presets Report\n\nAI Feedback:\n\n- ISSUE:\n  [Describe the issue clearly in a few sentences.]\n\n- IMPROVEMENT:\n  [Describe the suggested improvement clearly.]\n\n(Repeat multiple ISSUE and IMPROVEMENT pairs as needed.)\n\nRecommended Ableton Preset Parameters:\n\nEQ8:\n- Band 1: [parameters like frequency, gain, Q, shelf/bell + a brief note in brackets]\n- Band 2: [parameters like frequency, gain, Q, shelf/bell + a brief note in brackets]\n(Repeat for more bands if needed)\n\nCompressor:\n- Threshold: [value]\n- Ratio: [value]\n- Attack: [value]\n- Release: [value]\n- Makeup Gain: [value]\n\nTransient Shaper:\n- [Parameters]: [value]\n(Repeat for more parameters if needed)\n\nMultiband Dynamics:\n- [Parameters]: [value]\n(Repeat for more parameters if needed)\n\nLimiter:\n- [Parameters]: [value]\n(Repeat for more parameters if needed)\n\nUtils:\n- [Parameters]: [value]\n(Repeat for more parameters if needed)\n\n\n(Include plugins relevant to the feedback. Provide brief notes in parentheses explaining the purpose of adjustments.)\n\n---\n\nNotes:\n\n- Use exactly the headings and labels shown above.\n- Keep \"ZoundZcope AI\" as the main title.\n- Use \"Mixing & Mastering Feedback and Presets Report\" as the subtitle.\n- Use \"AI Feedback:\" and \"Recommended Ableton Preset Parameters:\" as section headers.\n- Use uppercase \"ISSUE:\" and \"IMPROVEMENT:\" labels.\n- List plugin names like \"EQ8:\" and \"Compressor:\" exactly as shown.\n- Use simple bullet points with dashes (-) for parameters.\n- Do NOT include any markdown formatting, HTML tags, or extra decorations.\n- Only output plain text with line breaks as shown.\n\nGenerate the content now:\n\"\"\"\n    return generate_feedback_response(prompt)\n```\n"
+  },
+  {
+    "id": "func_export.py_draw_wrapped_text",
+    "filename": "export.py",
+    "chunk_index": -1,
+    "text": "## Function: draw_wrapped_text (export.py)\n\n```python\ndef draw_wrapped_text(p, text, x, y, max_width, line_height=14):\n    lines = simpleSplit(text, \"Helvetica\", 10, max_width)\n    for line in lines:\n        if y < 50:\n            p.showPage()\n            y = letter[1] - 40\n            p.setFont(\"Helvetica\", 10)\n        p.drawString(x, y, line)\n        y -= line_height\n    return y\n```\n"
+  },
+  {
+    "id": "func_export.py_create_pdf",
+    "filename": "export.py",
+    "chunk_index": -1,
+    "text": "## Function: create_pdf (export.py)\n\n```python\ndef create_pdf(full_report_text: str) -> BytesIO:\n    buffer = BytesIO()\n    doc = SimpleDocTemplate(buffer, pagesize=letter,\n                            rightMargin=40, leftMargin=40,\n                            topMargin=40, bottomMargin=40)\n\n    # Define styles\n    styles = getSampleStyleSheet()\n\n    company_title_style = ParagraphStyle(\n        'CompanyTitle',\n        fontName='Helvetica-Bold',\n        fontSize=24,\n        leading=28,\n        alignment=TA_CENTER,\n        spaceAfter=20\n    )\n\n    subheadline_style = ParagraphStyle(\n        'Subheadline',\n        fontName='Helvetica-Bold',\n        fontSize=16,\n        leading=20,\n        alignment=TA_CENTER,\n        spaceAfter=18\n    )\n\n    section_header_style = ParagraphStyle(\n        'SectionHeader',\n        fontName='Helvetica-Bold',\n        fontSize=12,\n        leading=14,\n        spaceAfter=10\n    )\n\n    uppercase_bold_style = ParagraphStyle(\n        'UppercaseBold',\n        fontName='Helvetica-Bold',\n        fontSize=10,\n        leading=14,\n        spaceAfter=6\n    )\n\n    normal_style = ParagraphStyle(\n        'Normal',\n        fontName='Helvetica',\n        fontSize=10,\n        leading=14,\n        spaceAfter=6\n    )\n\n    plugin_name_style = ParagraphStyle(\n        'PluginName',\n        fontName='Helvetica-Bold',\n        fontSize=10,\n        leading=14,\n        spaceAfter=2\n    )\n\n    plugin_data_style = ParagraphStyle(\n        'PluginData',\n        fontName='Helvetica',\n        fontSize=10,\n        leading=14,\n        leftIndent=12,\n        spaceAfter=2\n    )\n\n    elements = []\n\n    # Split lines\n    lines = [line.strip() for line in full_report_text.strip().split(\"\\n\")]\n\n    # For grouping bullet points (plugin parameters)\n    bullet_group = []\n\n    def flush_bullet_group():\n        nonlocal bullet_group\n        if bullet_group:\n            bullet_items = [ListItem(Paragraph(item, plugin_data_style)) for item in bullet_group]\n            elements.append(ListFlowable(bullet_items, bulletType='bullet'))\n            bullet_group = []\n\n    for line in lines:\n        if not line:\n            flush_bullet_group()\n            elements.append(Spacer(1, 8))\n            continue\n\n        # Company title\n        if line.lower().startswith(\"zoundzcope ai\"):\n            flush_bullet_group()\n            elements.append(Paragraph(line, company_title_style))\n            continue\n\n        # Subheadline\n        if \"feedback and presets report\" in line.lower():\n            flush_bullet_group()\n            elements.append(Paragraph(line, subheadline_style))\n            continue\n\n        # Section headers\n        if line in [\"AI Feedback:\", \"Recommended Ableton Preset Parameters:\"]:\n            flush_bullet_group()\n            elements.append(Paragraph(line, section_header_style))\n            continue\n\n        # Uppercase ISSUE / IMPROVEMENT labels\n        if line.startswith(\"- ISSUE:\") or line.startswith(\"- IMPROVEMENT:\"):\n            flush_bullet_group()\n            label, _, rest = line.partition(\":\")\n            label = label.replace(\"- \", \"\").upper() + \":\"\n            elements.append(Paragraph(label, uppercase_bold_style))\n            if rest.strip():\n                elements.append(Paragraph(rest.strip(), normal_style))\n            continue\n\n        # Plugin names (bold)\n        if any(line.startswith(plugin) for plugin in [\"EQ8:\", \"Compressor:\", \"Glue Compressor:\", \"Limiter:\", \"Multiband Dynamics:\", \"Utils:\"]):\n            flush_bullet_group()\n            elements.append(Paragraph(line, plugin_name_style))\n            continue\n\n        # Plugin data bullet points (collect in group)\n        if line.startswith(\"- \"):\n            bullet_group.append(line[2:].strip())\n            continue\n\n        # Default normal text\n        flush_bullet_group()\n        elements.append(Paragraph(line, normal_style))\n\n    # Flush leftover bullets at the end\n    flush_bullet_group()\n\n    doc.build(elements)\n    buffer.seek(0)\n    return buffer\n```\n"
+  },
+  {
+    "id": "func_export.py_export_feedback_presets",
+    "filename": "export.py",
+    "chunk_index": -1,
+    "text": "## Function: export_feedback_presets (export.py)\n\n```python\n@router.get(\"/export-feedback-presets\")\ndef export_feedback_presets(\n    session_id: str = Query(...),\n    track_id: str = Query(...),\n    db: Session = Depends(get_db)\n):\n    print(f\"Export request for session {session_id}, track {track_id}\")\n\n    # Fetch the track object\n    track = db.query(Track).filter(Track.id == track_id).first()\n    if not track:\n        raise HTTPException(status_code=404, detail=\"Track not found\")\n\n    # Detect if this is a reference track by name or however you identify it\n    if \"(Reference)\" in (track.track_name or \"\"):\n        # Find main track(s) for this session excluding reference tracks\n        main_track = (\n            db.query(Track)\n            .filter(\n                Track.session_id == session_id,\n                ~Track.track_name.contains(\"(Reference)\"),\n            )\n            .order_by(Track.uploaded_at.desc())\n            .first()\n        )\n\n        if not main_track:\n            raise HTTPException(\n                status_code=404,\n                detail=\"No main track found for this session to export feedback\",\n            )\n        print(f\"Reference track detected, switching export to main track {main_track.id}\")\n        track_id = main_track.id\n\n    # Now fetch feedback messages for the track_id (could be original or switched)\n    messages = (\n        db.query(ChatMessage)\n        .filter_by(session_id=session_id, track_id=track_id, sender='assistant')\n        .order_by(ChatMessage.timestamp)\n        .all()\n    )\n\n    if not messages:\n        raise HTTPException(status_code=404, detail=\"No feedback found for this session and track\")\n\n    feedback_text = \"\\n\\n\".join(msg.message for msg in messages)\n\n    full_report = generate_preset_text_from_feedback(feedback_text)\n    pdf_buffer = create_pdf(full_report)\n\n    return StreamingResponse(\n        pdf_buffer,\n        media_type=\"application/pdf\",\n        headers={\n            \"Content-Disposition\": f\"attachment; filename=feedback_presets_{session_id}_{track_id}.pdf\"\n        }\n    )\n```\n"
+  },
+  {
+    "id": "func_export.py_flush_bullet_group",
+    "filename": "export.py",
+    "chunk_index": -1,
+    "text": "## Function: flush_bullet_group (export.py)\n\n```python\n    def flush_bullet_group():\n        nonlocal bullet_group\n        if bullet_group:\n            bullet_items = [ListItem(Paragraph(item, plugin_data_style)) for item in bullet_group]\n            elements.append(ListFlowable(bullet_items, bulletType='bullet'))\n            bullet_group = []\n```\n"
+  },
+  {
+    "id": "func_chat.py_get_db",
+    "filename": "chat.py",
+    "chunk_index": -1,
+    "text": "## Function: get_db (chat.py)\n\n```python\ndef get_db():\n    db = SessionLocal()\n    try:\n        yield db\n    finally:\n        db.close()\n```\n"
+  },
+  {
+    "id": "func_chat.py_get_feedback",
+    "filename": "chat.py",
+    "chunk_index": -1,
+    "text": "## Function: get_feedback (chat.py)\n\n```python\n@router.get(\"/generate_feedback\")\ndef get_feedback(\n    track_id: str = Form(...),\n    session_id: str = Form(...),\n    genre: str = Form(...),\n    type: str = Form(...),\n    feedback_profile: str = Form(...),\n    db: Session = Depends(get_db)\n):\n    \"\"\"\n    Handle a request to generate AI mixing/mastering feedback for a given audio track.\n\n    This function normalizes user inputs, fetches audio analysis data, builds\n    an AI prompt, sends it for feedback generation, saves the feedback in the\n    database, and returns it to the client.\n\n    Parameters:\n        track_id (str): Unique identifier of the audio track.\n        session_id (str): Current user session identifier.\n        genre (str): Genre of the track, used to tailor feedback.\n        type (str): Feedback type ('mixdown', 'mastering', 'master review').\n        feedback_profile (str): Detail level ('simple', 'detailed', 'pro').\n        db (Session): Database session for querying track data.\n\n    Returns:\n        dict: JSON response containing AI feedback text, or error message if analysis not found.\n    \"\"\"\n\n    genre = normalize_genre(genre)\n    type = normalize_type(type)\n    feedback_profile = normalize_profile(feedback_profile)\n\n    # Fetch track and analysis\n    track = db.query(Track).filter(Track.id == track_id).first()\n    if not track or not track.analysis:\n        return {\"error\": \"Track analysis not found\"}\n\n    analysis = {\n        \"peak_db\": track.analysis.peak_db,\n        \"rms_db\": track.analysis.rms_db,\n        \"lufs\": track.analysis.lufs,\n        \"dynamic_range\": track.analysis.dynamic_range,\n        \"stereo_width\": track.analysis.stereo_width,\n        \"key\": track.analysis.key,\n        \"tempo\": track.analysis.tempo,\n        \"low_end_energy_ratio\": track.analysis.low_end_energy_ratio,\n        \"bass_profile\": track.analysis.bass_profile,\n        \"band_energies\": json.loads(track.analysis.band_energies),\n        \"issues\": json.loads(track.analysis.issues),\n    }\n\n    prompt = generate_feedback_prompt(genre, type, analysis, feedback_profile)\n    feedback = generate_feedback_response(prompt)\n\n    chat = ChatMessage(\n        session_id=session_id,\n        track_id=track.id,\n        sender=\"assistant\",\n        message=feedback,\n        feedback_profile=feedback_profile\n    )\n    db.add(chat)\n    db.commit()\n\n    return {\"feedback\": feedback}\n```\n"
+  },
+  {
+    "id": "func_chat.py_ask_followup",
+    "filename": "chat.py",
+    "chunk_index": -1,
+    "text": "## Function: ask_followup (chat.py)\n\n```python\n@router.post(\"/ask-followup\")\ndef ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):\n    \"\"\"\n        Fetches the main track and optional reference track analysis from the database.\n        Retrieves the previous follow-up summary if available to provide context for the AI prompt.\n\n        Parameters:\n            req (FollowUpRequest): The follow-up request containing session, track, and follow-up group info.\n            db (Session): Database session for querying data.\n\n        Returns:\n            tuple: (main_track, ref_analysis, summary_text)\n                main_track: The primary Track object or None if not found.\n                ref_analysis: Dict of reference track analysis data or None.\n                summary_text: Previous follow-up summary string or empty string.\n        \"\"\"\n\n    profile = normalize_profile(req.feedback_profile)\n    user_question = sanitize_user_question(req.user_question)\n\n    # 1. Fetch main track\n    main_track = db.query(Track).filter(Track.id == req.track_id).first()\n    if not main_track:\n        raise HTTPException(status_code=404, detail=\"Main track not found\")\n\n    # 2. Fetch reference track by upload_group_id\n    ref_track = (\n        db.query(Track)\n        .filter(\n            Track.upload_group_id == main_track.upload_group_id,\n            Track.type == \"reference\"\n        )\n        .order_by(Track.uploaded_at.desc())\n        .first()\n    )\n\n    ref_analysis = None\n    if ref_track and ref_track.analysis:\n        ref_analysis = {\n            \"peak_db\": ref_track.analysis.peak_db,\n            \"rms_db_peak\": ref_track.analysis.rms_db_peak,\n            \"lufs\": ref_track.analysis.lufs,\n            \"transient_description\": ref_track.analysis.transient_description,\n            \"spectral_balance_description\": ref_track.analysis.spectral_balance_description,\n            \"dynamic_range\": ref_track.analysis.dynamic_range,\n            \"stereo_width\": ref_track.analysis.stereo_width,\n            \"low_end_description\": ref_track.analysis.low_end_description,\n            # add other needed fields...\n        }\n\n    # 3. Retrieve previous follow-up summary if applicable\n    summary_text = \"\"\n    if req.followup_group > 0:\n        summary_msg = (\n            db.query(ChatMessage)\n            .filter_by(\n                session_id=req.session_id,\n                track_id=req.track_id,\n                followup_group=req.followup_group - 1,\n                sender=\"assistant\",\n                feedback_profile=\"summary\"\n            )\n            .order_by(ChatMessage.timestamp.desc())\n            .first()\n        )\n        print(f\"Previous summary message for group {req.followup_group - 1}: {summary_msg.message if summary_msg else 'None'}\")\n        if summary_msg:\n            summary_text = summary_msg.message\n\n    # 3. Build prompt including ref_analysis data and summary\n    prompt = build_followup_prompt(\n        analysis_text=req.analysis_text,\n        feedback_text=req.feedback_text,\n        user_question=user_question,\n        thread_summary=summary_text,\n        ref_analysis_data=req.ref_analysis_data\n    )\n\n    try:\n        ai_response = generate_feedback_response(prompt)\n        print(\"GPT response:\", ai_response)\n    except Exception as e:\n        print(\"❌ GPT call failed:\", e)\n        raise HTTPException(status_code=500, detail=\"AI follow-up failed\")\n\n    # Save user message\n    user_msg = ChatMessage(\n        session_id=req.session_id,\n        track_id=req.track_id,\n        sender=\"user\",\n        message=user_question,\n        feedback_profile=profile,\n        followup_group=req.followup_group\n    )\n    db.add(user_msg)\n\n    # Save AI assistant response\n    assistant_msg = ChatMessage(\n        session_id=req.session_id,\n        track_id=req.track_id,\n        sender=\"assistant\",\n        message=ai_response,\n        feedback_profile=profile,\n        followup_group=req.followup_group\n    )\n    db.add(assistant_msg)\n    db.commit()\n\n\n    # --- Automatic summary creation after 4 user follow-ups ---\n    user_msgs_count = (\n        db.query(ChatMessage)\n        .filter_by(\n            session_id=req.session_id,\n            track_id=req.track_id,\n            followup_group=req.followup_group,\n            sender=\"user\"\n        )\n        .count()\n    )\n\n    response_data = {\"answer\": ai_response}\n\n    existing_summary = (\n        db.query(ChatMessage)\n        .filter_by(\n            session_id=req.session_id,\n            track_id=req.track_id,\n            followup_group=req.followup_group,\n            sender=\"assistant\",\n            feedback_profile=\"summary\"\n        )\n        .first()\n    )\n\n    if user_msgs_count >= 2 and not existing_summary:\n        # Fetch all messages in this group (user + assistant)\n        msgs = (\n            db.query(ChatMessage)\n            .filter_by(\n                session_id=req.session_id,\n                track_id=req.track_id,\n                followup_group=req.followup_group,\n            )\n            .order_by(ChatMessage.timestamp)\n            .all()\n        )\n\n        conversation = \"\\n\".join(\n            f\"{'User' if msg.sender == 'user' else 'Assistant'}: {msg.message}\"\n            for msg in msgs\n        )\n\n        summary_prompt = f\"\"\"\nSummarize this follow-up thread (up to 4 user questions and assistant responses) into a concise overall improvement strategy:\n\n{conversation}\n\"\"\"\n\n        print(f\"Generating summary for followup_group {req.followup_group} with conversation:\\n{conversation}\")\n\n        summary_text = generate_feedback_response(summary_prompt)\n\n        print(f\"✅ Auto summary saved for followup_group {req.followup_group}\")\n        print(f\"Summary content:\\n{summary_text}\\n{'-'*40}\")\n\n        summary_msg = ChatMessage(\n            session_id=req.session_id,\n            track_id=req.track_id,\n            sender=\"assistant\",\n            message=summary_text,\n            feedback_profile=\"summary\",\n            followup_group=req.followup_group\n        )\n        db.add(summary_msg)\n        db.commit()\n\n        response_data[\"summary_created\"] = True\n\n    return response_data\n```\n"
+  },
+  {
+    "id": "func_chat.py_get_messages_for_track",
+    "filename": "chat.py",
+    "chunk_index": -1,
+    "text": "## Function: get_messages_for_track (chat.py)\n\n```python\n@router.get(\"/tracks/{track_id}/messages\")\ndef get_messages_for_track(track_id: str, db: Session = Depends(get_db)):\n    track = db.query(Track).filter_by(id=track_id).first()\n    if not track:\n        raise HTTPException(status_code=404, detail=\"Track not found\")\n\n    messages = (\n        db.query(ChatMessage)\n        .filter(ChatMessage.track_id == track_id)\n        .order_by(ChatMessage.timestamp.asc())\n        .all()\n    )\n\n    print(f\"DEBUG: Found {len(messages)} messages for track_id={track_id}\")\n    for msg in messages:\n        print(f\"DEBUG: message id={msg.id} content={msg.message[:30]}\")\n\n    return [\n        {\n            \"sender\": msg.sender,\n            \"message\": msg.message,\n            \"feedback_profile\": msg.feedback_profile,\n            \"type\": track.type,\n            \"track_name\": track.track_name\n        }\n        for msg in messages\n    ]\n```\n"
+  },
+  {
+    "id": "func_chat.py_summarize_thread",
+    "filename": "chat.py",
+    "chunk_index": -1,
+    "text": "## Function: summarize_thread (chat.py)\n\n```python\n@router.post(\"/summarize-thread\")\ndef summarize_thread(req: SummarizeRequest, db: Session = Depends(get_db)):\n    \"\"\"\n        Generate a summary of a follow-up conversation thread.\n\n        Retrieves chat messages for a given session, track, and follow-up group,\n        then uses AI to summarize the thread into a concise improvement strategy.\n\n        Parameters:\n            req (SummarizeRequest): Contains session_id, track_id, and followup_group.\n            db (Session): Database session for querying chat messages.\n\n        Returns:\n            dict: A JSON response with the AI-generated summary or a message if\n                  no follow-up messages are found.\n        \"\"\"\n    print(f\"Summarize request: session_id={req.session_id}, track_id={req.track_id}, group={req.followup_group}\")\n    messages = (\n        db.query(ChatMessage)\n        .filter_by(session_id=req.session_id, track_id=req.track_id, followup_group=req.followup_group)\n        .order_by(ChatMessage.timestamp)\n        .all()\n    )\n    print(f\"Found {len(messages)} messages\")\n    # Count only user messages as \"follow-up\" messages\n    user_msgs = [msg for msg in messages if msg.sender == \"user\"]\n\n    if not user_msgs:\n        return {\"summary\": \"No follow-up messages found for this thread to summarize.\"}\n\n    thread = []\n    for msg in messages:\n        if msg.sender == \"user\":\n            thread.append({\"role\": \"user\", \"content\": msg.message})\n        else:\n            thread.append({\"role\": \"assistant\", \"content\": msg.message})\n\n    conversation = \"\\n\".join([f\"{m['role'].capitalize()}: {m['content']}\" for m in thread])\n    print(f\"Conversation for summarization:\\n{conversation}\")\n\n    if not conversation.strip():\n        return {\"summary\": \"No follow-up messages found for this thread to summarize.\"}\n\n    prompt = f\"\"\"\nSummarize this follow-up thread (5 user questions with assistant responses) into a concise overall improvement strategy:\n\n{conversation}\n\"\"\"\n\n    summary = generate_feedback_response(prompt)\n    return {\"summary\": summary}\n```\n"
+  },
+  {
+    "id": "func_chat.py_test",
+    "filename": "chat.py",
+    "chunk_index": -1,
+    "text": "## Function: test (chat.py)\n\n```python\n@router.get(\"/test\")\ndef test():\n    return {\"message\": \"Chat router works\"}\n```\n"
   }
 ]
