@@ -1,0 +1,242 @@
+[
+  {
+    "id": "chunk_1",
+    "filename": "10_limitations.md",
+    "chunk_index": 0,
+    "text": "# 10. Suggested Gaps / Limitations\n\n10. Suggested Gaps / Limitations"
+  },
+  {
+    "id": "chunk_2",
+    "filename": "10_limitations.md",
+    "chunk_index": 1,
+    "text": "# Security and Privacy\n\nSecurity and Privacy\n\n- No user accounts or authentication yet.  \n- Uploaded audio and feedback data are deleted automatically after 2 days.  \n- Focus is on AI integration; privacy/security is minimal currently."
+  },
+  {
+    "id": "chunk_3",
+    "filename": "10_limitations.md",
+    "chunk_index": 2,
+    "text": "# Performance & Scalability\n\nPerformance & Scalability\n\n- Supports MP3, WAV, AIFF up to 48kHz/24bit.  \n- Intended for single tracks, not full mixes or albums.  \n- No concurrency optimization implemented.  \n- No length limit, but performance may degrade with very long audio."
+  },
+  {
+    "id": "chunk_4",
+    "filename": "10_limitations.md",
+    "chunk_index": 3,
+    "text": "# Extensibility\n\nExtensibility\n\n- Fixed roles and profiles; no UI or config for adding new ones.  \n- Changes require backend code modification.  \n- AI model integration currently tied to OpenAI API."
+  },
+  {
+    "id": "chunk_5",
+    "filename": "10_limitations.md",
+    "chunk_index": 4,
+    "text": "# User Interface Customization\n\nUser Interface Customization\n\n- Follow-up question chips are pre-selected based on audio type, genre, and profile.  \n- No user customization for questions or UI elements.  \n- Future improvements could add config/admin options."
+  },
+  {
+    "id": "chunk_6",
+    "filename": "09_additional_features.md",
+    "chunk_index": 0,
+    "text": "# 9. Additional Features\n\n9. Additional Features"
+  },
+  {
+    "id": "chunk_7",
+    "filename": "09_additional_features.md",
+    "chunk_index": 1,
+    "text": "# Plugin Preset Export\n\nPlugin Preset Export\n\nFeedback suggestions can be exported as plugin presets to help users implement recommendations."
+  },
+  {
+    "id": "chunk_8",
+    "filename": "09_additional_features.md",
+    "chunk_index": 2,
+    "text": "# Genre/Subgenre Management\n\nGenre/Subgenre Management\n\nDropdowns provide selection of main genres and subgenres to customize feedback style."
+  },
+  {
+    "id": "chunk_9",
+    "filename": "09_additional_features.md",
+    "chunk_index": 3,
+    "text": "# Info & Documentation Pages\n\nInfo & Documentation Pages\n\nAccess pages explaining transparency reports comparing manual and automated analysis."
+  },
+  {
+    "id": "chunk_10",
+    "filename": "05_followup_qa_chat.md",
+    "chunk_index": 0,
+    "text": "# 5. Follow-Up Q&A Chat System\n\n5. Follow-Up Q&A Chat System"
+  },
+  {
+    "id": "chunk_11",
+    "filename": "05_followup_qa_chat.md",
+    "chunk_index": 1,
+    "text": "# Asking Follow-Up Questions\n\nAsking Follow-Up Questions\n\n- Enter free-text custom questions about the feedback.  \n- Or use predefined question chips for common queries."
+  },
+  {
+    "id": "chunk_12",
+    "filename": "05_followup_qa_chat.md",
+    "chunk_index": 2,
+    "text": "# Chat Context Management\n\nChat Context Management\n\n- The AI keeps context of initial feedback and any reference track analysis.  \n- Summarizes the conversation internally after every 3 follow-ups to keep the conversation concise.\n- Users can manually request summarization but not twice in a row."
+  },
+  {
+    "id": "chunk_13",
+    "filename": "05_followup_qa_chat.md",
+    "chunk_index": 3,
+    "text": "# Exporting Feedback\n\nExporting Feedback\n\nUsers can export the full feedback and related plugin presets as a PDF file."
+  },
+  {
+    "id": "chunk_14",
+    "filename": "03_analysis_and_metrics.md",
+    "chunk_index": 0,
+    "text": "# 3. Analysis and Metrics Explained\n\n3. Analysis and Metrics Explained"
+  },
+  {
+    "id": "chunk_15",
+    "filename": "03_analysis_and_metrics.md",
+    "chunk_index": 1,
+    "text": "# Audio Processing Steps\n\nAudio Processing Steps\n\n- Load audio file and convert to mono for analysis where needed.  \n- Normalize certain metrics for consistency.  \n- Extract peak level, loudness (LUFS), RMS average and peak.  \n- Detect tempo and musical key.  \n- Measure dynamic range and stereo width.  \n- Compute spectral band energies and low-end profile.  \n- Analyze transient strengths and generate peak warnings."
+  },
+  {
+    "id": "chunk_16",
+    "filename": "03_analysis_and_metrics.md",
+    "chunk_index": 2,
+    "text": "# Importance for Mixing vs Mastering\n\nImportance for Mixing vs Mastering\n\nEach metric informs different aspects of mixing and mastering:  \n- Peak and RMS indicate levels and headroom.  \n- LUFS relates to perceived loudness.  \n- Tempo and key help with musical context.  \n- Dynamic range and stereo width influence perceived depth and space.  \n- Spectral and transient info guide tonal balance and punch."
+  },
+  {
+    "id": "chunk_17",
+    "filename": "02_uploading_tracks_sessions.md",
+    "chunk_index": 0,
+    "text": "# 2. Uploading Tracks and Sessions\n\n2. Uploading Tracks and Sessions"
+  },
+  {
+    "id": "chunk_18",
+    "filename": "02_uploading_tracks_sessions.md",
+    "chunk_index": 1,
+    "text": "# Track Upload Flow\n\nTrack Upload Flow\n\n- Upload your main audio track (mixdown or master).  \n- Optionally upload a reference track to guide the feedback towards a desired sound."
+  },
+  {
+    "id": "chunk_19",
+    "filename": "02_uploading_tracks_sessions.md",
+    "chunk_index": 2,
+    "text": "# Session Management\n\nSession Management\n\n- Choose or create a session name for each analysis.  \n- Sessions store multiple tracks and allow users to review historical feedback later."
+  },
+  {
+    "id": "chunk_20",
+    "filename": "01_introduction.md",
+    "chunk_index": 0,
+    "text": "# 1. Introduction\n\n1. Introduction"
+  },
+  {
+    "id": "chunk_21",
+    "filename": "01_introduction.md",
+    "chunk_index": 1,
+    "text": "# Purpose of ZoundZcope\n\nPurpose of ZoundZcope\n\nZoundZcope is an AI assistant designed to provide professional mixing and mastering feedback for audio tracks.  \nUsers upload tracks (and optionally reference tracks) to receive tailored advice that helps improve the audio quality."
+  },
+  {
+    "id": "chunk_22",
+    "filename": "01_introduction.md",
+    "chunk_index": 2,
+    "text": "# User Roles & Feedback Types\n\nUser Roles & Feedback Types\n\n- **Mixing Engineer**: Feedback focused on mixdowns or rough mixes.  \n- **Mastering Engineer (Guidance)**: Advice on how to master a provided mixdown.\n- **Mastering Engineer (Review)**: Quality assessment of a finished master."
+  },
+  {
+    "id": "chunk_23",
+    "filename": "01_introduction.md",
+    "chunk_index": 3,
+    "text": "# Overview of Analysis Process\n\nOverview of Analysis Process\n\nThe system analyzes audio features including:  \n- Peak level  \n- Loudness (LUFS)  \n- RMS (average and peak)  \n- Tempo and musical key  \n- Dynamic range and stereo width  \n- Spectral band energies and low-end profile  \n- Transient strength and peak warnings"
+  },
+  {
+    "id": "chunk_24",
+    "filename": "06_ui_components.md",
+    "chunk_index": 0,
+    "text": "# 6. User Interface Components\n\n6. User Interface Components"
+  },
+  {
+    "id": "chunk_25",
+    "filename": "06_ui_components.md",
+    "chunk_index": 1,
+    "text": "# Upload and Analyze Section\n\nUpload and Analyze Section\n\n- Inputs for main track, optional reference track.  \n- Dropdowns for feedback role, profile, genre, and subgenre.  \n- Session name input and analyze button."
+  },
+  {
+    "id": "chunk_26",
+    "filename": "06_ui_components.md",
+    "chunk_index": 2,
+    "text": "# AI Feedback Panel\n\nAI Feedback Panel\n\n- Shows initial feedback and follow-up Q&A chat.  \n- Displays playable waveforms of uploaded audio files.  \n- Follow-up question input and chip buttons."
+  },
+  {
+    "id": "chunk_27",
+    "filename": "06_ui_components.md",
+    "chunk_index": 3,
+    "text": "# Recent Feedback Panel\n\nRecent Feedback Panel\n\n- Displays last 3 AI feedback sessions and follow-up chats stored locally."
+  },
+  {
+    "id": "chunk_28",
+    "filename": "06_ui_components.md",
+    "chunk_index": 4,
+    "text": "# Feedback History Page\n\nFeedback History Page\n\n- Allows review of old feedback by session and track.  \n- Editable and deletable sessions/tracks with detailed AI feedback display."
+  },
+  {
+    "id": "chunk_29",
+    "filename": "07_backend_prompt_engineering.md",
+    "chunk_index": 0,
+    "text": "# 7. Backend & Prompt Engineering\n\n7. Backend & Prompt Engineering"
+  },
+  {
+    "id": "chunk_30",
+    "filename": "07_backend_prompt_engineering.md",
+    "chunk_index": 1,
+    "text": "# Prompt Templates\n\nPrompt Templates\n\n- `REFERENCE_TRACK_INSTRUCTION`: Controls how feedback incorporates reference track data.  \n- Role contexts: `mixdown`, `mastering`, `master` — adjust AI focus accordingly.  \n- Profile guidance: `simple`, `detailed`, `pro` — adjusts language complexity."
+  },
+  {
+    "id": "chunk_31",
+    "filename": "07_backend_prompt_engineering.md",
+    "chunk_index": 2,
+    "text": "# Data Flow\n\nData Flow\n\n- Audio analysis results and metadata sent to OpenAI API for feedback generation.  \n- Reference track data included if available for comparison."
+  },
+  {
+    "id": "chunk_32",
+    "filename": "07_backend_prompt_engineering.md",
+    "chunk_index": 3,
+    "text": "# Chat Context & Summarization\n\nChat Context & Summarization\n\n- Chat history maintained and updated.  \n- Summarization triggers keep token usage efficient."
+  },
+  {
+    "id": "chunk_33",
+    "filename": "04_feedback_workflow.md",
+    "chunk_index": 0,
+    "text": "# 4. Feedback Workflow\n\n4. Feedback Workflow"
+  },
+  {
+    "id": "chunk_34",
+    "filename": "04_feedback_workflow.md",
+    "chunk_index": 1,
+    "text": "# Choosing Role and Profile\n\nChoosing Role and Profile\n\n- Select the feedback role: mixing, mastering guidance, or master review.  \n- Choose feedback profile: simple, detailed, or pro level language."
+  },
+  {
+    "id": "chunk_35",
+    "filename": "04_feedback_workflow.md",
+    "chunk_index": 2,
+    "text": "# Genre and Subgenre Influence\n\nGenre and Subgenre Influence\n\nSelecting a genre/subgenre helps the AI tailor feedback to stylistic norms."
+  },
+  {
+    "id": "chunk_36",
+    "filename": "04_feedback_workflow.md",
+    "chunk_index": 3,
+    "text": "# Reference Track Usage\n\nReference Track Usage\n\nIf a reference track is provided, the AI compares analyses and offers specific comparative feedback, while continuing to consider metric and genre standards."
+  },
+  {
+    "id": "chunk_37",
+    "filename": "04_feedback_workflow.md",
+    "chunk_index": 4,
+    "text": "# Initial AI Feedback\n\nInitial AI Feedback\n\nThe AI provides 3-4 pairs of issue and improvement suggestions, customized based on selected role and profile."
+  },
+  {
+    "id": "chunk_38",
+    "filename": "08_audio_analysis_details.md",
+    "chunk_index": 0,
+    "text": "# 8. Audio Analysis Technical Details\n\n8. Audio Analysis Technical Details"
+  },
+  {
+    "id": "chunk_39",
+    "filename": "08_audio_analysis_details.md",
+    "chunk_index": 1,
+    "text": "# Feature Extraction Process\n\nFeature Extraction Process\n\n- Load audio.\n- Normalize audio for certain analyses.\n- Convert to mono for certain analyses.  \n- Calculate peak, LUFS, RMS (average and peak).  \n- Detect tempo and key using music information retrieval algorithms.  \n- Measure dynamic range and stereo width metrics.  \n- Compute spectral band energies and characterize low-end.  \n- Analyze transient strength and identify peak warnings."
+  },
+  {
+    "id": "chunk_40",
+    "filename": "08_audio_analysis_details.md",
+    "chunk_index": 2,
+    "text": "# Comparison with Manual Measurements\n\nComparison with Manual Measurements\n\n- Manual tests done with tools like Voxengo Span, Waves PAZ, Waves InPhase.  \n- Tables of metric comparisons show close agreement with some expected discrepancies.  \n- Limitations and differences in plugin sensitivities explained."
+  }
+]

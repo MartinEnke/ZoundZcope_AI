@@ -703,3 +703,11 @@ button.reset-mode {
   padding-left: 0;
   margin-left: 0;
 }
+
+/* RAG feedback window */
+#docs-chat, #tut-chat {
+  min-height: 240px;       /* approx 15rem */
+  max-height: 480px;       /* twice min-height */
+  transition: height 0.3s ease;
+  overflow-y: auto;
+}

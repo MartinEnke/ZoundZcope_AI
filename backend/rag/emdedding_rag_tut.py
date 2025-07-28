@@ -17,13 +17,13 @@ def embed_all_chunks(json_in, json_out):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", default="function_chunks.json", help="Input chunks JSON file")
-    parser.add_argument("--output", default="function_chunks_embedded.json", help="Output embedded chunks JSON file")
+    parser.add_argument("--input", default="backend/rag/rag_tut_chunks.json", help="Input chunks JSON file")
+    parser.add_argument("--output", default="backend/rag/rag_tut_chunks_embedded.json", help="Output embedded chunks JSON file")
     args = parser.parse_args()
 
     embed_all_chunks(args.input, args.output)
 
 
-# python backend/rag/embedding.py --input backend/rag/rag_chunks.json --output backend/rag/rag_chunks_embedded.json
+# python backend/rag/embedding.py
 
-# python backend/rag/embedding.py --input backend/rag/rag_tut/rag_tut_chunks.json --output backend/rag/rag_tut/rag_tut_embedded.json
+# python backend/rag/embedding.py --input backend/rag/rag_tut_chunks.json --output backend/rag/rag_tut_chunks_embedded.json

@@ -59,8 +59,8 @@ def generate_answer(prompt):
 
 
 def main():
-    index = load_faiss_index("backend/rag/combined_faiss.index")
-    metadata = load_metadata("backend/rag/combined_metadata.json")
+    index = load_faiss_index("backend/rag/rag_docs/combined_faiss.index")
+    metadata = load_metadata("backend/rag/rag_docs/combined_metadata.json")
 
     while True:
         query = input("\nAsk your question (or type 'exit' to quit): ")
@@ -81,4 +81,4 @@ if __name__ == "__main__":
     main()
 
 
-# python backend/rag/query.py
+# python backend/rag/query_rag_doc.py

@@ -306,7 +306,41 @@
     <!-- Panels will be inserted here -->
   </div>
 </section>
+
+    <!-- RAG Assistants Tabs -->
+<section id="rag-assistants" class="bg-black/10 p-6 rounded-lg shadow-inner mt-8">
+  <div class="flex space-x-4 mb-4">
+    <button id="tab-docs" class="tab active px-4 py-2 border-b-2 border-pink-500 font-semibold">
+      Docs Assistant
+    </button>
+    <button id="tab-tut" class="tab px-4 py-2 border-b-2 border-transparent hover:border-pink-500">
+      Tutorial Assistant
+    </button>
+  </div>
+
+  <div id="docs-chat-container" class="rag-chat-container">
+    <div id="docs-chat" class="overflow-y-auto p-3 bg-gray-900 rounded text-white text-sm mb-2"></div>
+    <form id="docs-chat-form" class="flex space-x-2">
+      <input type="text" id="docs-chat-input" placeholder="Ask your docs question..."
+             class="flex-grow rounded bg-gray-800 px-3 py-2 text-white focus:outline-none" autocomplete="off" required />
+      <button type="submit" class="bg-pink-600 px-5 rounded hover:bg-pink-700 transition">Ask</button>
+    </form>
+  </div>
+
+  <div id="tut-chat-container" class="rag-chat-container hidden">
+    <div id="tut-chat" class="h-60 overflow-y-auto p-3 bg-gray-900 rounded text-white text-sm mb-2"></div>
+    <form id="tut-chat-form" class="flex space-x-2">
+      <input type="text" id="tut-chat-input" placeholder="Ask your tutorial question..."
+             class="flex-grow rounded bg-gray-800 px-3 py-2 text-white focus:outline-none" autocomplete="off" required />
+      <button type="submit" class="bg-pink-600 px-5 rounded hover:bg-pink-700 transition">Ask</button>
+    </form>
+  </div>
+</section>
+
 </main>
+
+
+
 <script>
   window.trackPath = "{{ track_path }}";  // Make sure this gets rendered dynamically
 </script>
@@ -319,6 +353,10 @@
 
 <!-- Your new waveform logic -->
 <script src="/static/waveform-logic.js"></script>
+
+<footer class="w-full text-white text-center py-4 bottom-0 left-0 z-50 select-none text-sm font-light">
+  &copy; 2025 ZoundZcope AI™
+</footer>
 </body>
 </html>
 
