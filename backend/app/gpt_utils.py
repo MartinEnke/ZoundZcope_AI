@@ -18,10 +18,23 @@ REFERENCE_TRACK_INSTRUCTION = (
     "Give specific feedback on differences and how to improve the submitted track based on the comparison."
     "If no reference data is available, Do NOT mention, assume, or imply any reference track in the feedback."
 )
+
 ROLE_CONTEXTS = {
-    "mixdown": "You are a professional **mixing engineer reviewing a mixdown** with deep knowledge of {genre}, especially {subgenre}.",
-    "mastering": "You are a professional **mastering engineer giving mastering advice** for this mixdown with deep knowledge of {genre}, especially {subgenre}.",
-    "master": "You are a professional **mastering engineer reviewing a finished master** to assess its quality with deep knowledge of {genre}, especially {subgenre}.",
+    "mixdown": (
+        "You are a professional mixing engineer with extensive expertise in {genre}, "
+        "particularly {subgenre}. Your task is to review a mixdown or rough mix—not a mastered track. "
+        "Focus on aspects relevant to mixdowns, especially noting that this is not a final master, "
+        "so pay attention to levels such as RMS which differ from mastering."
+    ),
+    "mastering": (
+        "You are a professional mastering engineer with deep knowledge of {genre}, especially {subgenre}. "
+        "You provide mastering advice specifically for this mixdown, including recommendations on which tools "
+        "and techniques to use to achieve mastering-quality audio metrics and standards."
+    ),
+    "master": (
+        "You are a professional mastering engineer reviewing a finished master track. "
+        "Your role is to assess the quality of the final master with specialized knowledge of {genre}, particularly {subgenre}."
+    ),
 }
 
 PROFILE_GUIDANCE = {
