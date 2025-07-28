@@ -711,3 +711,34 @@ button.reset-mode {
   transition: height 0.3s ease;
   overflow-y: auto;
 }
+
+#docs-chat, #tut-chat {
+  background-color: rgba(31, 41, 55, 0.75); /* semi-transparent bg, replaces bg-gray-900 */
+  /* other existing styles like padding, border-radius remain */
+}
+
+#docs-chat-input, #tut-chat-input {
+  background-color: rgba(31, 41, 55, 0.6); /* semi-transparent input bg, replaces bg-gray-800 */
+  color: white; /* keep text readable */
+  /* Keep other styles like padding, border-radius */
+}
+
+.ask-rag-btn {
+  background-color: rgba(236, 72, 153, 0.3); /* more transparent pink */
+  color: white;
+  font-weight: 500; /* medium */
+  border-radius: 0.375rem; /* same as rounded (6px) */
+  border: 2px solid rgba(236, 72, 153, 0.4);
+  box-shadow:
+    0 0 6px rgba(236, 72, 153, 0.3);
+  cursor: pointer;
+  padding: 0.5rem 1.25rem; /* approx px-5 py-2 */
+  font-size: 0.875rem; /* text-sm */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ask-rag-btn:hover {
+  background-color: rgba(236, 72, 153, 0.6);
+  box-shadow:
+    0 0 8px rgba(236, 72, 153, 0.5);
+}

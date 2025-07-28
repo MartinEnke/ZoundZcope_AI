@@ -2059,11 +2059,18 @@ async function queryRagAPI(endpoint, question) {
   }
 }
 
-// Docs Assistant form handling
+// Docs Assistant elements
 const docsForm = document.getElementById('docs-chat-form');
 const docsInput = document.getElementById('docs-chat-input');
 const docsChat = document.getElementById('docs-chat');
 
+// Tutorial Assistant elements
+const tutForm = document.getElementById('tut-chat-form');
+const tutInput = document.getElementById('tut-chat-input');
+const tutChat = document.getElementById('tut-chat');
+
+
+// Docs Assistant form handling
 docsForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const question = docsInput.value.trim();
@@ -2074,20 +2081,26 @@ docsForm.addEventListener('submit', async (e) => {
 
   appendMessage(docsChat, 'ai', 'AI is thinking...');
   const answer = await queryRagAPI('/chat/rag_docs', question);
-  // Remove "thinking" message
-  const thinkingMsg = docsChat.querySelector('.rag-message:last-child');
-  if (thinkingMsg && thinkingMsg.textContent === 'AI is thinking...') {
-    docsChat.removeChild(thinkingMsg);
+
+  const thinkingMsg = [...docsChat.querySelectorAll('.rag-message')]
+    .reverse()
+    .find(msg => msg.textContent.includes('AI is thinking'));
+
+  if (thinkingMsg) {
+    thinkingMsg.textContent = 'AI response:';
+    const answerDiv = document.createElement('div');
+    answerDiv.className = 'rag-message text-blue-400 text-left';
+    answerDiv.innerHTML = marked.parse(answer);
+    docsChat.appendChild(answerDiv);
+  } else {
+    appendMessage(docsChat, 'ai', answer);
   }
-  appendMessage(docsChat, 'ai', answer);
+
   adjustChatHeight(docsChat);
 });
 
-// Tutorial Assistant form handling
-const tutForm = document.getElementById('tut-chat-form');
-const tutInput = document.getElementById('tut-chat-input');
-const tutChat = document.getElementById('tut-chat');
 
+// Tutorial Assistant form handling
 tutForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const question = tutInput.value.trim();
@@ -2098,12 +2111,21 @@ tutForm.addEventListener('submit', async (e) => {
 
   appendMessage(tutChat, 'ai', 'AI is thinking...');
   const answer = await queryRagAPI('/chat/rag_tut', question);
-  // Remove "thinking" message
-  const thinkingMsg = tutChat.querySelector('.rag-message:last-child');
-  if (thinkingMsg && thinkingMsg.textContent === 'AI is thinking...') {
-    tutChat.removeChild(thinkingMsg);
+
+  const thinkingMsg = [...tutChat.querySelectorAll('.rag-message')]
+    .reverse()
+    .find(msg => msg.textContent.includes('AI is thinking'));
+
+  if (thinkingMsg) {
+    thinkingMsg.textContent = 'AI response:';
+    const answerDiv = document.createElement('div');
+    answerDiv.className = 'rag-message text-blue-400 text-left';
+    answerDiv.innerHTML = marked.parse(answer);
+    tutChat.appendChild(answerDiv);
+  } else {
+    appendMessage(tutChat, 'ai', answer);
   }
-  appendMessage(tutChat, 'ai', answer);
+
   adjustChatHeight(tutChat);
 });
 
