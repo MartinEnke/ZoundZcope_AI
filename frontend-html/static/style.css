@@ -724,12 +724,18 @@ select.custom-dropdown:focus {
   cursor: default;
 }
 
+.feedback-box.expanded {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15),
+              0 0 12px rgba(255, 255, 255, 0.08);
+  transition: box-shadow 0.4s ease;
+}
+
 .recent-feedback-panel.expanded::after {
   opacity: 0;
 }
 
 .collapsed {
-    max-height: 100px; /* adjust to desired 1/3 height */
+    max-height: 108px; /* adjust to desired 1/3 height */
     overflow: hidden;
     cursor: pointer;
     transition: max-height 0.3s ease;
@@ -742,9 +748,65 @@ transition: max-height 0.3s ease;
 }
 
 .feedback-box {
+  position: relative;
   overflow: hidden;
   transition: height 0.3s ease;
+  border: none; /* remove default border */
 }
+
+/* Gradient border */
+.feedback-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 1px; /* thickness of the border */
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.2));
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 4;
+  transition: opacity 0.3s ease;
+  border-radius: 0.5rem; /* match the box's radius */
+}
+
+/* Fade overlay (milky background) */
+.feedback-box::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.2));
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  z-index: 3;
+  border-radius: 0.5rem;
+}
+
+/* Remove both gradient layers when expanded */
+.feedback-box.expanded::after,
+.feedback-box.expanded::before {
+  opacity: 0;
+}
+
+.feedback-box.collapsed {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+
+.feedback-box.collapsed:hover::before {
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.4));
+}
+
+
 
 
 /* RAG feedback window */

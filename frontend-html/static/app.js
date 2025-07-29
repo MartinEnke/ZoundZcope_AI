@@ -1840,10 +1840,14 @@ function renderRecentFeedbackPanel() {
   const recent = history.slice(0, 5);
 recent.forEach((entry, i) => {
   const box = document.createElement("div");
-box.className = "feedback-box bg-white/5 p-4 rounded-lg shadow-md space-y-2 border border-white/10";
+box.className = "feedback-box relative bg-white/5 p-4 rounded-lg shadow-md space-y-2 border border-white/10";
+
+
+
 
 // Start in collapsed state
-box.style.height = "100px";
+box.style.height = "108px";
+box.classList.add("collapsed");
 box.dataset.expanded = "false"; // custom flag
 
   const subheadingText = entry.subheading?.replace(/<[^>]+>/g, "").trim() || "Previous Feedback";
@@ -1897,6 +1901,7 @@ const followupSectionHTML = `
 
 box.innerHTML = toggleAreaHTML + followupSectionHTML;
 
+
   // Attach the toggle only to the upper area
   // Attach toggle
 const toggleArea = box.querySelector(".fold-toggle-area");
@@ -1905,13 +1910,15 @@ toggleArea.addEventListener("click", () => {
   const expanded = box.dataset.expanded === "true";
 
   if (expanded) {
-    // Collapse: shrink to fixed height
-    box.style.height = "100px";
+    box.style.height = "108px";
     box.dataset.expanded = "false";
+    box.classList.remove("expanded");
+    box.classList.add("collapsed"); // ✅ re-apply collapsed class
   } else {
-    // Expand: measure full height
     box.style.height = box.scrollHeight + "px";
     box.dataset.expanded = "true";
+    box.classList.remove("collapsed"); // ✅ remove it when open
+    box.classList.add("expanded");
   }
 });
 
