@@ -1787,6 +1787,32 @@ window.addEventListener("pageshow", (event) => {
 
 });
 
+
+function toggleFollowup(id) {
+  const el = document.getElementById(id);
+  const btn = el?.previousElementSibling;
+  const parentBox = el?.closest(".feedback-box");
+
+  if (!el || !btn || !parentBox || parentBox.dataset.expanded !== "true") return;
+
+  const isHidden = el.classList.contains("hidden");
+
+  // Toggle visibility
+  el.classList.toggle("hidden");
+  btn.textContent = isHidden ? "Hide Follow-up" : "Show Follow-up";
+
+  // Recalculate height correctly:
+  // Step 1: Temporarily clear the height so browser can reflow the real scrollHeight
+  parentBox.style.height = "auto";
+
+  // Step 2: Wait a tick, then measure and apply new scrollHeight
+  requestAnimationFrame(() => {
+    const newHeight = parentBox.scrollHeight;
+    parentBox.style.height = newHeight + "px";
+  });
+}
+
+
 function renderRecentFeedbackPanel() {
   console.log("✅ renderRecentFeedbackPanel() called");
 
@@ -1812,69 +1838,89 @@ function renderRecentFeedbackPanel() {
   }
 
   const recent = history.slice(0, 5);
-  recent.forEach((entry, i) => {
-    const box = document.createElement("div");
-    box.className = "bg-white/5 p-4 rounded-lg shadow-md space-y-2 border border-white/10";
+recent.forEach((entry, i) => {
+  const box = document.createElement("div");
+box.className = "feedback-box bg-white/5 p-4 rounded-lg shadow-md space-y-2 border border-white/10";
 
-    const subheadingText = entry.subheading?.replace(/<[^>]+>/g, "").trim() || "Previous Feedback";
-    const trackName = entry.track_name || "Untitled Track";
-    const dateStr = entry.timestamp ? new Date(entry.timestamp).toLocaleDateString() : "";
+// Start in collapsed state
+box.style.height = "100px";
+box.dataset.expanded = "false"; // custom flag
 
-    // Remove subheading from feedback if duplicated
-    let feedbackHTML = entry.feedback || "<div class='text-white/60'>No feedback content.</div>";
-    const headingRegex = new RegExp(`<p[^>]*>${subheadingText}</p>`, "i");
-    feedbackHTML = feedbackHTML.replace(headingRegex, "").trim();
+  const subheadingText = entry.subheading?.replace(/<[^>]+>/g, "").trim() || "Previous Feedback";
+  const trackName = entry.track_name || "Untitled Track";
+  const dateStr = entry.timestamp ? new Date(entry.timestamp).toLocaleDateString() : "";
 
-    const followupId = `followup-${i}`;
-    const hasFollowup = entry.followup && Array.isArray(entry.followup) && entry.followup.length > 0;
+  // Remove subheading from feedback if duplicated
+  let feedbackHTML = entry.feedback || "<div class='text-white/60'>No feedback content.</div>";
+  const headingRegex = new RegExp(`<p[^>]*>${subheadingText}</p>`, "i");
+  feedbackHTML = feedbackHTML.replace(headingRegex, "").trim();
 
-    const followupToggleHTML = hasFollowup
-      ? `<button class="text-xs text-purple-300 underline" onclick="toggleFollowup('${followupId}')">Show Follow-up</button>`
-      : "";
+  const followupId = `followup-${i}`;
+  const hasFollowup = entry.followup && Array.isArray(entry.followup) && entry.followup.length > 0;
 
-    const followupHTML = hasFollowup
-      ? `<div id="${followupId}" class="mt-2 text-sm text-white/70 border-t border-white/10 pt-2 hidden">
-          ${entry.followup.map(f => `<p>${f}</p>`).join("")}
-        </div>`
-      : "";
+  const followupToggleHTML = hasFollowup
+    ? `<button class="text-xs text-purple-300 underline" onclick="toggleFollowup('${followupId}')">Show Follow-up</button>`
+    : "";
 
-    const headingHTML = `
-      <div class="flex justify-between items-center mb-1">
-        <div class="flex items-baseline gap-2">
-          <p class="${subheadingText.toLowerCase().includes('master') ? 'text-blue-400' : 'text-pink-400'} text-lg font-bold">
-            ${subheadingText}
-          </p>
-          <span class="text-white font-semibold text-sm">${trackName}</span>
-        </div>
-        <span class="text-white/50 text-xs">${dateStr}</span>
+  const followupHTML = hasFollowup
+    ? `<div id="${followupId}" class="mt-2 text-sm text-white/70 border-t border-white/10 pt-2 hidden">
+        ${entry.followup.map(f => `<p>${f}</p>`).join("")}
+      </div>`
+    : "";
+
+  const headingHTML = `
+    <div class="flex justify-between items-center mb-1">
+      <div class="flex items-baseline gap-2">
+        <p class="${subheadingText.toLowerCase().includes('master') ? 'text-blue-400' : 'text-pink-400'} text-lg font-bold">
+          ${subheadingText}
+        </p>
+        <span class="text-white font-semibold text-sm">${trackName}</span>
       </div>
-    `;
+      <span class="text-white/50 text-xs">${dateStr}</span>
+    </div>
+  `;
 
-    box.innerHTML = `
-      <div class="text-white/90 text-sm space-y-2">
-        ${headingHTML}
-        ${feedbackHTML}
-        ${followupToggleHTML}
-        ${followupHTML}
-      </div>
-    `;
+  // Build the toggle and follow-up sections
+  const toggleAreaHTML = `
+  <div class="fold-toggle-area text-white/90 text-sm space-y-2 cursor-pointer">
+    ${headingHTML}
+    ${feedbackHTML}
+  </div>
+`;
 
-    container.appendChild(box);
-  });
+const followupSectionHTML = `
+  <div class="pt-2">
+    ${followupToggleHTML}
+    ${followupHTML}
+  </div>
+`;
+
+box.innerHTML = toggleAreaHTML + followupSectionHTML;
+
+  // Attach the toggle only to the upper area
+  // Attach toggle
+const toggleArea = box.querySelector(".fold-toggle-area");
+
+toggleArea.addEventListener("click", () => {
+  const expanded = box.dataset.expanded === "true";
+
+  if (expanded) {
+    // Collapse: shrink to fixed height
+    box.style.height = "100px";
+    box.dataset.expanded = "false";
+  } else {
+    // Expand: measure full height
+    box.style.height = box.scrollHeight + "px";
+    box.dataset.expanded = "true";
+  }
+});
+
+  container.appendChild(box);
+});
+
 
   panel.classList.remove("hidden");
 }
-
-function toggleFollowup(id) {
-  const el = document.getElementById(id);
-  const btn = el?.previousElementSibling;
-  if (el && btn) {
-    const isHidden = el.classList.contains("hidden");
-    el.classList.toggle("hidden");
-    btn.textContent = isHidden ? "Hide Follow-up" : "Show Follow-up";
-  }
-}
-
 
 
 window.addEventListener("DOMContentLoaded", renderRecentFeedbackPanel);
@@ -1899,6 +1945,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+
 
 // ======= Near the bottom of your JS file =======
 
