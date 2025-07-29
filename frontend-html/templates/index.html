@@ -307,8 +307,17 @@
   </div>
 </section>
 
+
+    <!-- The Ask button that toggles visibility -->
+<div class="max-w-6xl mx-auto px-3">
+  <button id="toggle-rag-btn" class="docs-tut-btn block ml-auto text-center">
+    AI-powered<br>Docs & Tutorials
+  </button>
+</div>
     <!-- RAG Assistants Tabs -->
-<section id="rag-assistants" class="bg-black/10 p-6 rounded-lg shadow-inner mt-8">
+    <!-- Container that holds your RAG assistants, hidden by default -->
+<div id="rag-container" class="hidden">
+<section id="rag-assistants" class="bg-black/10 p-6 rounded-lg shadow-inner mt-0">
   <div class="flex space-x-4 mb-4">
     <button id="tab-docs" class="tab active px-4 py-2 border-b-2 border-pink-500 font-semibold">
       Docs Assistant
@@ -336,6 +345,7 @@
     </form>
   </div>
 </section>
+</div>
 
 </main>
 

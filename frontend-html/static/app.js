@@ -2131,6 +2131,8 @@ tutForm.addEventListener('submit', async (e) => {
 
 
 
+
+
 function adjustChatHeight(chatDiv) {
   const minHeight = 240; // px (15rem)
   const maxHeight = 480; // px
@@ -2146,3 +2148,23 @@ function adjustChatHeight(chatDiv) {
 
   chatDiv.style.overflowY = contentHeight > maxHeight ? 'auto' : 'hidden';
 }
+
+const toggleRagBtn = document.getElementById('toggle-rag-btn');
+const ragContainer = document.getElementById('rag-container');
+
+toggleRagBtn.addEventListener('click', () => {
+  if (ragContainer.classList.contains('hidden')) {
+    ragContainer.classList.remove('hidden');
+    toggleRagBtn.innerHTML = 'Close Assistant';
+
+    // Smooth scroll to the RAG section when opened
+    document.getElementById('rag-assistants').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    ragContainer.classList.add('hidden');
+    toggleRagBtn.innerHTML = 'AI-powered<br>Docs & Tutorials';
+
+    // Smooth scroll to top of page when closed
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+});
+
