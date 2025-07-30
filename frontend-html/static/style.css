@@ -89,6 +89,11 @@ section {
   margin-top: 6px;
 }
 
+#analysisOutput > h2,
+#analysisOutput > div:not(:first-child) {
+  margin-top: 2rem;
+}
+
 /*
 ===========================
 🎞️ Animation - Fade In Up
@@ -805,6 +810,7 @@ transition: max-height 0.3s ease;
 .feedback-box.collapsed:hover::before {
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.4));
 }
+
 
 
 

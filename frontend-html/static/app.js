@@ -1183,6 +1183,39 @@ console.log("Follow-up state reset");
     </div>
   </div>
 `;
+      // Reference Track Analysis Rendering
+if (refTrackAnalysisData) {
+  const refContainer = document.createElement("div");
+  refContainer.className = "mt-8 space-y-2 text-sm border-t border-white/10 pt-4";
+
+  const ra = refTrackAnalysisData;
+
+  function r(v) {
+    return Number(v).toFixed(2);
+  }
+
+  refContainer.innerHTML = `
+  <h2 class="text-lg font-semibold text-white mt-8 mb-4">Reference Track Analysis</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+    <p><strong>Tempo:</strong> ${ra.tempo} BPM</p>
+    <p><strong>Key:</strong> ${ra.key}</p>
+    <p><strong>Peak Level:</strong> ${r(ra.peak_db)} dB</p>
+    <p><strong>Peak Issue:</strong> ${ra.peak_issue}</p>
+    <p><strong>RMS Peak:</strong> ${r(ra.rms_db_peak)} dB</p>
+    <p><strong>LUFS:</strong> ${r(ra.lufs)} LUFS</p>
+    <p><strong>Dynamic Range:</strong> ${r(ra.dynamic_range)} dB</p>
+    <p><strong>Stereo Width:</strong> ${ra.stereo_width}</p>
+    <p class="md:col-span-2"><strong>Low-End:</strong> ${ra.low_end_description}</p>
+    <p class="md:col-span-2"><strong>Spectral Balance:</strong> ${ra.spectral_balance_description}</p>
+    <div class="md:col-span-2">
+      <strong>Band Energies:</strong>
+      <pre class="whitespace-pre-wrap">${JSON.stringify(ra.band_energies, null, 2)}</pre>
+    </div>
+  </div>
+`;
+
+  output.appendChild(refContainer);
+}
 
       feedbackBox.innerHTML = "";
       feedbackBox.classList.add("pulsing-feedback");
