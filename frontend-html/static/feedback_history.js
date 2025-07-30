@@ -677,6 +677,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const outputBox = document.getElementById("comparison-feedback-output");
   const feedbackSection = document.getElementById("comparison-feedback");
 
+  // ✅ Load comparison history on page load
+  loadComparisonHistory();
+
+
   compareBtn.addEventListener("click", async () => {
     // Collect all selected track IDs
     const selectedTrackCheckboxes = document.querySelectorAll(".track-compare-checkbox:checked");
@@ -692,7 +696,7 @@ document.addEventListener("DOMContentLoaded", () => {
     compareBtn.textContent = "Comparing...";
 
     try {
-      const res = await fetch("/api/compare-tracks", {
+      const res = await fetch("/chat/compare-tracks", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -755,3 +759,49 @@ document.getElementById("compare-button").addEventListener("click", async () => 
     messageSpan.textContent = "✅ Compared: " + selectedNames.join(", ");
   }
 });
+
+
+async function loadComparisonHistory() {
+  const historyBox = document.getElementById("comparison-history-list"); // ✅ correct ID
+  if (!historyBox) {
+    console.warn("⚠️ #comparison-history-list not found");
+    return;
+  }
+
+  historyBox.innerHTML = "";
+
+  try {
+    const res = await fetch("/chat/comparisons");
+    const groups = await res.json();
+
+    if (!groups.length) {
+      historyBox.innerHTML = "<p class='text-white/60'>No comparisons found.</p>";
+      return;
+    }
+
+    for (const group of groups) {
+      const div = document.createElement("div");
+      div.className = "mb-4 p-4 bg-white/10 rounded";
+
+      const title = document.createElement("p");
+      title.className = "font-semibold mb-2 text-white";
+      title.textContent = `Compared Tracks: ${group.track_names.join(", ")}`;
+
+      const viewBtn = document.createElement("button");
+      viewBtn.className = "underline text-sm text-blue-400 hover:text-white";
+      viewBtn.textContent = "View Again";
+      viewBtn.addEventListener("click", () => viewComparison(group.group_id));
+
+      const exportBtn = document.createElement("button");
+      exportBtn.className = "underline text-sm text-blue-400 hover:text-white ml-4";
+      exportBtn.textContent = "Export";
+      exportBtn.addEventListener("click", () => exportComparison(group.group_id));
+
+      div.append(title, viewBtn, exportBtn);
+      historyBox.appendChild(div);
+    }
+  } catch (err) {
+    console.error("❌ Error loading comparison history:", err);
+    historyBox.innerHTML = "<p class='text-red-400'>Failed to load comparisons.</p>";
+  }
+}

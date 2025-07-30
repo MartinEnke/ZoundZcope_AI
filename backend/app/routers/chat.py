@@ -13,6 +13,7 @@ from fastapi import Body
 import uuid
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
+from fastapi.responses import JSONResponse
 
 
 
@@ -433,6 +434,43 @@ Spectral balance: {track.analysis.spectral_balance_description or 'n/a'}
         "comparison_group_id": group_id,
         "track_names": track_names
     }
+
+
+@router.get("/comparisons")
+def get_comparison_history(db: Session = Depends(get_db)):
+    results = db.query(ChatMessage.comparison_group_id)\
+        .filter(ChatMessage.comparison_group_id.isnot(None))\
+        .distinct().all()
+
+    history = []
+    for (group_id,) in results:
+        messages = db.query(ChatMessage)\
+            .filter(ChatMessage.comparison_group_id == group_id)\
+            .order_by(ChatMessage.timestamp.asc()).all()
+
+        if not messages:
+            continue
+
+        # Get the first message for this group (usually where compared_track_ids is filled)
+        first_msg = next((m for m in messages if m.compared_track_ids), None)
+        if not first_msg:
+            continue
+
+        # 🧠 Parse comma-separated string of IDs
+        raw_ids = first_msg.compared_track_ids.split(",")
+        track_ids = [tid.strip() for tid in raw_ids if tid.strip()]
+
+        tracks = db.query(Track).filter(Track.id.in_(track_ids)).all()
+        track_names = [t.track_name for t in tracks]
+
+        history.append({
+            "group_id": group_id,
+            "track_ids": track_ids,
+            "track_names": track_names,
+        })
+
+    return JSONResponse(content=history)
+
 
 
 @router.get("/test")
