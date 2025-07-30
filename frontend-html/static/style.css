@@ -665,12 +665,11 @@ select.custom-dropdown:focus {
 
 
 .quick-followup-button {
-  /* Existing styles */
-  px-4 py-1 rounded-full
-  bg-white/5 hover:bg-white/10
-  text-white text-[0.75rem]
-
-  backdrop-blur-sm transition-all duration-150
+  white-space: normal;
+  word-break: break-word;
+  max-width: 100%;
+  text-align: left;
+  justify-content: start;
 }
 
 /* Add milky white hover effect */

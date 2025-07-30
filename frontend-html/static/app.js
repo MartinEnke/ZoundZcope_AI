@@ -544,12 +544,21 @@ function loadQuickFollowupButtons(type, genre, profile) {
   const container = document.getElementById("quick-followup");
   if (!container) return;
 
-  container.innerHTML = `
-    <p class="text-white/70 text-sm mb-1">Quick Follow-Up Questions:</p>
-    <div class="flex flex-wrap gap-2"></div>
-  `;
+  let title = container.querySelector("p");
+  let btnWrapper = container.querySelector(".grid");
 
-  const btnWrapper = container.querySelector("div");
+  // If structure is missing, inject it
+  if (!title || !btnWrapper) {
+    container.innerHTML = `
+      <p class="text-white/70 text-sm mb-1">Quick Follow-Up Questions:</p>
+      <div class="grid grid-cols-2 gap-3"></div>
+    `;
+    title = container.querySelector("p");
+    btnWrapper = container.querySelector(".grid");
+  }
+
+  btnWrapper.innerHTML = "";
+
   const uniqueQuestions = new Set([
     ...(predefinedFollowupQuestions[type] || []),
     ...(predefinedFollowupQuestions[genre] || []),
@@ -559,27 +568,35 @@ function loadQuickFollowupButtons(type, genre, profile) {
   Array.from(uniqueQuestions).slice(0, 15).forEach((q) => {
     const btn = document.createElement("button");
     btn.textContent = q;
-    btn.className = `
-  quick-followup-button
-  px-4 py-1 rounded-full
-  bg-white/5
-  text-white text-[0.75rem]
-  shadow-sm
-  border border-white/10
-  backdrop-blur-sm
-  transition-all duration-150
-`;
-btn.style.fontSize = "0.78rem";
 
-btn.style.fontSize = "0.825rem";
+    btn.className = `
+      quick-followup-button
+      w-full
+      px-4 py-2
+      rounded-md
+      bg-white/5
+      text-white
+      text-sm
+      font-medium
+      shadow-sm
+      border border-white/10
+      backdrop-blur-md
+      transition-all duration-200
+      hover:bg-white/10
+      hover:scale-[1.01]
+    `.trim();
+
+    btn.style.fontSize = "0.825rem";
+
     btn.addEventListener("click", () => {
       document.getElementById("customQuestion").value = q;
       document.getElementById("askAIButton").click();
     });
+
     btnWrapper.appendChild(btn);
   });
-    // ✅ Show it now
-  container.classList.remove("hidden");
+
+  container.classList.toggle("hidden", btnWrapper.children.length === 0);
 }
 
 

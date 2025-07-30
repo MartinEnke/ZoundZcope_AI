@@ -31,6 +31,7 @@ class Track(Base):
     track_name = Column(String)
     file_path = Column(String)
     type = Column(String)
+    genre = Column(String, nullable=True)
     uploaded_at = Column(DateTime(timezone=True), server_default=func.now())
     upload_group_id = Column(String, nullable=False, default=lambda: str(uuid.uuid4()))
 
@@ -72,11 +73,15 @@ class ChatMessage(Base):
     __tablename__ = 'chat_history'
     id = Column(Integer, primary_key=True)
     session_id = Column(String, ForeignKey('sessions.id'))
-    track_id = Column(String, ForeignKey('tracks.id'))
+    track_id = Column(String, ForeignKey('tracks.id'), nullable=True)
     sender = Column(String)
     message = Column(Text)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
     feedback_profile = Column(String, nullable=True)
     followup_group = Column(Integer, nullable=True, default=0)
+
+    comparison_group_id = Column(String, nullable=True)
+    compared_track_ids = Column(Text, nullable=True)
+    compared_track_names = Column(Text, nullable=True)
 
     session = relationship("Session", back_populates="chats")

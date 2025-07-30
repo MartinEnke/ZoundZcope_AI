@@ -4,9 +4,16 @@ from app.database import SessionLocal
 from app.models import Track, AnalysisResult, ChatMessage
 from app.gpt_utils import generate_feedback_prompt, generate_feedback_response, build_followup_prompt
 from app.utils import normalize_type, normalize_genre, normalize_profile, sanitize_user_question
+from app.gpt_utils import generate_comparison_feedback
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 import json
+from typing import List
+from fastapi import Body
+import uuid
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
+
 
 
 router = APIRouter()
@@ -364,6 +371,68 @@ Summarize this follow-up thread (5 user questions with assistant responses) into
     summary = generate_feedback_response(prompt)
     return {"summary": summary}
 
+
+
+class CompareTracksRequest(BaseModel):
+    track_ids: List[str]
+
+
+@router.post("/compare-tracks")
+def compare_tracks(data: CompareTracksRequest, db: Session = Depends(get_db)):
+    track_ids = data.track_ids
+
+    if not track_ids or len(track_ids) < 2:
+        raise HTTPException(status_code=400, detail="At least two tracks must be selected.")
+
+    comparison_data = []
+    track_names = []
+
+    for track_id in track_ids:
+        track = db.query(Track).filter_by(id=track_id).first()
+        if not track or not track.analysis:
+            continue
+
+        messages = db.query(ChatMessage).filter_by(track_id=track_id).order_by(ChatMessage.timestamp.asc()).all()
+        chat_history = "\n".join(f"{m.sender}: {m.message}" for m in messages)
+
+        comparison_data.append({
+            "track_name": track.track_name,
+            "analysis_summary": f"""
+LUFS: {track.analysis.lufs}
+Width: {track.analysis.stereo_width}
+Key: {track.analysis.key}
+Peak: {track.analysis.peak_db}
+Issues: {track.analysis.issues or 'None'}
+Spectral balance: {track.analysis.spectral_balance_description or 'n/a'}
+""",
+            "chat_history": chat_history or "No chat history."
+        })
+
+        track_names.append(track.track_name)
+
+    if not comparison_data:
+        raise HTTPException(status_code=404, detail="No analysis or chat data found.")
+
+    # 🧠 Get AI response using helper
+    feedback = generate_comparison_feedback(comparison_data)
+
+    # 🧾 Save in chat history
+    group_id = str(uuid.uuid4())
+    db.add(ChatMessage(
+        sender="ai",
+        message=feedback,
+        session_id=track.session_id if track else None,
+        comparison_group_id=group_id,
+        compared_track_ids=",".join(track_ids),
+        compared_track_names=",".join(track_names)
+    ))
+    db.commit()
+
+    return {
+        "feedback": feedback,
+        "comparison_group_id": group_id,
+        "track_names": track_names
+    }
 
 
 @router.get("/test")

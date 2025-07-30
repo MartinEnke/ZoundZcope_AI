@@ -7,11 +7,11 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="static/style.css" />
   <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
-<link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
-<link rel="shortcut icon" href="/static/favicon/favicon.ico" />
-<link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png" />
-<meta name="apple-mobile-web-app-title" content="ZZ AI" />
-<link rel="manifest" href="/static/favicon/site.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
+  <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="ZZ AI" />
+  <link rel="manifest" href="/static/favicon/site.webmanifest" />
 </head>
 
 <body class="bg-black text-white px-4 py-8">
@@ -39,7 +39,7 @@
           </svg>
         </button>
         <ul id="session-options" class="absolute z-50 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden"
-    style="background-color: rgba(255,255,255,0.03); backdrop-filter: blur(9px);"></ul>
+            style="background-color: rgba(255,255,255,0.03); backdrop-filter: blur(9px);"></ul>
       </div>
     </div>
     <input type="text" id="rename-session-input" class="milky-input w-full mt-1 hidden" placeholder="New session name" />
@@ -54,31 +54,54 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
           </svg>
         </button>
-        <ul id="track-options" class="absolute z-50 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden"
-    style="background-color: rgba(0,0,0,0.03); backdrop-filter: blur(9px);"></ul>
+        <ul id="track-options" class="absolute z-50 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden overflow-y-auto max-h-72"
+            style="background-color: rgba(0,0,0,0.03); backdrop-filter: blur(9px);">
+          <!-- JS will populate checkboxes for each track -->
+        </ul>
       </div>
     </div>
     <input type="text" id="rename-track-input" class="milky-input w-full mt-1 hidden" placeholder="New track name" />
 
-    <!-- FEEDBACK DISPLAY -->
+
+
+    <!-- FEEDBACK DISPLAY (Single Track) -->
     <section id="history-feedback" class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4 hidden">
       <h2 class="text-xl font-semibold">AI Feedback</h2>
       <div id="history-feedback-output" class="text-white/90 text-sm whitespace-pre-wrap"></div>
     </section>
-      <!-- 🔹 Manage Sessions and Tracks -->
-<section class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4">
-  <h2 class="text-2xl font-semibold text-white mb-4">Manage Sessions & Tracks</h2>
-  <div id="manage-section" class="space-y-6">
-    <!-- JS will populate this with:
-         - session name + edit/delete
-         - track list per session + edit/delete
-    -->
+
+
+    <!-- 🔹 Manage Sessions and Tracks -->
+    <section class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4">
+      <h2 class="text-2xl font-semibold text-white mb-4">Manage Sessions & Tracks</h2>
+      <div id="manage-section" class="space-y-6">
+        <!-- JS will populate:
+             - session names with edit/delete
+             - track lists per session
+        -->
+      </div>
+
+      <!-- 🔘 Compare Button -->
+  <button id="compare-button" class="milky-input px-4 py-2 mt-4 w-full">
+    🔎 Compare Selected Tracks
+  </button>
+</section>
+
+<!-- ✅ Comparison Result Section (Below Manage Panel) -->
+<section id="comparison-feedback" class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4 hidden">
+  <h2 class="text-xl font-semibold">Multi-Track AI Feedback</h2>
+  <div id="comparison-feedback-output" class="text-white/90 text-sm whitespace-pre-wrap"></div>
+
+  <div id="comparison-meta" class="mt-4 text-white/80 text-sm space-x-4 hidden">
+    <span id="comparison-session-message"></span>
+    <button id="view-comparison-again" class="underline hover:text-white">View Again</button>
+    <button id="export-comparison" class="underline hover:text-white">Export as .txt</button>
   </div>
 </section>
+
+
   </main>
 
   <script src="/static/feedback_history.js"></script>
-
-
 </body>
 </html>

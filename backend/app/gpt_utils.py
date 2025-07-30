@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 import html
 import re
+from typing import List
 
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -337,4 +338,32 @@ Respond below:
 """
 
 
+def generate_comparison_feedback(comparison_data: List[dict]) -> str:
+    """
+    Builds a multi-track comparison prompt and returns AI feedback.
+    Each dict in `comparison_data` should contain:
+        - 'track_name'
+        - 'analysis_summary'
+        - 'chat_history'
 
+    Returns:
+        str: AI-generated comparison feedback.
+    """
+    prompt = """You are an audio mastering engineer. 
+    Compare the following tracks in terms of sonic cohesion, technical quality, 
+    and stylistic consistency. Mention any differences, similarities, and possible 
+    improvements relative to each other. If they seem identical, point that out as well.\n\n"""
+    for idx, entry in enumerate(comparison_data, 1):
+        prompt += f"🎵 Track {idx}: **{entry['track_name']}**\n"
+        prompt += f"{entry['analysis_summary']}\n"
+        prompt += f"🗨️ Chat Summary:\n{entry['chat_history']}\n\n"
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are an audio mastering engineer helping evaluate sonic cohesion."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+
+    return response.choices[0].message.content.strip()

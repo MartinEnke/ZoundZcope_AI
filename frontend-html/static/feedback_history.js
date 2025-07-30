@@ -387,6 +387,8 @@ div.appendChild(heading);
 
 // ✅ Enable session open/closed memory using localStorage
 
+// ✅ Enable session open/closed memory using localStorage
+
 function getOpenSessions() {
   const raw = localStorage.getItem("openSessions");
   try {
@@ -437,6 +439,11 @@ async function loadManageSection() {
       const sessionControls = document.createElement("div");
       sessionControls.className = "flex items-center gap-2";
 
+      const sessionCheckbox = document.createElement("input");
+      sessionCheckbox.type = "checkbox";
+      sessionCheckbox.className = "session-compare-checkbox w-4 h-4 mr-2";
+      sessionCheckbox.setAttribute("data-session-id", session.id);
+
       const renameBtn = document.createElement("button");
       renameBtn.textContent = "Edit";
       renameBtn.className = "hidden md:block px-3 py-1 text-sm rounded-full text-white bg-white/10 border border-white/20 hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
@@ -486,131 +493,125 @@ async function loadManageSection() {
 
       dropdownMenu.append(mobileEdit, mobileDelete);
       dropdownWrapper.append(menuButton, dropdownMenu);
-
       menuButton.addEventListener("click", (e) => {
         e.stopPropagation();
         dropdownMenu.classList.toggle("hidden");
       });
 
-      sessionControls.append(renameBtn, deleteBtn, dropdownWrapper);
+      sessionControls.append(sessionCheckbox, renameBtn, deleteBtn, dropdownWrapper);
       sessionHeader.append(sessionTitleWrap, sessionControls);
       sessionDiv.appendChild(sessionHeader);
 
-
       const trackList = document.createElement("ul");
-  trackList.className = "ml-4 space-y-1 text-sm";
+      trackList.className = "ml-4 space-y-1 text-sm";
 
-  const isOpen = openSessionIds.includes(String(session.id));
-  if (isOpen) {
-    trackList.classList.remove("hidden");
-    arrow.classList.add("rotate-90");
-  } else {
-    trackList.classList.add("hidden");
-    arrow.classList.remove("rotate-90");
-  }
+      const isOpen = openSessionIds.includes(String(session.id));
+      if (isOpen) {
+        trackList.classList.remove("hidden");
+        arrow.classList.add("rotate-90");
+      } else {
+        trackList.classList.add("hidden");
+        arrow.classList.remove("rotate-90");
+      }
 
-  // 🟡 Load tracks for this session
-  let tracks = [];
-  try {
-    const trackRes = await fetch(`/sessions/${session.id}/tracks`);
-    const raw = await trackRes.text();
-    try {
-      const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) throw new Error("Not an array");
-      tracks = parsed;
-    } catch (err) {
-      console.error(`💥 Error parsing tracks for session ${session.id}:`, err, raw);
-      continue; // Skip this session
+      let tracks = [];
+      try {
+        const trackRes = await fetch(`/sessions/${session.id}/tracks`);
+        const raw = await trackRes.text();
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) throw new Error("Not an array");
+        tracks = parsed;
+      } catch (err) {
+        console.error(`❌ Error fetching tracks for session ${session.id}:`, err);
+        continue;
+      }
+
+      for (const track of tracks) {
+        const trackItem = document.createElement("li");
+        trackItem.className = "track-hover-row flex items-center justify-between px-2 py-1 relative z-10 rounded-md";
+        trackItem.setAttribute("data-track-item", track.id);
+
+        const trackName = document.createElement("span");
+        trackName.className = "track-name";
+        trackName.textContent = track.track_name;
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "track-compare-checkbox w-4 h-4 mr-2";
+        checkbox.setAttribute("data-track-id", track.id);
+        checkbox.setAttribute("data-track-name", track.track_name || "Unnamed Track");
+
+        const trackRenameBtn = document.createElement("button");
+        trackRenameBtn.textContent = "Edit";
+        trackRenameBtn.className = "track-edit-btn hidden md:block px-2 py-0.5 text-xs rounded-full text-white bg-white/10 border border-white/20 hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
+        trackRenameBtn.addEventListener("mouseenter", () => trackName.classList.add("text-green-400"));
+        trackRenameBtn.addEventListener("mouseleave", () => trackName.classList.remove("text-green-400"));
+        trackRenameBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const newName = prompt("Rename track:", track.track_name);
+          if (newName) renameTrack(track.id, newName, track.type);
+        });
+
+        const trackDeleteBtn = document.createElement("button");
+        trackDeleteBtn.textContent = "−";
+        trackDeleteBtn.className = "flex w-6 h-6 items-center justify-center rounded-full text-white bg-white/10 border border-white/20 hover:border-red-500 hover:bg-red-500/10 hover:text-white transition-all duration-200";
+        trackDeleteBtn.addEventListener("mouseenter", () => {
+          trackName.classList.remove("text-green-400");
+          trackName.classList.add("text-red-400", "red-hover");
+          trackItem.classList.add("suppress-edit-hover");
+        });
+        trackDeleteBtn.addEventListener("mouseleave", () => {
+          trackName.classList.remove("text-red-400", "red-hover");
+          trackItem.classList.remove("suppress-edit-hover");
+        });
+        trackDeleteBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (confirm("Delete this track?")) deleteTrack(track.id);
+        });
+
+        const trackControls = document.createElement("div");
+        trackControls.className = "flex items-center gap-2";
+        trackControls.append(trackRenameBtn, trackDeleteBtn);
+
+        const trackLeft = document.createElement("div");
+        trackLeft.className = "flex items-center gap-2";
+        trackLeft.append(checkbox, trackName);
+
+        trackItem.append(trackLeft, trackControls);
+        trackList.appendChild(trackItem);
+      }
+
+      sessionCheckbox.addEventListener("change", () => {
+        const allCheckboxes = trackList.querySelectorAll(".track-compare-checkbox");
+        allCheckboxes.forEach(cb => cb.checked = sessionCheckbox.checked);
+      });
+
+      sessionDiv.appendChild(trackList);
+      container.appendChild(sessionDiv);
+
+      sessionTitleWrap.addEventListener("click", () => {
+        const isOpen = !trackList.classList.contains("hidden");
+        const openSessionIds = getOpenSessions();
+
+        if (isOpen) {
+          trackList.classList.add("hidden");
+          arrow.classList.remove("rotate-90");
+          saveOpenSessions(openSessionIds.filter(id => id !== String(session.id)));
+        } else {
+          trackList.classList.remove("hidden");
+          arrow.classList.add("rotate-90");
+          if (!openSessionIds.includes(String(session.id))) {
+            openSessionIds.push(String(session.id));
+          }
+          saveOpenSessions(openSessionIds);
+        }
+      });
     }
-  } catch (fetchErr) {
-    console.error(`❌ Network error fetching tracks for session ${session.id}:`, fetchErr);
-    continue; // Skip this session
-  }
-
-  // ✅ Now tracks is a safe array
-  for (const track of tracks) {
-    const trackItem = document.createElement("li");
-    trackItem.className = "track-hover-row flex items-center justify-between px-2 py-1 relative z-10 rounded-md";
-    trackItem.setAttribute("data-track-item", track.id);
-
-    const trackName = document.createElement("span");
-    trackName.className = "track-name";
-    trackName.textContent = track.track_name;
-
-    // ✏️ Rename button
-    const trackRenameBtn = document.createElement("button");
-    trackRenameBtn.textContent = "Edit";
-    trackRenameBtn.className = "track-edit-btn hidden md:block px-2 py-0.5 text-xs rounded-full text-white bg-white/10 border border-white/20 hover:border-green-400 hover:bg-green-400/10 hover:text-white transition-all duration-200";
-    trackRenameBtn.addEventListener("mouseenter", () => trackName.classList.add("text-green-400"));
-    trackRenameBtn.addEventListener("mouseleave", () => trackName.classList.remove("text-green-400"));
-    trackRenameBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const newName = prompt("Rename track:", track.track_name);
-      if (newName) renameTrack(track.id, newName, track.type);
-    });
-
-    // ❌ Delete button
-    const trackDeleteBtn = document.createElement("button");
-    trackDeleteBtn.textContent = "−";
-    trackDeleteBtn.className = "flex w-6 h-6 items-center justify-center rounded-full text-white bg-white/10 border border-white/20 hover:border-red-500 hover:bg-red-500/10 hover:text-white transition-all duration-200";
-    trackDeleteBtn.addEventListener("mouseenter", () => {
-      trackName.classList.remove("text-green-400");
-      trackName.classList.add("text-red-400", "red-hover");
-      trackItem.classList.add("suppress-edit-hover");
-    });
-    trackDeleteBtn.addEventListener("mouseleave", () => {
-      trackName.classList.remove("text-red-400", "red-hover");
-      trackItem.classList.remove("suppress-edit-hover");
-    });
-    trackDeleteBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (confirm("Delete this track?")) deleteTrack(track.id);
-    });
-
-    const trackControls = document.createElement("div");
-    trackControls.className = "flex items-center gap-2";
-    trackControls.append(trackRenameBtn, trackDeleteBtn);
-
-    trackItem.append(trackName, trackControls);
-    trackList.appendChild(trackItem);
-
-    trackItem.addEventListener("click", (e) => {
-      const isDelete = e.target.closest("button")?.textContent.trim() === "−";
-      const isMobileMenu = e.target.closest(".relative.md\\:hidden");
-      if (isDelete || isMobileMenu) return;
-
-      const newName = prompt("Rename track:", track.track_name);
-      if (newName) renameTrack(track.id, newName, track.type);
-    });
-  }
-
-  sessionDiv.appendChild(trackList);
-  container.appendChild(sessionDiv);
-
-  // After appending sessionDiv to container
-sessionTitleWrap.addEventListener("click", () => {
-  const isOpen = !trackList.classList.contains("hidden");
-  const openSessionIds = getOpenSessions();
-
-  if (isOpen) {
-    trackList.classList.add("hidden");
-    arrow.classList.remove("rotate-90");
-    saveOpenSessions(openSessionIds.filter(id => id !== String(session.id)));
-  } else {
-    trackList.classList.remove("hidden");
-    arrow.classList.add("rotate-90");
-    if (!openSessionIds.includes(String(session.id))) {
-      openSessionIds.push(String(session.id));
-    }
-    saveOpenSessions(openSessionIds);
-  }
-});
-
-}
   } catch (err) {
     console.error("Failed to load manage section:", err);
   }
 }
+
 
 // ==========================================================
 // 🔁 Live Update Helpers (no page refresh needed)
@@ -666,3 +667,91 @@ async function deleteTrack(id) {
 
 // 🚀 Run on page load
 document.addEventListener("DOMContentLoaded", loadManageSection);
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const compareBtn = document.getElementById("compare-tracks-btn");
+  const outputBox = document.getElementById("comparison-feedback-output");
+  const feedbackSection = document.getElementById("comparison-feedback");
+
+  compareBtn.addEventListener("click", async () => {
+    // Collect all selected track IDs
+    const selectedTrackCheckboxes = document.querySelectorAll(".track-compare-checkbox:checked");
+    const trackIds = Array.from(selectedTrackCheckboxes).map(cb => cb.dataset.trackId);
+
+    if (trackIds.length < 2) {
+      alert("Please select at least two tracks to compare.");
+      return;
+    }
+
+    // Optional: disable button while loading
+    compareBtn.disabled = true;
+    compareBtn.textContent = "Comparing...";
+
+    try {
+      const res = await fetch("/api/compare-tracks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ track_ids: trackIds }),
+      });
+
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(err);
+      }
+
+      const data = await res.json();
+      outputBox.textContent = data.feedback || "No feedback returned.";
+      feedbackSection.classList.remove("hidden");
+    } catch (err) {
+      console.error("❌ Comparison error:", err);
+      outputBox.textContent = "An error occurred during comparison.";
+      feedbackSection.classList.remove("hidden");
+    } finally {
+      compareBtn.disabled = false;
+      compareBtn.textContent = "Compare Selected Tracks";
+    }
+  });
+});
+
+
+document.getElementById("compare-button").addEventListener("click", async () => {
+  const checked = document.querySelectorAll('.track-compare-checkbox:checked');
+  const selectedIds = Array.from(checked).map(cb => cb.dataset.trackId);
+  const selectedNames = Array.from(checked).map(cb => cb.dataset.trackName);  // ✅ get names
+
+  console.log("✅ Selected IDs:", selectedIds);
+
+  if (selectedIds.length < 2) {
+    alert("Please select at least two tracks to compare.");
+    return;
+  }
+
+  const response = await fetch("/chat/compare-tracks", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ track_ids: selectedIds })
+  });
+
+  const data = await response.json();
+
+  // ✅ Display feedback
+  const outputBox = document.getElementById("comparison-feedback-output");
+  const feedbackSection = document.getElementById("comparison-feedback");
+  const metaBox = document.getElementById("comparison-meta");
+  const messageSpan = document.getElementById("comparison-session-message");
+
+  outputBox.textContent = data.feedback || "No feedback returned.";
+  feedbackSection.classList.remove("hidden");
+  metaBox.classList.remove("hidden");
+
+  // ✅ Set comparison message
+  if (messageSpan && selectedNames.length > 0) {
+    messageSpan.textContent = "✅ Compared: " + selectedNames.join(", ");
+  }
+});
