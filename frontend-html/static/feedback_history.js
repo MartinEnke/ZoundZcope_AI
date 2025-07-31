@@ -790,7 +790,8 @@ async function loadComparisonHistory() {
       const viewBtn = document.createElement("button");
       viewBtn.className = "underline text-sm text-blue-400 hover:text-white";
       viewBtn.textContent = "View Again";
-      viewBtn.addEventListener("click", () => viewComparison(group.group_id));
+      viewBtn.addEventListener("click", () => viewComparison(group.group_id, viewBtn));
+
 
       const exportBtn = document.createElement("button");
       exportBtn.className = "underline text-sm text-blue-400 hover:text-white ml-4";
@@ -803,5 +804,46 @@ async function loadComparisonHistory() {
   } catch (err) {
     console.error("❌ Error loading comparison history:", err);
     historyBox.innerHTML = "<p class='text-red-400'>Failed to load comparisons.</p>";
+  }
+}
+
+async function viewComparison(groupId, button) {
+  const outputBox = document.getElementById("comparison-feedback-output");
+  const feedbackSection = document.getElementById("comparison-feedback");
+  const metaBox = document.getElementById("comparison-meta");
+  const messageSpan = document.getElementById("comparison-session-message");
+
+  const isVisible = !feedbackSection.classList.contains("hidden");
+
+  if (isVisible && button.textContent === "Close") {
+    // 🔁 Hide and reset
+    feedbackSection.classList.add("hidden");
+    metaBox.classList.add("hidden");
+    outputBox.textContent = "";
+    messageSpan.textContent = "";
+    button.textContent = "View Again";
+    return;
+  }
+
+  // 🧠 Load comparison feedback
+  try {
+    const res = await fetch(`/chat/comparisons/${groupId}`);
+    if (!res.ok) throw new Error("Failed to load comparison");
+
+    const data = await res.json();
+
+    outputBox.textContent = data.feedback || "No feedback found.";
+    messageSpan.textContent = "Compared Tracks: " + (data.track_names || []).join(", ");
+
+    feedbackSection.classList.remove("hidden");
+    metaBox.classList.remove("hidden");
+    button.textContent = "Close";
+
+    // Optional: scroll into view
+    feedbackSection.scrollIntoView({ behavior: "smooth" });
+  } catch (err) {
+    console.error("❌ Error viewing comparison:", err);
+    outputBox.textContent = "An error occurred while loading the comparison.";
+    feedbackSection.classList.remove("hidden");
   }
 }

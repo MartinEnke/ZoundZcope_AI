@@ -472,6 +472,22 @@ def get_comparison_history(db: Session = Depends(get_db)):
     return JSONResponse(content=history)
 
 
+@router.get("/comparisons/{group_id}")
+def get_comparison_by_group(group_id: str, db: Session = Depends(get_db)):
+    messages = db.query(ChatMessage) \
+        .filter(ChatMessage.comparison_group_id == group_id) \
+        .order_by(ChatMessage.timestamp.asc()).all()
+
+    if not messages:
+        return JSONResponse(content={"error": "No comparison found."}, status_code=404)
+
+    first_msg = next((m for m in messages if m.message and m.message.startswith("###")), messages[0])
+
+    return {
+        "feedback": first_msg.message,
+        "track_names": first_msg.compared_track_names.split(",") if first_msg.compared_track_names else []
+    }
+
 
 @router.get("/test")
 def test():
