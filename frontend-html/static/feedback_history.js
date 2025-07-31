@@ -5,11 +5,21 @@ let justClosedDropdown = false;
 // then populate tracks dropdown based on selected session
 // ==========================================================
 document.addEventListener("DOMContentLoaded", () => {
+  // ✅ Attach the close button handler immediately on page load
+  const closeBtn = document.getElementById("close-feedback-btn");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      document.getElementById("history-feedback").classList.add("hidden");
+      document.getElementById("history-feedback-output").innerHTML = "";
+    });
+  }
+
   // 🔸 Fetch sessions and populate the dropdown
   fetchSessions();
 
-  // 🔧 Also load the Manage section on page load
+  // 🔧 Load the Manage section
   loadManageSection();
+
 
   // 🔄 Handle session dropdown changes
   const sessionDropdown = document.getElementById("session-select");
@@ -21,6 +31,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // Reset track dropdown
     trackDropdown.innerHTML = '<option value="">-- Select a session first --</option>';
     trackDropdown.disabled = true;
+
+
+    document.getElementById("close-feedback-btn").addEventListener("click", () => {
+  document.getElementById("history-feedback").classList.add("hidden");
+  document.getElementById("history-feedback-output").innerHTML = "";
+});
+
 
     if (!sessionId) return;
 
@@ -217,6 +234,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const trackOptions = document.getElementById("track-options");
   const trackInput = document.getElementById("track-input");
   const trackSelected = document.getElementById("track-selected");
+
+  // Force custom styles on dropdown containers (session + track)
+[sessionOptions, trackOptions].forEach(dropdown => {
+  if (dropdown) {
+    dropdown.style.backgroundColor = "rgba(90, 90, 90, 0.05)";
+    dropdown.style.backdropFilter = "blur(20px)";
+    dropdown.style.webkitBackdropFilter = "blur(20px)";
+    dropdown.style.border = "1px solid rgba(255,255,255,0.01)";
+    dropdown.style.boxShadow = "0 8px 16px rgba(255, 255, 255, 0.0.1)";
+    dropdown.style.color = "#f0f0f0"; // optional for legibility
+  }
+});
 
   // Toggle dropdowns
   sessionButton.addEventListener("click", () => sessionOptions.classList.toggle("hidden"));

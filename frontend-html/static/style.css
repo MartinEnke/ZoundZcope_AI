@@ -360,7 +360,7 @@ select.custom-dropdown:focus {
 }
 
 .milky-dropdown {
-  background-color: rgba(0, 0, 0, 0.80);
+  background-color: rgba(0, 0, 0, 0.10);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(20px); /* Safari support */
   border: 1px solid rgba(255, 255, 255, 0.9);

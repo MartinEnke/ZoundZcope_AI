@@ -65,11 +65,13 @@
 
 
     <!-- FEEDBACK DISPLAY (Single Track) -->
-    <section id="history-feedback" class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4 hidden">
-      <h2 class="text-xl font-semibold">AI Feedback</h2>
-      <div id="history-feedback-output" class="text-white/90 text-sm whitespace-pre-wrap"></div>
-    </section>
-
+    <section id="history-feedback" class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4 hidden relative">
+  <button id="close-feedback-btn" class="absolute top-3 right-3 text-white/50 hover:text-red-400 text-lg font-bold">
+    ✕
+  </button>
+  <h2 class="text-xl font-semibold">AI Feedback</h2>
+  <div id="history-feedback-output" class="text-white/90 text-sm whitespace-pre-wrap"></div>
+</section>
 
     <!-- 🔹 Manage Sessions and Tracks -->
     <section class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4">
