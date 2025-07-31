@@ -11,8 +11,6 @@ import json
 from typing import List
 from fastapi import Body
 import uuid
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 
 
@@ -487,6 +485,25 @@ def get_comparison_by_group(group_id: str, db: Session = Depends(get_db)):
         "feedback": first_msg.message,
         "track_names": first_msg.compared_track_names.split(",") if first_msg.compared_track_names else []
     }
+
+
+
+@router.delete("/comparisons/{group_id}")
+def delete_comparison(group_id: str, db: Session = Depends(get_db)):
+    # Get all messages belonging to the comparison group
+    messages = db.query(ChatMessage).filter(ChatMessage.comparison_group_id == group_id).all()
+
+    if not messages:
+        raise HTTPException(status_code=404, detail="Comparison group not found")
+
+    # Delete all messages in that group
+    for msg in messages:
+        db.delete(msg)
+
+    db.commit()
+
+    return {"detail": f"Deleted {len(messages)} messages in group {group_id}"}
+
 
 
 @router.get("/test")

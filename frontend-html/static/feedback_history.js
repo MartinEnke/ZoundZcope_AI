@@ -780,7 +780,7 @@ metaBox.classList.remove("hidden");
 
 
 async function loadComparisonHistory() {
-  const historyBox = document.getElementById("comparison-history-list"); // ✅ correct ID
+  const historyBox = document.getElementById("comparison-history-list");
   if (!historyBox) {
     console.warn("⚠️ #comparison-history-list not found");
     return;
@@ -801,24 +801,55 @@ async function loadComparisonHistory() {
       const div = document.createElement("div");
       div.className = "mb-4 p-4 bg-white/10 rounded";
 
+      // Title
       const title = document.createElement("p");
       title.className = "font-semibold mb-2 text-white";
       title.textContent = `Compared Tracks: ${group.track_names.join(", ")}`;
 
+      // View Button
       const viewBtn = document.createElement("button");
       viewBtn.className = "underline text-sm text-blue-400 hover:text-white";
       viewBtn.textContent = "View Again";
       viewBtn.addEventListener("click", () => viewComparison(group.group_id, viewBtn));
 
-
+      // Export Button
       const exportBtn = document.createElement("button");
       exportBtn.className = "underline text-sm text-blue-400 hover:text-white ml-4";
       exportBtn.textContent = "Export";
-      exportBtn.addEventListener("click", () => {exportComparison(group.group_id);
-});
+      exportBtn.addEventListener("click", () => exportComparison(group.group_id));
 
+      // Delete Button
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "underline text-sm text-red-400 hover:text-white ml-4";
+      deleteBtn.textContent = "Delete";
+      deleteBtn.addEventListener("click", async () => {
+        if (confirm("Are you sure you want to delete this comparison?")) {
+          try {
+            const res = await fetch(`/chat/comparisons/${group.group_id}`, {
+              method: "DELETE",
+            });
 
-      div.append(title, viewBtn, exportBtn);
+            if (!res.ok) throw new Error("Failed to delete");
+
+            // 🔄 Reload the list
+            await loadComparisonHistory();
+
+            // 🧼 Clear view if this comparison was open
+            const messageSpan = document.getElementById("comparison-session-message");
+            if (messageSpan && messageSpan.textContent.includes(group.track_names[0])) {
+              document.getElementById("comparison-feedback").classList.add("hidden");
+              document.getElementById("comparison-meta").classList.add("hidden");
+              document.getElementById("comparison-feedback-output").innerHTML = "";
+            }
+
+          } catch (err) {
+            console.error("❌ Failed to delete comparison:", err);
+            alert("An error occurred while deleting.");
+          }
+        }
+      });
+
+      div.append(title, viewBtn, exportBtn, deleteBtn);
       historyBox.appendChild(div);
     }
   } catch (err) {
@@ -826,7 +857,6 @@ async function loadComparisonHistory() {
     historyBox.innerHTML = "<p class='text-red-400'>Failed to load comparisons.</p>";
   }
 }
-
 
 function formatComparisonFeedback(feedbackText) {
   const lines = feedbackText.trim().split("\n");
