@@ -727,7 +727,7 @@ document.addEventListener("DOMContentLoaded", () => {
 document.getElementById("compare-button").addEventListener("click", async () => {
   const checked = document.querySelectorAll('.track-compare-checkbox:checked');
   const selectedIds = Array.from(checked).map(cb => cb.dataset.trackId);
-  const selectedNames = Array.from(checked).map(cb => cb.dataset.trackName);  // ✅ get names
+  const selectedNames = Array.from(checked).map(cb => cb.dataset.trackName);
 
   console.log("✅ Selected IDs:", selectedIds);
 
@@ -736,27 +736,45 @@ document.getElementById("compare-button").addEventListener("click", async () => 
     return;
   }
 
-  const response = await fetch("/chat/compare-tracks", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ track_ids: selectedIds })
-  });
+  try {
+    const response = await fetch("/chat/compare-tracks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ track_ids: selectedIds })
+    });
 
-  const data = await response.json();
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || "Comparison failed.");
 
-  // ✅ Display feedback
-  const outputBox = document.getElementById("comparison-feedback-output");
-  const feedbackSection = document.getElementById("comparison-feedback");
-  const metaBox = document.getElementById("comparison-meta");
-  const messageSpan = document.getElementById("comparison-session-message");
+    // ✅ Show feedback immediately
+    // ✅ Show formatted feedback
+const outputBox = document.getElementById("comparison-feedback-output");
+const feedbackSection = document.getElementById("comparison-feedback");
+const metaBox = document.getElementById("comparison-meta");
+const messageSpan = document.getElementById("comparison-session-message");
 
-  outputBox.textContent = data.feedback || "No feedback returned.";
-  feedbackSection.classList.remove("hidden");
-  metaBox.classList.remove("hidden");
+outputBox.innerHTML = formatComparisonFeedback(data.feedback || "No feedback returned.");
+feedbackSection.classList.remove("hidden");
+metaBox.classList.remove("hidden");
 
-  // ✅ Set comparison message
-  if (messageSpan && selectedNames.length > 0) {
-    messageSpan.textContent = "✅ Compared: " + selectedNames.join(", ");
+    if (messageSpan && selectedNames.length > 0) {
+      messageSpan.textContent = "✅ Compared: " + selectedNames.join(", ");
+    }
+
+    // ✅ Refresh Past Comparisons list
+    loadComparisonHistory();
+
+    // ✅ Add success message
+    const successNote = document.createElement("p");
+    successNote.className = "text-green-400 text-sm mt-2";
+    successNote.textContent = "✅ Comparison saved to history and available for export.";
+
+
+    metaBox.appendChild(successNote);
+
+  } catch (err) {
+    console.error("❌ Comparison failed:", err);
+    alert("An error occurred during comparison. Please try again.");
   }
 });
 
