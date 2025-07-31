@@ -2,6 +2,9 @@
 
 ZoundZcope is a modular audio analysis and feedback tool that gives automated mixing and mastering suggestions based on extracted audio features. It's built with FastAPI, SQLAlchemy, and OpenAI-compatible models (e.g. Together.ai).
 
+![License: Contact Author](https://img.shields.io/badge/license-contact--author-orange)
+
+
 ## 🔍 What It Does
 
 - Analyze uploaded audio files for:
