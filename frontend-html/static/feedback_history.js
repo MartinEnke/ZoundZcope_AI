@@ -809,6 +809,71 @@ async function loadComparisonHistory() {
   }
 }
 
+
+function formatComparisonFeedback(feedbackText) {
+  const lines = feedbackText.trim().split("\n");
+  let html = "";
+  let inUl = false;
+  let inOl = false;
+
+  const flushLists = () => {
+    if (inUl) {
+      html += "</ul>";
+      inUl = false;
+    }
+    if (inOl) {
+      html += "</ol>";
+      inOl = false;
+    }
+  };
+
+  for (let line of lines) {
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      flushLists();
+      html += "<br>";
+      continue;
+    }
+
+    if (trimmed.startsWith("### ")) {
+      flushLists();
+      html += `<h3 class="text-lg font-semibold mt-10 mb-1 text-white/90">${trimmed.slice(4)}</h3>`;
+    } else if (trimmed.startsWith("#### ")) {
+      flushLists();
+      html += `<h4 class="text-md font-semibold mt-2 mb-1">${trimmed.slice(5)}</h4>`;
+    } else if (/^\d+\.\s/.test(trimmed)) {
+      if (!inOl) {
+        flushLists();
+        html += "<ol class='list-decimal list-inside ml-4 mb-2'>";
+        inOl = true;
+      }
+      const formatted = trimmed.replace(/^\d+\.\s/, "");
+      html += `<li>${formatBold(formatted)}</li>`;
+    } else if (trimmed.startsWith("- ")) {
+      if (!inUl) {
+        flushLists();
+        html += "<ul class='list-disc list-inside ml-4 mb-2'>";
+        inUl = true;
+      }
+      html += `<li>${formatBold(trimmed.slice(2))}</li>`;
+    } else {
+      flushLists();
+      html += `<p class="mb-2">${formatBold(trimmed)}</p>`;
+    }
+  }
+
+  flushLists();
+  return html;
+}
+
+// Bold helper
+function formatBold(text) {
+  return text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+}
+
+
+
 async function viewComparison(groupId, button) {
   const outputBox = document.getElementById("comparison-feedback-output");
   const feedbackSection = document.getElementById("comparison-feedback");
@@ -834,7 +899,8 @@ async function viewComparison(groupId, button) {
 
     const data = await res.json();
 
-    outputBox.textContent = data.feedback || "No feedback found.";
+    outputBox.innerHTML = formatComparisonFeedback(data.feedback || "No feedback found.");
+
     messageSpan.textContent = "Compared Tracks: " + (data.track_names || []).join(", ");
 
     feedbackSection.classList.remove("hidden");
@@ -852,5 +918,11 @@ async function viewComparison(groupId, button) {
 
 function exportComparison(groupId) {
   const url = `/export/export-comparison?group_id=${encodeURIComponent(groupId)}`;
-  window.open(url, "_blank");  // opens download in new tab
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "";  // Let the server's Content-Disposition handle filename
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
