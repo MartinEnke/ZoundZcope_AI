@@ -10,6 +10,8 @@ from reportlab.lib.utils import simpleSplit
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, ListFlowable, ListItem
 from reportlab.lib.enums import TA_CENTER
+from xml.sax.saxutils import escape
+import re
 
 
 router = APIRouter()
@@ -268,6 +270,134 @@ def create_pdf(full_report_text: str) -> BytesIO:
 
 
 
+
+def render_line_with_bold(line: str, style: ParagraphStyle) -> Paragraph:
+    # Convert **text** into bold using <b> tags
+    line = escape(line)
+    line = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", line)
+    return Paragraph(line, style)
+
+
+def create_comparison_pdf(feedback_text: str, preset_text: str) -> BytesIO:
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                            rightMargin=40, leftMargin=40,
+                            topMargin=40, bottomMargin=40)
+
+    styles = getSampleStyleSheet()
+
+    # Base styles
+    company_title_style = ParagraphStyle('CompanyTitle', fontName='Helvetica-Bold', fontSize=24, alignment=TA_CENTER, spaceAfter=28)
+    subheadline_style = ParagraphStyle('Subheadline', fontName='Helvetica-Bold', fontSize=16, alignment=TA_CENTER, spaceAfter=32)
+    section_h2_style = ParagraphStyle('H2', fontName='Helvetica-Bold', fontSize=14, spaceAfter=14)
+    section_h3_style = ParagraphStyle('H3', fontName='Helvetica-Bold', fontSize=12, spaceAfter=10)
+    normal_style = ParagraphStyle('Normal', fontName='Helvetica', fontSize=10, leading=14, spaceAfter=6)
+    plugin_name_style = ParagraphStyle('PluginName', fontName='Helvetica-Bold', fontSize=10, spaceAfter=2)
+    plugin_data_style = ParagraphStyle('PluginData', fontName='Helvetica', fontSize=10, leftIndent=12, spaceAfter=2)
+
+    elements = []
+
+    # Header
+    elements.append(Paragraph("ZoundZcope AI", company_title_style))
+    elements.append(Paragraph("Multi-Track Comparison + Presets Report", subheadline_style))
+
+    # Section: Feedback
+    elements.append(Paragraph("AI Comparison Feedback:", section_h2_style))
+
+    # --- Feedback Formatting ---
+    numbered_group = []
+    bullet_group = []
+
+    def flush_numbered_group():
+        nonlocal numbered_group
+        if numbered_group:
+            list_items = [ListItem(render_line_with_bold(item, normal_style)) for item in numbered_group]
+            elements.append(ListFlowable(list_items, bulletType='1', start='1'))
+            numbered_group = []
+
+    def flush_bullet_group():
+        nonlocal bullet_group
+        if bullet_group:
+            list_items = [ListItem(render_line_with_bold(item, normal_style)) for item in bullet_group]
+            elements.append(ListFlowable(list_items, bulletType='bullet'))
+            bullet_group = []
+
+    lines = feedback_text.strip().split("\n")
+
+    # ✅ Remove the first line if it's the unwanted heading
+    if lines and lines[0].strip() == "### Comparison of Tracks":
+        lines = lines[1:]
+
+    # ✅ Now loop over the cleaned lines
+    for line in lines:
+        stripped = line.strip()
+
+        if not stripped:
+            flush_bullet_group()
+            flush_numbered_group()
+            elements.append(Spacer(1, 6))
+            continue
+
+        if stripped.startswith("### "):
+            flush_bullet_group()
+            flush_numbered_group()
+            elements.append(Paragraph(stripped[4:], section_h2_style))
+        elif stripped.startswith("#### "):
+            flush_bullet_group()
+            flush_numbered_group()
+            elements.append(Paragraph(stripped[5:], section_h3_style))
+        elif re.match(r"^\d+\.\s", stripped):  # Numbered list
+            numbered_group.append(stripped)
+        elif stripped.startswith("- "):
+            bullet_group.append(stripped[2:])
+        else:
+            flush_bullet_group()
+            flush_numbered_group()
+            elements.append(render_line_with_bold(stripped, normal_style))
+
+    flush_bullet_group()
+    flush_numbered_group()
+
+    elements.append(Spacer(1, 12))
+
+    # Section: Presets
+    elements.append(Paragraph("Recommended Ableton Preset Parameters:", section_h2_style))
+
+    # --- Preset Formatting ---
+    bullet_group = []
+
+    def flush_preset_group():
+        nonlocal bullet_group
+        if bullet_group:
+            list_items = [ListItem(render_line_with_bold(item, plugin_data_style)) for item in bullet_group]
+            elements.append(ListFlowable(list_items, bulletType='bullet'))
+            bullet_group = []
+
+    for line in preset_text.strip().split("\n"):
+        stripped = line.strip()
+
+        if not stripped:
+            flush_preset_group()
+            elements.append(Spacer(1, 6))
+            continue
+
+        if any(stripped.startswith(p) for p in ["EQ8:", "Compressor:", "Glue Compressor:", "Limiter:", "Multiband Dynamics:", "Utils:"]):
+            flush_preset_group()
+            elements.append(Paragraph(stripped, plugin_name_style))
+        elif stripped.startswith("- "):
+            bullet_group.append(stripped[2:])
+        else:
+            flush_preset_group()
+            elements.append(render_line_with_bold(stripped, normal_style))
+
+    flush_preset_group()
+
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
+
+
+
 @router.get("/export-feedback-presets")
 def export_feedback_presets(
     session_id: str = Query(...),
@@ -323,5 +453,82 @@ def export_feedback_presets(
         media_type="application/pdf",
         headers={
             "Content-Disposition": f"attachment; filename=feedback_presets_{session_id}_{track_id}.pdf"
+        }
+    )
+
+
+def generate_presets_from_comparison_feedback(feedback_text: str) -> str:
+    prompt = f"""
+You are an expert audio engineer assisting with a comparison of multiple tracks.
+
+Below is the multi-track comparison feedback that was previously generated:
+
+\"\"\"
+{feedback_text}
+\"\"\"
+
+Now generate **only** the recommended plugin and preset parameters that could help resolve the issues or enhance cohesion, based on the feedback above.
+
+Output the results under the following section:
+
+---
+
+Recommended Ableton Preset Parameters:
+
+EQ8:
+- Band 1: [freq, gain, Q, bell/shelf, notes]
+- Band 2: ...
+
+Compressor:
+- Threshold: ...
+- Ratio: ...
+- Attack: ...
+- Release: ...
+
+Multiband Dynamics:
+- ...
+
+Limiter:
+- ...
+
+Utils:
+- ...
+
+(Only include relevant plugins. Provide short notes in parentheses if needed.)
+
+---
+
+Rules:
+- DO NOT repeat the feedback text.
+- DO NOT add commentary, explanation, or headings outside of the preset section.
+- ONLY output plain text in the format above, starting directly with 'Recommended Ableton Preset Parameters:'.
+"""
+    return generate_feedback_response(prompt)
+
+
+
+@router.get("/export-comparison")
+def export_comparison_feedback(group_id: str = Query(...), db: Session = Depends(get_db)):
+    messages = (
+        db.query(ChatMessage)
+        .filter(ChatMessage.comparison_group_id == group_id)
+        .order_by(ChatMessage.timestamp.asc())
+        .all()
+    )
+
+    if not messages:
+        raise HTTPException(status_code=404, detail="No comparison feedback found")
+
+    first_msg = next((m for m in messages if m.message and m.message.strip()), messages[0])
+    feedback_text = first_msg.message
+
+    preset_text = generate_presets_from_comparison_feedback(feedback_text)
+    pdf_buffer = create_comparison_pdf(feedback_text, preset_text)
+
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=comparison_feedback_{group_id}.pdf"
         }
     )

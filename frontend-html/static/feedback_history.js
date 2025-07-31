@@ -796,7 +796,9 @@ async function loadComparisonHistory() {
       const exportBtn = document.createElement("button");
       exportBtn.className = "underline text-sm text-blue-400 hover:text-white ml-4";
       exportBtn.textContent = "Export";
-      exportBtn.addEventListener("click", () => exportComparison(group.group_id));
+      exportBtn.addEventListener("click", () => {exportComparison(group.group_id);
+});
+
 
       div.append(title, viewBtn, exportBtn);
       historyBox.appendChild(div);
@@ -846,4 +848,9 @@ async function viewComparison(groupId, button) {
     outputBox.textContent = "An error occurred while loading the comparison.";
     feedbackSection.classList.remove("hidden");
   }
+}
+
+function exportComparison(groupId) {
+  const url = `/export/export-comparison?group_id=${encodeURIComponent(groupId)}`;
+  window.open(url, "_blank");  // opens download in new tab
 }
