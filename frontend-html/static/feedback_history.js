@@ -387,8 +387,6 @@ div.appendChild(heading);
 
 // ✅ Enable session open/closed memory using localStorage
 
-// ✅ Enable session open/closed memory using localStorage
-
 function getOpenSessions() {
   const raw = localStorage.getItem("openSessions");
   try {
@@ -416,6 +414,41 @@ async function loadManageSection() {
       const sessionDiv = document.createElement("div");
       sessionDiv.className = "border-b border-white/20 pb-4";
       sessionDiv.setAttribute("data-session-wrapper", session.id);
+
+      // 👇 ADD: Make session droppable for tracks
+sessionDiv.addEventListener("dragover", (e) => {
+  e.preventDefault();  // Necessary to allow drop
+  sessionDiv.classList.add("bg-white/10");  // Optional: hover effect
+});
+
+sessionDiv.addEventListener("dragleave", () => {
+  sessionDiv.classList.remove("bg-white/10");
+});
+
+sessionDiv.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  sessionDiv.classList.remove("bg-white/10");
+
+  const trackId = e.dataTransfer.getData("text/plain");
+  const newSessionId = session.id;
+
+  try {
+    const formData = new FormData();
+    formData.append("session_id", newSessionId);
+
+    const res = await fetch(`/tracks/${trackId}`, {
+      method: "PUT",
+      body: formData,
+    });
+
+    if (!res.ok) throw new Error(await res.text());
+
+    await loadManageSection();  // Refresh UI
+  } catch (err) {
+    alert("Error moving track: " + err.message);
+    console.error("❌ Move track failed:", err);
+  }
+});
 
       const sessionHeader = document.createElement("div");
       sessionHeader.className = "flex items-center justify-between mb-2";
@@ -528,6 +561,14 @@ async function loadManageSection() {
 
       for (const track of tracks) {
         const trackItem = document.createElement("li");
+trackItem.className = "track-hover-row flex items-center justify-between px-2 py-1 relative z-10 rounded-md";
+trackItem.setAttribute("data-track-item", track.id);
+
+// 👇 ADD: Make draggable
+trackItem.setAttribute("draggable", "true");
+trackItem.addEventListener("dragstart", (e) => {
+  e.dataTransfer.setData("text/plain", track.id);
+});
         trackItem.className = "track-hover-row flex items-center justify-between px-2 py-1 relative z-10 rounded-md";
         trackItem.setAttribute("data-track-item", track.id);
 
@@ -725,16 +766,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 document.getElementById("compare-button").addEventListener("click", async () => {
+  const button = document.getElementById("compare-button");
+
   const checked = document.querySelectorAll('.track-compare-checkbox:checked');
   const selectedIds = Array.from(checked).map(cb => cb.dataset.trackId);
   const selectedNames = Array.from(checked).map(cb => cb.dataset.trackName);
-
-  console.log("✅ Selected IDs:", selectedIds);
 
   if (selectedIds.length < 2) {
     alert("Please select at least two tracks to compare.");
     return;
   }
+
+  // ✨ Add swoosh effect
+  button.classList.add("swoosh");
 
   try {
     const response = await fetch("/chat/compare-tracks", {
@@ -746,37 +790,38 @@ document.getElementById("compare-button").addEventListener("click", async () => 
     const data = await response.json();
     if (!response.ok) throw new Error(data.detail || "Comparison failed.");
 
-    // ✅ Show feedback immediately
     // ✅ Show formatted feedback
-const outputBox = document.getElementById("comparison-feedback-output");
-const feedbackSection = document.getElementById("comparison-feedback");
-const metaBox = document.getElementById("comparison-meta");
-const messageSpan = document.getElementById("comparison-session-message");
+    const outputBox = document.getElementById("comparison-feedback-output");
+    const feedbackSection = document.getElementById("comparison-feedback");
+    const metaBox = document.getElementById("comparison-meta");
+    const messageSpan = document.getElementById("comparison-session-message");
 
-outputBox.innerHTML = formatComparisonFeedback(data.feedback || "No feedback returned.");
-feedbackSection.classList.remove("hidden");
-metaBox.classList.remove("hidden");
+    outputBox.innerHTML = formatComparisonFeedback(data.feedback || "No feedback returned.");
+    feedbackSection.classList.remove("hidden");
+    metaBox.classList.remove("hidden");
 
     if (messageSpan && selectedNames.length > 0) {
       messageSpan.textContent = "✅ Compared: " + selectedNames.join(", ");
     }
 
-    // ✅ Refresh Past Comparisons list
-    loadComparisonHistory();
+    // 🔁 Reload history so export button appears right away
+    await loadComparisonHistory();
 
     // ✅ Add success message
     const successNote = document.createElement("p");
     successNote.className = "text-green-400 text-sm mt-2";
     successNote.textContent = "✅ Comparison saved to history and available for export.";
-
-
     metaBox.appendChild(successNote);
 
   } catch (err) {
     console.error("❌ Comparison failed:", err);
     alert("An error occurred during comparison. Please try again.");
+  } finally {
+    // ❌ Remove swoosh effect
+    button.classList.remove("swoosh");
   }
 });
+
 
 
 async function loadComparisonHistory() {

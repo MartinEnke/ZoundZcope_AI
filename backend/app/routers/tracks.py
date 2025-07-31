@@ -31,15 +31,22 @@ def get_single_track(track_id: str, db: Session = Depends(get_db)):
 @router.put("/{id}")
 def update_track(
     id: str,
-    track_name: str = Form(...),
+    track_name: str = Form(None),
+    session_id: str = Form(None),
     db: Session = Depends(get_db)
 ):
     track = db.query(Track).filter(Track.id == id).first()
     if not track:
         raise HTTPException(status_code=404, detail="Track not found")
-    track.track_name = track_name
+
+    if track_name is not None:
+        track.track_name = track_name
+    if session_id is not None:
+        track.session_id = session_id
+
     db.commit()
     return {"message": "Track updated", "track": track}
+
 
 
 @router.delete("/{id}")

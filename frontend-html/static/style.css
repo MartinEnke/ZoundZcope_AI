@@ -873,3 +873,48 @@ transition: max-height 0.3s ease;
   box-shadow:
     0 0 8px rgba(32, 191, 191, 0.6);
 }
+
+.milky-input {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05); /* milky base */
+  backdrop-filter: blur(4px);
+  color: white;
+  transition: background 0.3s, color 0.3s;
+}
+
+.milky-input:hover {
+  background: rgba(255, 255, 255, 0.15); /* brighter on hover */
+}
+
+/* ✨ Animated swoosh */
+.milky-input.swoosh::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.15),
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  filter: blur(8px); /* 🫧 softer swoosh */
+  transform: skewX(-20deg);
+  animation: swoosh 2s ease-in-out infinite; /* 🔁 repeating */
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 🔁 Swoosh Keyframes */
+@keyframes swoosh {
+  0% {
+    left: -50%;
+  }
+  100% {
+    left: 150%;
+  }
+
+
