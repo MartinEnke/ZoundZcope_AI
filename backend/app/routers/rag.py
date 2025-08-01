@@ -34,16 +34,24 @@ tut_metadata = load_metadata(RAG_TUT_METADATA_PATH)
 
 class Question(BaseModel):
     question: str
+    history: list[dict] = []
 
 def extract_code_blocks(text: str):
     return re.findall(r"```(?:\w+)?\n(.*?)```", text, re.DOTALL)
 
-def build_prompt_docs(query, retrieved_chunks):
+def build_prompt_docs(query, retrieved_chunks, history):
     prompt = (
         "You are an expert explaining the implementation of a music AI project.\n"
+        "Use the previous questions and answers as context.\n\n"
         "If the user requests the full original function, return the entire function code exactly as it appears inside markdown code blocks.\n"
         "Otherwise, provide clear, concise explanations quoting relevant code.\n\n"
     )
+    # Include previous chat history
+    if history:
+        prompt += "Conversation so far:\n"
+        for pair in history:
+            prompt += f"User: {pair['question']}\nAI: {pair['answer']}\n\n"
+
     all_codes = []
     for chunk in retrieved_chunks:
         codes = extract_code_blocks(chunk['text'])
@@ -58,13 +66,19 @@ def build_prompt_docs(query, retrieved_chunks):
     prompt += f"User question: {query}\n\nAnswer accordingly."
     return prompt
 
-def build_prompt_tut(query, retrieved_chunks):
+def build_prompt_tut(query, retrieved_chunks, history):
     prompt = (
         "You are an expert audio engineer and developer specializing in AI-assisted mixing and mastering.\n"
+        "Use the previous questions and answers as context.\n\n"
         "The user is asking about implementation details, usage, or concepts of a mixing/mastering AI assistant project called ZoundZcope.\n"
         "If the user requests full original code functions, return the entire function code exactly as it appears inside markdown code blocks.\n"
         "Otherwise, provide clear, concise explanations quoting relevant code and concepts.\n\n"
     )
+    if history:
+        prompt += "Conversation so far:\n"
+        for pair in history:
+            prompt += f"User: {pair['question']}\nAI: {pair['answer']}\n\n"
+
     all_codes = []
     for chunk in retrieved_chunks:
         codes = extract_code_blocks(chunk['text'])
@@ -91,11 +105,11 @@ def generate_answer(prompt: str):
     )
     return response.choices[0].message.content
 
-def search_and_answer(index, metadata, question, build_prompt_fn):
+def search_and_answer(index, metadata, question, history, build_prompt_fn):
     query_emb = embed_query(question)
-    indices, _ = search_index(index, query_emb, top_k=3)
+    indices, _ = search_index(index, query_emb, top_k=5)
     retrieved = [metadata[i] for i in indices]
-    prompt = build_prompt_fn(question, retrieved)
+    prompt = build_prompt_fn(question, retrieved, history)
     answer = generate_answer(prompt)
     return answer
 
@@ -103,12 +117,12 @@ def search_and_answer(index, metadata, question, build_prompt_fn):
 async def rag_docs(question: Question):
     if not question.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
-    answer = search_and_answer(docs_index, docs_metadata, question.question, build_prompt_docs)
+    answer = search_and_answer(docs_index, docs_metadata, question.question, question.history, build_prompt_docs)
     return {"answer": answer}
 
 @router.post("/rag_tut")
 async def rag_tut(question: Question):
     if not question.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
-    answer = search_and_answer(tut_index, tut_metadata, question.question, build_prompt_tut)
+    answer = search_and_answer(tut_index, tut_metadata, question.question, question.history, build_prompt_tut)
     return {"answer": answer}

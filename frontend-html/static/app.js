@@ -1622,7 +1622,6 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// ======= Near the bottom of your JS file =======
 
 // 1) Click listeners to update focusedWaveform:
 document.addEventListener("DOMContentLoaded", () => {
@@ -1704,11 +1703,6 @@ document.addEventListener("keydown", (e) => {
     }
   }
 });
-
-
-
-
-
 
 
 // ==========================================================
@@ -2158,12 +2152,12 @@ function appendMessage(container, sender, text) {
 }
 
 // Query backend RAG API
-async function queryRagAPI(endpoint, question) {
+async function queryRagAPI(endpoint, question, history) {
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ question })
+      body: JSON.stringify({ question, history })
     });
     if (!response.ok) {
       throw new Error(`API error: ${response.statusText}`);
@@ -2196,8 +2190,11 @@ docsForm.addEventListener('submit', async (e) => {
   docsInput.value = '';
 
   appendMessage(docsChat, 'ai', 'AI is thinking...');
-  const answer = await queryRagAPI('/chat/rag_docs', question);
 
+  const history = getChatHistory(docsChat);
+  const answer = await queryRagAPI('/chat/rag_docs', question, history);
+
+  // Replace placeholder
   const thinkingMsg = [...docsChat.querySelectorAll('.rag-message')]
     .reverse()
     .find(msg => msg.textContent.includes('AI is thinking'));
@@ -2215,7 +2212,6 @@ docsForm.addEventListener('submit', async (e) => {
   adjustChatHeight(docsChat);
 });
 
-
 // Tutorial Assistant form handling
 tutForm.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -2226,8 +2222,14 @@ tutForm.addEventListener('submit', async (e) => {
   tutInput.value = '';
 
   appendMessage(tutChat, 'ai', 'AI is thinking...');
-  const answer = await queryRagAPI('/chat/rag_tut', question);
 
+  // 🧠 Extract chat history from previous messages
+  const history = getChatHistory(tutChat);
+
+  // 📡 Send current question + history
+  const answer = await queryRagAPI('/chat/rag_tut', question, history);
+
+  // Replace the "AI is thinking..." message with the real response
   const thinkingMsg = [...tutChat.querySelectorAll('.rag-message')]
     .reverse()
     .find(msg => msg.textContent.includes('AI is thinking'));
@@ -2244,7 +2246,6 @@ tutForm.addEventListener('submit', async (e) => {
 
   adjustChatHeight(tutChat);
 });
-
 
 
 
@@ -2284,3 +2285,22 @@ toggleRagBtn.addEventListener('click', () => {
   }
 });
 
+function getChatHistory(container) {
+  const messages = [...container.querySelectorAll('.rag-message')];
+  const history = [];
+
+  for (let i = 0; i < messages.length - 1; i++) {
+    const userMsg = messages[i];
+    const aiMsg = messages[i + 1];
+
+    if (userMsg.classList.contains('text-pink-400') && aiMsg.classList.contains('text-blue-400')) {
+      history.push({
+        question: userMsg.textContent.replace(/^You:\s*/, ''),
+        answer: aiMsg.innerText
+      });
+      i++; // skip next since it's paired
+    }
+  }
+
+  return history;
+}

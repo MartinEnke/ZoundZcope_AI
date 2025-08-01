@@ -1,0 +1,26 @@
+{
+  "name": "zoundzcope_ai",
+  "version": "1.0.0",
+  "description": "ZoundZcope is a modular audio analysis and feedback tool that gives automated mixing and mastering suggestions based on extracted audio features. It's built with FastAPI, SQLAlchemy, and OpenAI-compatible models (e.g. Together.ai).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MartinEnke/ZoundZcope_AI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MartinEnke/ZoundZcope_AI/issues"
+  },
+  "homepage": "https://github.com/MartinEnke/ZoundZcope_AI#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.32.0",
+    "@eslint/json": "^0.13.1",
+    "eslint": "^9.32.0",
+    "globals": "^16.3.0"
+  }
+}
