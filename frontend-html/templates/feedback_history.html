@@ -5,7 +5,7 @@
   <title>Feedback History – ZoundZcope AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="static/style.css" />
+  <link rel="stylesheet" href="/static/style.css" />
   <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
   <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
   <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
@@ -26,7 +26,7 @@
   </header>
 
   <main class="relative z-10 pt-28 max-w-4xl mx-auto px-3 space-y-8">
-    <h1 class="text-3xl font-bold mb-6">Feedback History</h1>
+    <h1 class="text-2xl font-bold mb-6">Feedback History</h1>
 
     <!-- SESSION CONTROLS -->
     <div class="flex items-center gap-2">
@@ -66,13 +66,14 @@
 
     <!-- FEEDBACK DISPLAY (Single Track) -->
     <section id="history-feedback" class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4 hidden relative">
-  <button id="close-feedback-btn" class="absolute top-3 right-3 text-white/50 hover:text-red-400 text-lg font-bold">
-    ✕
-  </button>
+  <button id="close-feedback-btn"
+  class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full border border-white text-white text-lg font-semibold hover:text-black transition">
+  ×
+</button>
   <h2 class="text-xl font-semibold">AI Feedback</h2>
   <div id="history-feedback-output" class="text-white/90 text-sm whitespace-pre-wrap"></div>
 </section>
-
+    <br><br>
     <!-- 🔹 Manage Sessions and Tracks -->
     <section class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4">
       <h2 class="text-2xl font-semibold text-white mb-4">Manage Sessions & Tracks</h2>
@@ -88,8 +89,9 @@
     Compare Selected Tracks
   </button>
 </section>
-
+    <br><br>
 <!-- ✅ Comparison Result Section (Below Manage Panel) -->
+    <div id="feedback-anchor" style="position: relative; top: -100px; height: 0;"></div>
 <section id="comparison-feedback" class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4 hidden">
   <h2 class="text-xl font-semibold">Multi-Track AI Feedback</h2>
   <div id="comparison-feedback-output" class="text-white/90 text-sm whitespace-pre-wrap"></div>
@@ -100,7 +102,7 @@
   </div>
 </section>
 <section id="comparison-history" class="mt-8">
-  <h2 class="text-lg font-semibold text-white mb-2">Past Comparisons</h2>
+  <h2 class="text-2xl font-semibold text-white mb-2">Past Comparisons & Presets Export</h2>
   <div id="comparison-history-list" class="space-y-2"></div>
 </section>
 

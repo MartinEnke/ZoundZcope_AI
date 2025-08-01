@@ -873,64 +873,105 @@ async function loadComparisonHistory() {
 
     for (const group of groups) {
       const div = document.createElement("div");
-      div.className = "mb-4 p-4 bg-white/10 rounded";
+      div.className = "flex justify-between items-start gap-4 p-4 rounded-lg bg-white/5 backdrop-blur-sm shadow-md";
 
-      // Title
-      const title = document.createElement("p");
-      title.className = "font-semibold mb-2 text-white";
-      title.textContent = `Compared Tracks: ${group.track_names.join(", ")}`;
+      // 🟣 Left: Compared Tracks (with aligned rows)
+const trackListBox = document.createElement("div");
+trackListBox.className = "grid grid-cols-[auto,1fr] gap-x-2";
 
-      // View Button
-      const viewBtn = document.createElement("button");
-      viewBtn.className = "underline text-sm text-blue-400 hover:text-white";
-      viewBtn.textContent = "View Again";
-      viewBtn.addEventListener("click", () => viewComparison(group.group_id, viewBtn));
+// Row 1
+const label = document.createElement("span");
+label.style.color = "rgba(180, 150, 222, 0.8)";  // slightly minty turquoise
+label.className = "font-semibold mb-2";
+label.textContent = "Compared Tracks:";
 
-      // Export Button
-      const exportBtn = document.createElement("button");
-      exportBtn.className = "underline text-sm text-blue-400 hover:text-white ml-4";
-      exportBtn.textContent = "Export";
-      exportBtn.addEventListener("click", () => exportComparison(group.group_id));
+const firstTrack = document.createElement("span");
+firstTrack.className = "text-white/90";
+firstTrack.textContent = group.track_names[0];
 
-      // Delete Button
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "underline text-sm text-red-400 hover:text-white ml-4";
-      deleteBtn.textContent = "Delete";
-      deleteBtn.addEventListener("click", async () => {
-        if (confirm("Are you sure you want to delete this comparison?")) {
-          try {
-            const res = await fetch(`/chat/comparisons/${group.group_id}`, {
-              method: "DELETE",
-            });
+trackListBox.append(label, firstTrack);
 
-            if (!res.ok) throw new Error("Failed to delete");
+// Remaining rows (empty label cell + track name)
+group.track_names.slice(1).forEach(name => {
+  const empty = document.createElement("span"); // to keep alignment
+  const track = document.createElement("span");
+  track.className = "text-white/80";
+  track.textContent = name;
+  trackListBox.append(empty, track);
+});
 
-            // 🔄 Reload the list
-            await loadComparisonHistory();
+      // 🟢 Right: Stylish White Chip Buttons
+const buttonCol = document.createElement("div");
+buttonCol.className = "flex flex-col items-end gap-2";
 
-            // 🧼 Clear view if this comparison was open
-            const messageSpan = document.getElementById("comparison-session-message");
-            if (messageSpan && messageSpan.textContent.includes(group.track_names[0])) {
-              document.getElementById("comparison-feedback").classList.add("hidden");
-              document.getElementById("comparison-meta").classList.add("hidden");
-              document.getElementById("comparison-feedback-output").innerHTML = "";
-            }
+// Shared chip style
+const chipClass = "text-white border border-white px-3 py-1 rounded-full text-sm hover:bg-white hover:text-black transition duration-200";
 
-          } catch (err) {
-            console.error("❌ Failed to delete comparison:", err);
-            alert("An error occurred while deleting.");
-          }
-        }
+// View Again
+const viewBtn = document.createElement("button");
+viewBtn.className = `${chipClass} comparison-view-btn`;
+viewBtn.textContent = "View Again";
+viewBtn.addEventListener("click", () => viewComparison(group.group_id, viewBtn));
+
+// Export
+const exportBtn = document.createElement("button");
+exportBtn.className = chipClass;
+exportBtn.textContent = "Export";
+
+exportBtn.addEventListener("click", () => {
+  exportBtn.disabled = true;
+  exportBtn.textContent = "Exporting...";
+
+  exportComparison(group.group_id);
+
+  // Reset after export (adjust delay as needed)
+  setTimeout(() => {
+    exportBtn.disabled = false;
+    exportBtn.textContent = "Export";
+  }, 10000);
+});
+
+// Delete
+const deleteBtn = document.createElement("button");
+deleteBtn.className = chipClass;
+deleteBtn.textContent = "Delete";
+deleteBtn.addEventListener("click", async () => {
+  if (confirm("Are you sure you want to delete this comparison?")) {
+    try {
+      const res = await fetch(`/chat/comparisons/${group.group_id}`, {
+        method: "DELETE",
       });
 
-      div.append(title, viewBtn, exportBtn, deleteBtn);
-      historyBox.appendChild(div);
+      if (!res.ok) throw new Error("Failed to delete");
+      await loadComparisonHistory();
+
+      const messageSpan = document.getElementById("comparison-session-message");
+      if (messageSpan && messageSpan.textContent.includes(group.track_names[0])) {
+        document.getElementById("comparison-feedback").classList.add("hidden");
+        document.getElementById("comparison-meta").classList.add("hidden");
+        document.getElementById("comparison-feedback-output").innerHTML = "";
+      }
+
+    } catch (err) {
+      console.error("❌ Failed to delete comparison:", err);
+      alert("An error occurred while deleting.");
     }
+  }
+});
+
+// Append buttons to column
+buttonCol.append(viewBtn, exportBtn, deleteBtn);
+
+// Append everything to row
+div.append(trackListBox, buttonCol);
+historyBox.appendChild(div);
+}
   } catch (err) {
     console.error("❌ Error loading comparison history:", err);
     historyBox.innerHTML = "<p class='text-red-400'>Failed to load comparisons.</p>";
   }
 }
+
 
 function formatComparisonFeedback(feedbackText) {
   const lines = feedbackText.trim().split("\n");
@@ -1027,10 +1068,20 @@ async function viewComparison(groupId, button) {
 
     feedbackSection.classList.remove("hidden");
     metaBox.classList.remove("hidden");
-    button.textContent = "Close";
+    // 🔁 Reset all other buttons
+document.querySelectorAll(".comparison-view-btn").forEach(btn => {
+  if (btn !== button) {
+    btn.textContent = "View Again";
+    btn.classList.remove("view-active");
+  }
+});
+
+// 🔄 Update current button
+button.textContent = "Close";
+button.classList.add("view-active");
 
     // Optional: scroll into view
-    feedbackSection.scrollIntoView({ behavior: "smooth" });
+    document.getElementById("feedback-anchor").scrollIntoView({ behavior: "smooth" });
   } catch (err) {
     console.error("❌ Error viewing comparison:", err);
     outputBox.textContent = "An error occurred while loading the comparison.";
