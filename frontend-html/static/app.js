@@ -2,6 +2,14 @@
 import { renderRecentFeedbackPanel, toggleFollowup } from "./recent-feedback.js";
 import { initUploadUI } from "./upload-ui.js";
 import { createSessionInBackend, loadSessionTracks } from "./session-api.js";
+import {
+  hideSummarizeButton,
+  showSummarizeButton,
+  clearQuickFollowupButtons,
+  resetExportButton,
+  resetRMSDisplay,
+  resetWaveformDisplay
+} from "./ui-reset.js";
 
 
 
@@ -10,49 +18,6 @@ let refTrackAnalysisData = null;
 
 
 
-// ==========================================================
-// 🔁 Helper: Hide old Elements after Analyze
-// ==========================================================
-
-
-function showSummarizeButton() {
-  const summarizeBtn = document.getElementById("manualSummarizeBtn");
-  if (summarizeBtn) {
-    summarizeBtn.style.display = "inline-block";
-  }
-}
-
-function hideSummarizeButton() {
-  const summarizeBtn = document.getElementById("manualSummarizeBtn");
-  if (summarizeBtn) {
-    summarizeBtn.style.display = "none";
-  }
-}
-
-
-function clearQuickFollowupButtons() {
-  const container = document.getElementById("quick-followup");
-  if (!container) return;
-  container.innerHTML = "";       // komplett leeren
-  container.classList.add("hidden");  // ausblenden (optional)
-}
-
-function resetExportButton() {
-  const exportBtn = document.getElementById("exportFeedbackBtn");
-  if (exportBtn) {
-    exportBtn.disabled = false;                            // Button aktivieren
-    exportBtn.textContent = "Export Feedback & Presets";  // Button-Text zurücksetzen
-    // exportBtn.style.display = "inline-block";           // Falls nötig: Sichtbar machen
-    // exportBtn.dataset.listenerAdded = "";               // Nur zurücksetzen, wenn du Listener neu hinzufügen willst
-  }
-}
-
-function resetRMSDisplay() {
-  const rmsDisplay = document.getElementById("rms-display");
-  if (rmsDisplay) {
-    rmsDisplay.innerText = "Current RMS: --";  // Oder leer setzen: ""
-  }
-}
 // ==========================================================
 // 🔸 Upload Form Submission Logic (UPDATED)
 // ==========================================================
@@ -64,6 +29,7 @@ form.addEventListener("submit", async (e) => {
   resetRMSDisplay();
   resetExportButton();
   clearQuickFollowupButtons();
+  resetWaveformDisplay();
 
   const feedbackBox = document.getElementById("gptResponse");
   if (feedbackBox) feedbackBox.innerHTML = "";
@@ -71,16 +37,6 @@ form.addEventListener("submit", async (e) => {
   const followupResponseBox = document.getElementById("aiFollowupResponse");
   if (followupResponseBox) followupResponseBox.innerHTML = "";
 
-  const waveformDiv = document.getElementById("waveform");
-  if (waveformDiv) {
-    waveformDiv.innerHTML = "";
-    waveformDiv.classList.remove("waveform-playing");
-  }
-
-  if (window.wavesurfer) {
-    window.wavesurfer.destroy();
-    window.wavesurfer = null;
-  }
 
   localStorage.removeItem("zoundzcope_last_analysis");
   localStorage.removeItem("zoundzcope_last_feedback");
