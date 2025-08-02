@@ -985,18 +985,10 @@ window.addEventListener("pageshow", (event) => {
 });
 
 
-
-
-
-
-
-
 window.addEventListener("DOMContentLoaded", renderRecentFeedbackPanel);
 window.addEventListener("pageshow", (e) => {
   if (e.persisted) renderRecentFeedbackPanel();
 });
-
-
 
 
 document.addEventListener("DOMContentLoaded", () => {

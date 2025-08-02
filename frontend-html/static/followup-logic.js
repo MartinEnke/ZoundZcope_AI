@@ -209,3 +209,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+
+// ==========================================================
+// 🌐 Global Exposure for External Access
+// ----------------------------------------------------------
+// This section attaches functions or data to a global namespace
+// so they can be accessed from other scripts or inline HTML.
+// ==========================================================
+
+window.ZoundZcope = window.ZoundZcope || {};
+window.ZoundZcope.showSummarizeButton = showSummarizeButton;
+window.ZoundZcope.summarizeFollowupThread = summarizeFollowupThread;

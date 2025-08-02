@@ -196,3 +196,19 @@ function getChatHistory(container) {
 
   return history;
 }
+
+
+
+// ==========================================================
+// 🌐 Global Exposure for External Access
+// ----------------------------------------------------------
+// This attaches functions to the ZoundZcope namespace
+// so they can be reused from other files or inline HTML.
+// ==========================================================
+
+window.ZoundZcope = window.ZoundZcope || {};
+window.ZoundZcope.activateTab = activateTab;
+window.ZoundZcope.appendMessage = appendMessage;
+window.ZoundZcope.queryRagAPI = queryRagAPI;
+window.ZoundZcope.adjustChatHeight = adjustChatHeight;
+window.ZoundZcope.getChatHistory = getChatHistory;

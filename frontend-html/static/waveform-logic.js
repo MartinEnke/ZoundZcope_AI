@@ -218,6 +218,15 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// ========== Export ========== //
-window.initMainWaveform = initMainWaveform;
-window.loadReferenceWaveform = loadReferenceWaveform;
+
+
+// ==========================================================
+// 🌐 Global Exposure for External Access
+// ----------------------------------------------------------
+// This section attaches waveform functions to a global namespace
+// so they can be used safely elsewhere without polluting window.
+// ==========================================================
+
+window.ZoundZcope = window.ZoundZcope || {};
+window.ZoundZcope.initMainWaveform = initMainWaveform;
+window.ZoundZcope.loadReferenceWaveform = loadReferenceWaveform;

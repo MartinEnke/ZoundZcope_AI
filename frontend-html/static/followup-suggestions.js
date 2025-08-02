@@ -210,3 +210,15 @@ function loadQuickFollowupButtons(type, genre, profile) {
 
   container.classList.toggle("hidden", btnWrapper.children.length === 0);
 }
+
+
+// ==========================================================
+// 🌐 Global Exposure for External Access
+// ----------------------------------------------------------
+// This section attaches functions to a global namespace
+// so they can be accessed from other scripts or HTML.
+// This avoids polluting the global scope directly.
+// ==========================================================
+
+window.ZoundZcope = window.ZoundZcope || {};  // Create namespace if not already defined
+window.ZoundZcope.loadQuickFollowupButtons = loadQuickFollowupButtons;
