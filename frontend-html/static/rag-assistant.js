@@ -1,3 +1,5 @@
+// rag-assistant.js
+
 // RAG Tabs logic
 const tabDocs = document.getElementById('tab-docs');
 const tabTut = document.getElementById('tab-tut');
