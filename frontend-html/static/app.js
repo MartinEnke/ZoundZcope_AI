@@ -1,6 +1,9 @@
-// ✅ Cleaned version of your app.js with separate flat DOMContentLoaded blocks
+// app.js
 import { renderRecentFeedbackPanel, toggleFollowup } from "./recent-feedback.js";
+
+
 let lastManualSummaryGroup = -1;  // track last manual summary group
+let refTrackAnalysisData = null;
 
 
 
@@ -306,7 +309,7 @@ const predefinedFollowupQuestions = {
     "How should I handle low-end phase coherence in mastering?"
   ],
   master: [
-    "Would this track match the loudness of Daft Punk's 'Random Access Memories'?",
+    "Would this track match the loudness of Daft Punk",
     "Which limiter plugin gives transparent results for this style?",
     "Is a dynamic EQ needed to tame harshness here?",
     "Could widening the stereo field improve spatial depth?",
@@ -1491,6 +1494,9 @@ window.addEventListener("DOMContentLoaded", renderRecentFeedbackPanel);
 window.addEventListener("pageshow", (e) => {
   if (e.persisted) renderRecentFeedbackPanel();
 });
+
+
+
 
 document.addEventListener("DOMContentLoaded", () => {
   const menuBtn = document.getElementById("mobile-menu-button");
