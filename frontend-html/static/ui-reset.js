@@ -50,6 +50,7 @@ export function resetWaveformDisplay() {
   }
 }
 
+
 export function resetReferenceWaveform() {
   const wrapper = document.getElementById("ref-waveform-wrapper");
   if (wrapper) {
