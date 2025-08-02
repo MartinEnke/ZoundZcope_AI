@@ -1,4 +1,6 @@
-// Inject metallic style dynamically
+// waveform-logic.js
+
+// ========== 🔧 Style ========== //
 const style = document.createElement("style");
 style.textContent = `
   .metal-round-button {
@@ -31,31 +33,39 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// ========== 🎧 Global ========== //
+let rmsChunks = [];
+const chunkDuration = 0.5;
+let refWavesurfer = null;
+let refWaveformReady = false;
+let focusedWaveform = "main";
+let refClickCooldown = false;
 
-document.addEventListener("DOMContentLoaded", () => {
-  const chunkDuration = 0.5;
-  let rmsChunks = [];
+// ========== 🧠 Helpers ========== //
+function updateRMSDisplayAtTime(time) {
+  const index = Math.floor(time / chunkDuration);
+  const rmsValue = rmsChunks[index];
+  const display = document.getElementById("rms-display");
 
-  // Load RMS data
-  fetch('/static/analysis/sample_rms.json')
-    .then((res) => res.json())
-    .then((data) => {
-      rmsChunks = data;
-      console.log("✅ RMS data loaded:", rmsChunks.length);
-    })
-    .catch((err) => {
-      console.error("❌ Failed to load RMS data", err);
-    });
+  if (display && rmsValue !== undefined) {
+    display.innerText = `Current RMS: ${rmsValue.toFixed(2)} dB`;
+  } else if (display) {
+    display.innerText = `Current RMS: --`;
+  }
+}
 
-  const trackPath = window.trackPath || "";
-  if (!trackPath || trackPath.includes("{{")) {
-    console.warn("⚠️ No valid trackPath found:", trackPath);
-    return;
+// ========== 🎵 Init Main Waveform ========== //
+function initMainWaveform(result) {
+  const container = document.getElementById("waveform");
+  if (!container) return;
+
+  container.innerHTML = "";
+  container.classList.remove("waveform-playing");
+
+  if (window.wavesurfer) {
+    window.wavesurfer.destroy();
   }
 
-  console.log("🎧 Loading track:", trackPath);
-
-  // Create WaveSurfer instance
   window.wavesurfer = WaveSurfer.create({
     container: '#waveform',
     waveColor: '#a0a0a0',
@@ -64,49 +74,150 @@ document.addEventListener("DOMContentLoaded", () => {
     responsive: true
   });
 
-  window.wavesurfer.load(encodeURI(trackPath));
+  const url = result.track_path + `?t=${Date.now()}`;
+  window.wavesurfer.load(url);
 
-  window.wavesurfer.on("ready", () => {
-    console.log("✅ WaveSurfer is ready and track is loaded");
+  console.log("🎧 Main waveform loading:", url);
+  focusedWaveform = "main";
 
+  fetch(result.rms_path)
+    .then((res) => res.json())
+    .then((data) => {
+      rmsChunks = data;
+      updateRMSDisplayAtTime(0);
+      const rmsDisplay = document.getElementById("rms-display");
+      if (rmsDisplay) rmsDisplay.classList.remove("hidden");
+    })
+    .catch((err) => {
+      console.error("❌ Failed to load RMS:", err);
+    });
+
+  window.wavesurfer.on("audioprocess", () => {
+    updateRMSDisplayAtTime(window.wavesurfer.getCurrentTime());
   });
 
-  // RMS display on waveform click
-  window.wavesurfer.container.addEventListener("click", (e) => {
-    const box = window.wavesurfer.container.getBoundingClientRect();
-    const percent = (e.clientX - box.left) / box.width;
-    const time = percent * window.wavesurfer.getDuration();
-    const index = Math.floor(time / chunkDuration);
-    const rms = rmsChunks[index];
-    const display = document.getElementById("rms-display");
+  window.wavesurfer.on("seek", (progress) => {
+    const duration = window.wavesurfer.getDuration();
+    updateRMSDisplayAtTime(progress * duration);
+  });
 
-    if (display) {
-      display.innerText = rms !== undefined
-        ? `RMS at ${time.toFixed(2)}s: ${rms.toFixed(2)} dB`
-        : `No RMS data at ${time.toFixed(2)}s`;
+  window.wavesurfer.on("finish", () => {
+    container.classList.remove("waveform-playing");
+  });
+}
+
+// ========== 🎵 Init Ref Waveform ========== //
+function loadReferenceWaveform() {
+  const refInput = document.getElementById("ref-file-upload");
+  const refContainer = document.getElementById("ref-waveform");
+  const wrapper = document.getElementById("ref-waveform-wrapper");
+
+  if (!refInput || !refContainer || !wrapper) return;
+
+  if (refInput.files.length === 0) {
+    if (refWavesurfer) refWavesurfer.destroy();
+    refContainer.innerHTML = "";
+    refWavesurfer = null;
+    wrapper.style.display = "none";
+    return;
+  }
+
+  wrapper.style.display = "inline-block";
+  const fileURL = URL.createObjectURL(refInput.files[0]);
+
+  if (refWavesurfer) refWavesurfer.destroy();
+
+  refWavesurfer = WaveSurfer.create({
+    container: "#ref-waveform",
+    waveColor: "#888",
+    progressColor: "#6b46c1",
+    height: 100,
+    responsive: true,
+  });
+
+  refWaveformReady = false;
+  refWavesurfer.load(fileURL);
+
+  refWavesurfer.on("ready", () => {
+    refWaveformReady = true;
+    focusedWaveform = "ref";
+  });
+
+  refWavesurfer.on("play", () => {
+    if (window.wavesurfer?.isPlaying()) window.wavesurfer.pause();
+    refContainer.classList.add("waveform-playing");
+  });
+
+  refWavesurfer.on("pause", () => refContainer.classList.remove("waveform-playing"));
+  refWavesurfer.on("finish", () => refContainer.classList.remove("waveform-playing"));
+}
+
+// ========== 🖱️ Click Handling ========== //
+document.addEventListener("DOMContentLoaded", () => {
+  const main = document.getElementById("waveform");
+  const ref = document.getElementById("ref-waveform");
+
+  async function togglePlayPause(target, other, label) {
+    if (!target) return;
+    if (target.isPlaying()) {
+      target.pause();
+    } else {
+      if (other?.isPlaying()) other.pause();
+      await target.play();
     }
-  });
+    console.log(`${label} waveform toggled`);
+  }
+
+  if (main) {
+    main.addEventListener("click", () => {
+  focusedWaveform = "main";
+  if (!window.wavesurfer.isPlaying()) {
+    window.wavesurfer.play();
+    if (refWavesurfer?.isPlaying()) refWavesurfer.pause();
+    console.log("▶️ Main waveform started after click");
+  }
 });
+  }
 
-// Spacebar play/pause (unless typing in input/textarea)
-document.addEventListener("keydown", (e) => {
-  const tag = e.target.tagName;
-  if ((e.code === "Space" || e.keyCode === 32) && !["INPUT", "TEXTAREA"].includes(tag)) {
-    e.preventDefault();
-    if (window.wavesurfer) {
-      window.wavesurfer.playPause();
-      const isPlaying = window.wavesurfer.isPlaying();
-      const waveform = document.getElementById("waveform");
-      if (waveform) {
-        waveform.classList.toggle("waveform-playing", isPlaying);
-      }
-      console.log("🎹 Spacebar toggled playback:", isPlaying);
-    }
+  if (ref) {
+    ref.addEventListener("click", () => {
+  if (refClickCooldown) return;
+  refClickCooldown = true;
+  setTimeout(() => (refClickCooldown = false), 300);
+
+  focusedWaveform = "ref";
+  if (!refWaveformReady) return;
+
+  if (!refWavesurfer.isPlaying()) {
+    refWavesurfer.play();
+    if (window.wavesurfer?.isPlaying()) window.wavesurfer.pause();
+    console.log("▶️ Ref waveform started after click");
+  }
+});
   }
 });
 
-// Reset glow on finish
-window.wavesurfer.on("finish", () => {
-  const waveform = document.getElementById("waveform");
-  if (waveform) waveform.classList.remove("waveform-playing");
+// ========== ⌨️ Spacebar Handling ========== //
+document.addEventListener("keydown", (e) => {
+  if (e.code !== "Space" || e.repeat) return;
+
+  const tag = e.target.tagName;
+  if (["INPUT", "TEXTAREA"].includes(tag) || e.target.isContentEditable) return;
+
+  e.preventDefault();
+  const active = focusedWaveform === "main" ? window.wavesurfer : refWavesurfer;
+  const other = focusedWaveform === "main" ? refWavesurfer : window.wavesurfer;
+
+  if (!active) return;
+
+  if (active.isPlaying()) {
+    active.pause();
+  } else {
+    if (other?.isPlaying()) other.pause();
+    active.play();
+  }
 });
+
+// ========== Export ========== //
+window.initMainWaveform = initMainWaveform;
+window.loadReferenceWaveform = loadReferenceWaveform;

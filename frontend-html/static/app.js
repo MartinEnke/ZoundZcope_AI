@@ -1,37 +1,6 @@
 // ✅ Cleaned version of your app.js with separate flat DOMContentLoaded blocks
-let rmsChunks = [];  // 👈 declare it globally
-const chunkDuration = 0.5;
-let refWavesurfer = null;
-let refWaveformReady = false; // "main" or "ref"
-let focusedWaveform = "main";
-let refTrackAnalysisData = null;
+
 let lastManualSummaryGroup = -1;  // track last manual summary group
-
-
-
-
-// ==========================================================
-// 🔠 Text Animation: Type letter-by-letter
-// ==========================================================
-function typeText(targetElement, text, speed = 10) {
-  return new Promise((resolve) => {
-    let i = 0;
-    function typeChar() {
-      if (i < text.length) {
-        const span = document.createElement("span");
-        span.textContent = text.charAt(i);
-        span.classList.add("sparkle-letter");
-        targetElement.appendChild(span);
-        i++;
-        setTimeout(typeChar, speed);
-      } else {
-        resolve();
-      }
-    }
-    typeChar();
-  });
-}
-
 
 
 
@@ -947,21 +916,17 @@ const form = document.getElementById("uploadForm");
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  // 1) Verstecke den Summarize-Button gleich zu Beginn der neuen Analyse:
   hideSummarizeButton();
   resetRMSDisplay();
-  resetExportButton()
-
-  // Quick Followup Buttons sofort ausblenden / leeren
+  resetExportButton();
   clearQuickFollowupButtons();
 
   const feedbackBox = document.getElementById("gptResponse");
-if (feedbackBox) feedbackBox.innerHTML = "";
+  if (feedbackBox) feedbackBox.innerHTML = "";
 
-const followupResponseBox = document.getElementById("aiFollowupResponse");
-if (followupResponseBox) followupResponseBox.innerHTML = "";
+  const followupResponseBox = document.getElementById("aiFollowupResponse");
+  if (followupResponseBox) followupResponseBox.innerHTML = "";
 
-  // 🔁 Immediately reset old waveform to avoid showing it during wait
   const waveformDiv = document.getElementById("waveform");
   if (waveformDiv) {
     waveformDiv.innerHTML = "";
@@ -973,24 +938,21 @@ if (followupResponseBox) followupResponseBox.innerHTML = "";
     window.wavesurfer = null;
   }
 
-
   localStorage.removeItem("zoundzcope_last_analysis");
   localStorage.removeItem("zoundzcope_last_feedback");
   localStorage.removeItem("zoundzcope_last_followup");
   localStorage.removeItem("zoundzcope_last_subheading");
 
-  // Clear follow-up and manual summary areas in the DOM
-const followupContainer = document.getElementById("followupSection"); // or your actual ID for follow-up area
-const manualSummaryContainer = document.getElementById("manualSummarySection"); // adjust as needed
-
-if (followupContainer) followupContainer.innerHTML = "";
-if (manualSummaryContainer) manualSummaryContainer.innerHTML = "";
+  const followupContainer = document.getElementById("followupSection");
+  const manualSummaryContainer = document.getElementById("manualSummarySection");
+  if (followupContainer) followupContainer.innerHTML = "";
+  if (manualSummaryContainer) manualSummaryContainer.innerHTML = "";
 
   const analyzeButton = form.querySelector('button[type="submit"]');
   const formData = new FormData(form);
 
   const type = document.getElementById("type-input")?.value;
-    console.log("📤 Submitting type:", type);
+  console.log("📤 Submitting type:", type);
 
   const sessionIdInput = document.getElementById("session_id");
   const newSessionInput = document.getElementById("new-session-input");
@@ -1028,37 +990,31 @@ if (manualSummaryContainer) manualSummaryContainer.innerHTML = "";
   formData.set("session_id", sessionId);
 
   const feedbackProfile = document.getElementById("profile-input").value;
-  // Set genre (always from dropdown)
-const selectedGenre = document.getElementById("genre-input").value;
-formData.set("genre", selectedGenre);
+  const selectedGenre = document.getElementById("genre-input").value;
+  formData.set("genre", selectedGenre);
 
-// Set subgenre: prefer custom if filled
-const customSubgenre = document.getElementById("custom-subgenre-input").value.trim();
-if (customSubgenre) {
-  formData.set("subgenre", customSubgenre.toLowerCase());
-} else {
-  const selectedSubgenre = document.getElementById("subgenre-input").value;
-  formData.set("subgenre", selectedSubgenre);
-}
+  const customSubgenre = document.getElementById("custom-subgenre-input").value.trim();
+  if (customSubgenre) {
+    formData.set("subgenre", customSubgenre.toLowerCase());
+  } else {
+    const selectedSubgenre = document.getElementById("subgenre-input").value;
+    formData.set("subgenre", selectedSubgenre);
+  }
 
   const fileInput = document.getElementById("file-upload");
-
   let finalTrackName = "Untitled Track";
+  if (fileInput && fileInput.files.length > 0) {
+    const fullName = fileInput.files[0].name;
+    finalTrackName = fullName.replace(/\.[^/.]+$/, "");
+  }
 
-if (fileInput && fileInput.files.length > 0) {
-  const fullName = fileInput.files[0].name;
-  finalTrackName = fullName.replace(/\.[^/.]+$/, "");
-}
-
-formData.set("track_name", finalTrackName);
+  formData.set("track_name", finalTrackName);
   formData.set("feedback_profile", feedbackProfile);
 
-  // **NEW: append reference track file if any**
-const refFileInput = document.getElementById("ref-file-upload");
-if (refFileInput && refFileInput.files.length > 0) {
-  formData.append("ref_file", refFileInput.files[0]);
-}
-
+  const refFileInput = document.getElementById("ref-file-upload");
+  if (refFileInput && refFileInput.files.length > 0) {
+    formData.append("ref_file", refFileInput.files[0]);
+  }
 
   try {
     const response = await fetch("/upload/", {
@@ -1069,33 +1025,24 @@ if (refFileInput && refFileInput.files.length > 0) {
     const raw = await response.text();
     const result = JSON.parse(raw);
 
-    // If your backend also sends reference track analysis data as part of the result, e.g.:
-    refTrackAnalysisData = result.ref_analysis || null;  // <-- set it here
+    refTrackAnalysisData = result.ref_analysis || null;
 
     if (response.ok) {
-
       const tracks = await loadSessionTracks(sessionId);
       console.log("Tracks loaded after upload:", tracks);
-console.log("Setting window.lastTrackId to:", tracks[0]?.id);
+      console.log("Setting window.lastTrackId to:", tracks[0]?.id);
 
       window.lastSessionId = sessionId;
-window.lastTrackId = tracks[0]?.id || "";
+      window.lastTrackId = tracks[0]?.id || "";
 
-// Sync hidden session_id input to keep manual summarizer in sync
-const sessionIdInput = document.getElementById("session_id");
-if (sessionIdInput) {
-  sessionIdInput.value = sessionId;
-}
+      const sessionIdInput = document.getElementById("session_id");
+      if (sessionIdInput) {
+        sessionIdInput.value = sessionId;
+      }
 
-// Reset follow-up state to avoid stale data after new session
-followupThread = [];
-followupGroupIndex = 0;
-lastManualSummaryGroup = -1;  // or null if you prefer
-
-console.log("Session and track set:", window.lastSessionId, window.lastTrackId);
-console.log("Follow-up state reset");
-
-
+      followupThread = [];
+      followupGroupIndex = 0;
+      lastManualSummaryGroup = -1;
 
       const resultsEl = document.getElementById("results");
       const feedbackEl = document.getElementById("feedback");
@@ -1116,172 +1063,155 @@ console.log("Follow-up state reset");
       }
 
       output.innerHTML = `
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-    <p><strong>Tempo:</strong> ${a.tempo} BPM</p>
-    <p><strong>Key:</strong> ${a.key}</p>
-    <p><strong>Peak Level:</strong> ${r(a.peak_db)} dB</p>
-    <p><strong>Peak Issue:</strong> ${a.peak_issue}</p>
-    <p><strong>RMS Peak:</strong> ${r(a.rms_db_peak)} dB</p>
-    <p><strong>LUFS:</strong> ${r(a.lufs)} LUFS</p>
-    <p><strong>Dynamic Range:</strong> ${r(a.dynamic_range)} dB</p>
-    <p><strong>Stereo Width:</strong> ${a.stereo_width}</p>
-    <p class="md:col-span-2"><strong>Low-End:</strong> ${a.low_end_description}</p>
-    <p class="md:col-span-2"><strong>Spectral Balance:</strong> ${a.spectral_balance_description}</p>
-    <div class="md:col-span-2">
-      <strong>Band Energies:</strong>
-      <pre class="whitespace-pre-wrap">${JSON.stringify(a.band_energies, null, 2)}</pre>
-    </div>
-  </div>
-`;
-      // Reference Track Analysis Rendering
-if (refTrackAnalysisData) {
-  const refContainer = document.createElement("div");
-  refContainer.className = "mt-8 space-y-2 text-sm border-t border-white/10 pt-4";
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          <p><strong>Tempo:</strong> ${a.tempo} BPM</p>
+          <p><strong>Key:</strong> ${a.key}</p>
+          <p><strong>Peak Level:</strong> ${r(a.peak_db)} dB</p>
+          <p><strong>Peak Issue:</strong> ${a.peak_issue}</p>
+          <p><strong>RMS Peak:</strong> ${r(a.rms_db_peak)} dB</p>
+          <p><strong>LUFS:</strong> ${r(a.lufs)} LUFS</p>
+          <p><strong>Dynamic Range:</strong> ${r(a.dynamic_range)} dB</p>
+          <p><strong>Stereo Width:</strong> ${a.stereo_width}</p>
+          <p class="md:col-span-2"><strong>Low-End:</strong> ${a.low_end_description}</p>
+          <p class="md:col-span-2"><strong>Spectral Balance:</strong> ${a.spectral_balance_description}</p>
+          <div class="md:col-span-2">
+            <strong>Band Energies:</strong>
+            <pre class="whitespace-pre-wrap">${JSON.stringify(a.band_energies, null, 2)}</pre>
+          </div>
+        </div>
+      `;
 
-  const ra = refTrackAnalysisData;
+      if (refTrackAnalysisData) {
+        const refContainer = document.createElement("div");
+        refContainer.className = "mt-8 space-y-2 text-sm border-t border-white/10 pt-4";
 
-  function r(v) {
-    return Number(v).toFixed(2);
-  }
+        const ra = refTrackAnalysisData;
 
-  refContainer.innerHTML = `
-  <h2 class="text-lg font-semibold text-white mt-8 mb-4">Reference Track Analysis</h2>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-    <p><strong>Tempo:</strong> ${ra.tempo} BPM</p>
-    <p><strong>Key:</strong> ${ra.key}</p>
-    <p><strong>Peak Level:</strong> ${r(ra.peak_db)} dB</p>
-    <p><strong>Peak Issue:</strong> ${ra.peak_issue}</p>
-    <p><strong>RMS Peak:</strong> ${r(ra.rms_db_peak)} dB</p>
-    <p><strong>LUFS:</strong> ${r(ra.lufs)} LUFS</p>
-    <p><strong>Dynamic Range:</strong> ${r(ra.dynamic_range)} dB</p>
-    <p><strong>Stereo Width:</strong> ${ra.stereo_width}</p>
-    <p class="md:col-span-2"><strong>Low-End:</strong> ${ra.low_end_description}</p>
-    <p class="md:col-span-2"><strong>Spectral Balance:</strong> ${ra.spectral_balance_description}</p>
-    <div class="md:col-span-2">
-      <strong>Band Energies:</strong>
-      <pre class="whitespace-pre-wrap">${JSON.stringify(ra.band_energies, null, 2)}</pre>
-    </div>
-  </div>
-`;
-
-  output.appendChild(refContainer);
-}
+        refContainer.innerHTML = `
+          <h2 class="text-lg font-semibold text-white mt-8 mb-4">Reference Track Analysis</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+            <p><strong>Tempo:</strong> ${ra.tempo} BPM</p>
+            <p><strong>Key:</strong> ${ra.key}</p>
+            <p><strong>Peak Level:</strong> ${r(ra.peak_db)} dB</p>
+            <p><strong>Peak Issue:</strong> ${ra.peak_issue}</p>
+            <p><strong>RMS Peak:</strong> ${r(ra.rms_db_peak)} dB</p>
+            <p><strong>LUFS:</strong> ${r(ra.lufs)} LUFS</p>
+            <p><strong>Dynamic Range:</strong> ${r(ra.dynamic_range)} dB</p>
+            <p><strong>Stereo Width:</strong> ${ra.stereo_width}</p>
+            <p class="md:col-span-2"><strong>Low-End:</strong> ${ra.low_end_description}</p>
+            <p class="md:col-span-2"><strong>Spectral Balance:</strong> ${ra.spectral_balance_description}</p>
+            <div class="md:col-span-2">
+              <strong>Band Energies:</strong>
+              <pre class="whitespace-pre-wrap">${JSON.stringify(ra.band_energies, null, 2)}</pre>
+            </div>
+          </div>
+        `;
+        output.appendChild(refContainer);
+      }
 
       feedbackBox.innerHTML = "";
       feedbackBox.classList.add("pulsing-feedback");
 
       const trackType = result.type?.toLowerCase();
-console.log("🎯 Received trackType:", trackType);
+      const subheading = document.createElement("p");
+      subheading.className = "text-lg font-semibold";
 
-const subheading = document.createElement("p");
-subheading.className = "text-lg font-semibold";
-
-if (trackType === "mixdown") {
-  subheading.classList.add("text-pink-400");
-  subheading.textContent = "Mixdown Suggestions:";
-} else if (trackType === "mastering") {
-  subheading.classList.add("text-blue-400");
-  subheading.textContent = "Mastering Suggestions:";
-} else if (trackType === "master") {
-  subheading.classList.add("text-blue-400");
-  subheading.textContent = "Master Review:";
-} else {
-  subheading.classList.add("text-white/70");
-  subheading.textContent = "AI Feedback:";
-}
-feedbackBox.appendChild(subheading);
-
-
+      if (trackType === "mixdown") {
+        subheading.classList.add("text-pink-400");
+        subheading.textContent = "Mixdown Suggestions:";
+      } else if (trackType === "mastering") {
+        subheading.classList.add("text-blue-400");
+        subheading.textContent = "Mastering Suggestions:";
+      } else if (trackType === "master") {
+        subheading.classList.add("text-blue-400");
+        subheading.textContent = "Master Review:";
+      } else {
+        subheading.classList.add("text-white/70");
+        subheading.textContent = "AI Feedback:";
+      }
+      feedbackBox.appendChild(subheading);
 
       const ul = document.createElement("ul");
-ul.className = "list-disc list-inside mt-2 text-white/90 space-y-1";
-feedbackBox.appendChild(ul);
+      ul.className = "list-disc list-inside mt-2 text-white/90 space-y-1";
+      feedbackBox.appendChild(ul);
 
-const lines = result.feedback
-  .split("\n")
-  .map(line => line.replace(/^[-•\s]+/, "").trim())
-  .filter(Boolean);
+      const lines = result.feedback
+        .split("\n")
+        .map(line => line.replace(/^[-•\s]+/, "").trim())
+        .filter(Boolean);
 
-for (const [index, line] of lines.entries()) {
-  const li = document.createElement("li");
-  li.style.display = "list-item";
-  if (index > 0) li.style.marginTop = "0.75rem";
+      for (const [index, line] of lines.entries()) {
+        const li = document.createElement("li");
+        li.style.display = "list-item";
+        if (index > 0) li.style.marginTop = "0.75rem";
 
-  const issueMatch = line.match(/ISSUE:\s*([\s\S]*?)(?:IMPROVEMENT:\s*([\s\S]*))?$/i);
-  if (issueMatch) {
-    const issueText = issueMatch[1].trim();
-    const improvementText = issueMatch[2] ? issueMatch[2].replace(/^IMPROVEMENT:\s*/i, '').trim() : "";
-
-    li.innerHTML = `
-      <strong class="issue-label">ISSUE:</strong>
-      <span class="issue-text">${issueText}</span>
-      ${improvementText ? `<br><strong class="improvement-label">IMPROVEMENT:</strong> <span class="improvement-text">${improvementText}</span>` : ''}
-    `;
-  } else {
-    li.textContent = line;
-  }
-
-  ul.appendChild(li);
-}
-
-
-// After all bullets are appended:
-loadReferenceWaveform();
-document.getElementById("custom-ai-section")?.classList.remove("hidden");
-
-      const exportBtn = document.getElementById("exportFeedbackBtn");
-if (exportBtn && !exportBtn.dataset.listenerAdded) {
-  exportBtn.addEventListener("click", async () => {
-    console.log("Export button clicked");
-
-    const sessionId = window.lastSessionId || "";
-    const trackId = window.lastTrackId || "";
-
-    if (!sessionId || !trackId) {
-      alert("No session or track available to export. Please analyze first.");
-      return;
-    }
-
-    exportBtn.disabled = true;
-    exportBtn.textContent = "Exporting...";
-
-    try {
-      const response = await fetch(`/export/export-feedback-presets?session_id=${encodeURIComponent(sessionId)}&track_id=${encodeURIComponent(trackId)}`, {
-        method: "GET",
-        headers: {
-          "Accept": "application/pdf"
+        const issueMatch = line.match(/ISSUE:\s*([\s\S]*?)(?:IMPROVEMENT:\s*([\s\S]*))?$/i);
+        if (issueMatch) {
+          const issueText = issueMatch[1].trim();
+          const improvementText = issueMatch[2] ? issueMatch[2].replace(/^IMPROVEMENT:\s*/i, '').trim() : "";
+          li.innerHTML = `
+            <strong class="issue-label">ISSUE:</strong>
+            <span class="issue-text">${issueText}</span>
+            ${improvementText ? `<br><strong class="improvement-label">IMPROVEMENT:</strong> <span class="improvement-text">${improvementText}</span>` : ''}
+          `;
+        } else {
+          li.textContent = line;
         }
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || "Failed to export feedback and presets.");
+        ul.appendChild(li);
       }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `feedback_presets_${sessionId}_${trackId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      // ✅ Waveform logic moved to external file
+      initMainWaveform(result);
+      loadReferenceWaveform();
 
-    } catch (err) {
-      alert("Error exporting feedback and presets: " + err.message);
-      console.error(err);
-    } finally {
-      exportBtn.disabled = false;
-      exportBtn.textContent = "Export Feedback & Presets";
-    }
-  });
+      document.getElementById("custom-ai-section")?.classList.remove("hidden");
 
-  exportBtn.dataset.listenerAdded = "true"; // mark listener added so you don’t add again
-}
+      const exportBtn = document.getElementById("exportFeedbackBtn");
+      if (exportBtn && !exportBtn.dataset.listenerAdded) {
+        exportBtn.addEventListener("click", async () => {
+          const sessionId = window.lastSessionId || "";
+          const trackId = window.lastTrackId || "";
 
+          if (!sessionId || !trackId) {
+            alert("No session or track available to export. Please analyze first.");
+            return;
+          }
 
-      const type = document.getElementById("type-input")?.value;
+          exportBtn.disabled = true;
+          exportBtn.textContent = "Exporting...";
+
+          try {
+            const response = await fetch(`/export/export-feedback-presets?session_id=${encodeURIComponent(sessionId)}&track_id=${encodeURIComponent(trackId)}`, {
+              method: "GET",
+              headers: { "Accept": "application/pdf" }
+            });
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(errorText || "Failed to export feedback and presets.");
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `feedback_presets_${sessionId}_${trackId}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+          } catch (err) {
+            alert("Error exporting feedback and presets: " + err.message);
+            console.error(err);
+          } finally {
+            exportBtn.disabled = false;
+            exportBtn.textContent = "Export Feedback & Presets";
+          }
+        });
+        exportBtn.dataset.listenerAdded = "true";
+      }
+
       const genre = document.getElementById("genre-input")?.value;
       const profile = document.getElementById("profile-input")?.value?.toLowerCase();
       loadQuickFollowupButtons(type, genre, profile);
@@ -1316,391 +1246,17 @@ if (exportBtn && !exportBtn.dataset.listenerAdded) {
         console.error("❌ Failed to store history:", err);
       }
 
-// ==========================================================
-//  🎵 WaveSurfer
-// ==========================================================
-
-// Create new WaveSurfer instance globally
-window.wavesurfer = WaveSurfer.create({
-  container: '#waveform',
-  waveColor: '#a0a0a0',
-  progressColor: '#2196f3',
-  height: 100,
-  responsive: true
-});
-
-// Add cache-busting timestamp to avoid browser cache issues
-const trackUrl = result.track_path + `?t=${Date.now()}`;
-window.wavesurfer.load(trackUrl);
-
-focusedWaveform = "main";
-console.log("Focused waveform set to main (upload handler)");
-
-document.getElementById("waveform").addEventListener("click", () => {
-  const time = window.wavesurfer.getCurrentTime();
-  console.log("🖱️ Clicked! Current time:", time);
-  updateRMSDisplayAtTime(time);
-});
-
-// 🔗 Load the corresponding RMS chunk file
-console.log("🔗 Trying to load RMS file:", result.rms_path);
-fetch(result.rms_path)
-  .then(response => response.json())
-  .then(data => {
-    rmsChunks = data;
-    console.log("✅ RMS chunks loaded:", rmsChunks.length);
-    console.log("🧪 First few RMS values:", rmsChunks.slice(0, 5));
-
-  })
-  .catch(err => {
-    console.error("❌ Failed to load RMS chunks", err);
-  });
-
-window.wavesurfer.on('ready', () => {
-  console.log("✅ New track loaded into WaveSurfer");
-
-  const rmsDisplay = document.getElementById("rms-display");
-
-  // ✅ Now that waveform + RMS are ready, show initial RMS value
-  if (rmsChunks.length > 0) {
-    updateRMSDisplayAtTime(0); // Start at beginning
-  }
-
-  // ✅ Optional: show the RMS display if it's hidden
-  if (rmsDisplay) {
-    rmsDisplay.classList.remove("hidden");
-  }
-});
-
-
-// ✅ Utility: Display RMS based on time
-function updateRMSDisplayAtTime(time) {
-  const index = Math.floor(time / chunkDuration);
-  const rmsValue = rmsChunks[index];
-  const display = document.getElementById("rms-display");
-
-  console.log("🧠 Time:", time, "→ Chunk Index:", index, "→ RMS:", rmsValue); // ✅ DIAGNOSTIC
-
-  if (display && rmsValue !== undefined) {
-    display.innerText = `Current RMS: ${rmsValue.toFixed(2)} dB`;
-  } else if (display) {
-    display.innerText = `Current RMS: --`;
-  }
-}
-
-// ✅ Playback listener — update live
-window.wavesurfer.on("audioprocess", () => {
-  if (rmsChunks.length === 0) return;
-  const time = window.wavesurfer.getCurrentTime();
-  updateRMSDisplayAtTime(time);
-});
-
-// ✅ Seek/click listener — update when user clicks/scrubs
-window.wavesurfer.on("seek", (progress) => {
-  if (rmsChunks.length === 0) return;
-  const duration = window.wavesurfer.getDuration();
-  const time = duration * progress;
-  updateRMSDisplayAtTime(time);
-});
-
-
     } else {
       console.error("Upload failed response:", result);
       alert("Upload failed: " + JSON.stringify(result));
     }
+
   } catch (err) {
     console.error("Fetch error:", err);
     alert("An error occurred during upload.");
   } finally {
     analyzeButton.classList.remove("analyze-loading");
     analyzeButton.disabled = false;
-  }
-});
-// ✅ Add this block after the form handler
-window.addEventListener("DOMContentLoaded", () => {
-  window.wavesurfer?.on("interaction", (e) => {
-    const waveformContainer = window.wavesurfer.container;
-    if (!waveformContainer) return;
-
-    const boundingBox = waveformContainer.getBoundingClientRect();
-    const percent = (e.clientX - boundingBox.left) / boundingBox.width;
-    const duration = window.wavesurfer.getDuration();
-    const time = percent * duration;
-
-    const index = Math.floor(time / chunkDuration);
-    const rmsValue = rmsChunks[index];
-
-    const display = document.getElementById("rms-display");
-    console.log(`🖱️ Clicked time: ${time.toFixed(2)}s → chunk ${index} → RMS: ${rmsValue}`);
-    console.log("📊 rmsChunks length:", rmsChunks.length);
-
-    if (display && rmsValue !== undefined) {
-      display.innerText = `RMS at ${time.toFixed(2)}s: ${rmsValue.toFixed(2)} dB`;
-    } else if (display) {
-      display.innerText = `No RMS data at ${time.toFixed(2)}s`;
-    }
-  });
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  const mainWaveformContainer = document.getElementById("waveform");
-  const refWaveformContainer = document.getElementById("ref-waveform");
-
-  async function toggleWaveformPlayPause(wavesurferToToggle, otherWavesurfer, name) {
-  if (!wavesurferToToggle) {
-    console.warn(`${name} wavesurfer instance not ready`);
-    return;
-  }
-  if (wavesurferToToggle.isPlaying()) {
-    wavesurferToToggle.pause();
-    console.log(`${name} waveform paused`);
-  } else {
-    if (otherWavesurfer && otherWavesurfer.isPlaying()) {
-      otherWavesurfer.pause();
-      console.log(`Other waveform paused before playing ${name}`);
-    }
-    try {
-      await wavesurferToToggle.play();
-      console.log(`${name} waveform playing`);
-    } catch (e) {
-      console.warn(`${name} play() interrupted:`, e);
-    }
-  }
-}
-
-  if (mainWaveformContainer) {
-    mainWaveformContainer.addEventListener("click", () => {
-      focusedWaveform = "main";
-      toggleWaveformPlayPause(window.wavesurfer, refWavesurfer, "Main");
-    });
-  }
-
-  if (refWaveformContainer) {
-    refWaveformContainer.addEventListener("click", () => {
-  focusedWaveform = "ref";
-  console.log("Ref waveform clicked — focusedWaveform set to:", focusedWaveform);
-  if (refClickCooldown) {
-    console.log("Ignoring click - cooldown active");
-    return;
-  }
-  refClickCooldown = true;
-  setTimeout(() => {
-    refClickCooldown = false;
-  }, 300); // 300ms cooldown - adjust if needed
-
-      focusedWaveform = "ref";
-      if (!refWaveformReady) {
-        console.warn("Reference waveform not ready yet");
-        return;
-      }
-      toggleWaveformPlayPause(refWavesurfer, window.wavesurfer, "Reference");
-    });
-  }
-});
-
-
-// Your existing loadReferenceWaveform function here
-function loadReferenceWaveform() {
-  const refFileInput = document.getElementById("ref-file-upload");
-  const refWaveformContainer = document.getElementById("ref-waveform");
-  const refWrapper = document.getElementById("ref-waveform-wrapper");
-
-  if (!refFileInput || !refWaveformContainer || !refWrapper) return;
-
-  if (refFileInput.files.length === 0) {
-    if (refWavesurfer) {
-      refWavesurfer.destroy();
-      refWavesurfer = null;
-    }
-    // Hide the entire wrapper when no ref file
-    refWrapper.style.display = "none";
-    refWaveformContainer.innerHTML = "";
-    return;
-  }
-
-  // Show the wrapper when loading a ref track
-  refWrapper.style.display = "inline-block"; // or "block"
-
-  const file = refFileInput.files[0];
-  const fileURL = URL.createObjectURL(file);
-
-  if (refWavesurfer) refWavesurfer.destroy();
-
-  refWavesurfer = WaveSurfer.create({
-    container: "#ref-waveform",
-    waveColor: "#888",
-    progressColor: "#6b46c1",
-    height: 100,
-    responsive: true,
-  });
-
-  refWaveformReady = false;
-
-  refWavesurfer.load(fileURL);
-
-  refWavesurfer.on("ready", () => {
-    console.log("✅ Reference track waveform loaded");
-    refWaveformReady = true;
-    focusedWaveform = "ref";
-  });
-
-  // Pause main waveform if playing when ref starts playing
-  refWavesurfer.on("play", () => {
-    if (window.wavesurfer && window.wavesurfer.isPlaying()) {
-      window.wavesurfer.pause();
-    }
-    if (refWaveformContainer) {
-      refWaveformContainer.classList.add("waveform-playing");
-    }
-  });
-
-  refWavesurfer.on("pause", () => {
-    if (refWaveformContainer) {
-      refWaveformContainer.classList.remove("waveform-playing");
-    }
-  });
-
-  refWavesurfer.on("finish", () => {
-    if (refWaveformContainer) {
-      refWaveformContainer.classList.remove("waveform-playing");
-    }
-  });
-}
-
-
-
-document.addEventListener("keydown", (e) => {
-  if (e.code === "Space" && !e.repeat) {
-    const active = document.activeElement;
-    const isTyping =
-      active &&
-      (
-        active.tagName === "INPUT" ||
-        active.tagName === "TEXTAREA" ||
-        active.isContentEditable
-      );
-
-    if (isTyping) {
-      // User is typing — do NOT trigger play/pause or prevent default
-      return;  // <--- return immediately here!
-    }
-
-    console.log("Spacebar pressed — focusedWaveform is:", focusedWaveform);
-
-    if (focusedWaveform === "ref" && refWavesurfer) {
-      console.log("Attempting to toggle ref waveform");
-      if (refWavesurfer.isPlaying()) {
-        refWavesurfer.pause();
-        console.log("Ref waveform paused");
-      } else {
-        refWavesurfer.play();
-        console.log("Ref waveform playing");
-      }
-    }
-    // Only prevent default and toggle playback if NOT typing
-    e.preventDefault();
-
-    if (focusedWaveform === "main" && window.wavesurfer) {
-      if (window.wavesurfer.isPlaying()) {
-        window.wavesurfer.pause();
-      } else {
-        if (refWavesurfer && refWavesurfer.isPlaying()) {
-          refWavesurfer.pause();
-        }
-        window.wavesurfer.play();
-      }
-    } else if (focusedWaveform === "ref" && refWavesurfer) {
-      if (refWavesurfer.isPlaying()) {
-        refWavesurfer.pause();
-      } else {
-        if (window.wavesurfer && window.wavesurfer.isPlaying()) {
-          window.wavesurfer.pause();
-        }
-        refWavesurfer.play();
-      }
-    }
-  }
-});
-
-
-// 1) Click listeners to update focusedWaveform:
-document.addEventListener("DOMContentLoaded", () => {
-  const mainWaveformContainer = document.getElementById("waveform");
-  const refWaveformContainer = document.getElementById("ref-waveform");
-
-  if (mainWaveformContainer) {
-    mainWaveformContainer.addEventListener("click", () => {
-      focusedWaveform = "main";
-      console.log("Focused waveform set to main");
-    });
-  }
-
-  if (refWaveformContainer) {
-    refWaveformContainer.addEventListener("click", () => {
-      focusedWaveform = "ref";
-      console.log("Focused waveform set to reference (clicked)");
-
-      if (refWavesurfer) {
-        if (refWavesurfer.isPlaying()) {
-          refWavesurfer.pause();
-          console.log("Reference waveform paused");
-        } else {
-          refWavesurfer.play();
-          console.log("Reference waveform playing");
-        }
-      } else {
-        console.warn("refWavesurfer is not initialized yet");
-      }
-    });
-  }
-});
-
-
-// 2) Global spacebar listener to toggle play/pause on focused waveform:
-document.addEventListener("keydown", (e) => {
-  if (e.code === "Space" && !e.repeat) {
-    const active = document.activeElement;
-    const isTyping =
-      active &&
-      (
-        active.tagName === "INPUT" ||
-        active.tagName === "TEXTAREA" ||
-        active.isContentEditable
-      );
-
-    if (isTyping) {
-      // Allow spacebar to work normally in text inputs
-      return;
-    }
-
-    e.preventDefault();
-
-    let wavesurferToControl = null;
-
-    if (focusedWaveform === "main") {
-      wavesurferToControl = window.wavesurfer;
-      if (refWavesurfer && refWavesurfer.isPlaying()) refWavesurfer.pause();
-    } else if (focusedWaveform === "ref") {
-      wavesurferToControl = refWavesurfer;
-      if (window.wavesurfer && window.wavesurfer.isPlaying()) window.wavesurfer.pause();
-    }
-
-    if (!wavesurferToControl) {
-      console.warn("No wavesurfer to control!");
-      return;
-    }
-
-    if (wavesurferToControl.isPlaying()) {
-      wavesurferToControl.pause();
-      console.log(`${focusedWaveform} paused`);
-    } else {
-      wavesurferToControl.play();
-      console.log(`${focusedWaveform} playing`);
-
-      setTimeout(() => {
-        console.log(`${focusedWaveform} isPlaying after play():`, wavesurferToControl.isPlaying());
-      }, 100);
-    }
   }
 });
 
