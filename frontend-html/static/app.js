@@ -6,6 +6,8 @@ import { renderFeedbackAnalysis } from "./feedback-render.js";
 import { setupUploadHandler } from "./upload-handler.js";
 import { setupTrackSelectHandler } from './track-feedback-loader.js';
 import { setupExportButton } from "./export-feedback.js";
+import { setupProfileDropdown } from "./profile-dropdown.js";
+import { setupMobileMenu } from "./mobile-menu.js";
 
 let refTrackAnalysisData = null;
 
@@ -44,21 +46,9 @@ document.addEventListener("DOMContentLoaded", () => {
   renderRecentFeedbackPanel();
   restoreZoundzcopeState();
   setupExportButton();
+  setupProfileDropdown();
+  setupMobileMenu();
 
-
-
-
-
-  // 🔸 Profile Dropdown Hide
-  const profileButton = document.getElementById("profile-button");
-  const profileOptions = document.getElementById("profile-options");
-  if (profileButton && profileOptions) {
-    document.addEventListener("click", (e) => {
-      if (!profileButton.contains(e.target) && !profileOptions.contains(e.target)) {
-        profileOptions.classList.add("hidden");
-      }
-    });
-  }
 
   // 🔸 Mobile Menu
   const menuBtn = document.getElementById("mobile-menu-button");
