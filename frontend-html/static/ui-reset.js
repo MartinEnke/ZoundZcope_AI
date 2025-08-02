@@ -49,3 +49,21 @@ export function resetWaveformDisplay() {
     window.wavesurfer = null;
   }
 }
+
+export function resetReferenceWaveform() {
+  const wrapper = document.getElementById("ref-waveform-wrapper");
+  if (wrapper) {
+    wrapper.style.display = "none";  // 👈 Hide the whole wrapper
+  }
+
+  const refWaveformDiv = document.getElementById("ref-waveform");
+  if (refWaveformDiv) {
+    refWaveformDiv.innerHTML = "";
+    refWaveformDiv.classList.remove("waveform-playing");
+  }
+
+  if (window.refWavesurfer) {
+    window.refWavesurfer.destroy();
+    window.refWavesurfer = null;
+  }
+}

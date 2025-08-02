@@ -8,7 +8,8 @@ import {
   clearQuickFollowupButtons,
   resetExportButton,
   resetRMSDisplay,
-  resetWaveformDisplay
+  resetWaveformDisplay,
+  resetReferenceWaveform
 } from "./ui-reset.js";
 
 
@@ -30,6 +31,7 @@ form.addEventListener("submit", async (e) => {
   resetExportButton();
   clearQuickFollowupButtons();
   resetWaveformDisplay();
+  resetReferenceWaveform();
 
   const feedbackBox = document.getElementById("gptResponse");
   if (feedbackBox) feedbackBox.innerHTML = "";
