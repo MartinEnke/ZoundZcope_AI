@@ -1,42 +1,13 @@
 // app.js
 import { renderRecentFeedbackPanel, toggleFollowup } from "./recent-feedback.js";
 import { initUploadUI } from "./upload-ui.js";
+import { createSessionInBackend, loadSessionTracks } from "./session-api.js";
 
 
 
 let refTrackAnalysisData = null;
 
 
-// ==========================================================
-// 🔁 Helper: Load Session Tracks After Upload
-// ==========================================================
-async function loadSessionTracks(sessionId) {
-  try {
-    const response = await fetch(`/sessions/${sessionId}/tracks`);
-    if (!response.ok) throw new Error("Failed to fetch tracks");
-
-    const tracks = await response.json();
-    const latestTrack = tracks[0]; // 🔄 assumes latest uploaded is first
-
-    // Update dropdown if present
-    const trackSelect = document.getElementById("track-select");
-    if (trackSelect) {
-      trackSelect.innerHTML = '<option value="">Choose Track</option>';
-      tracks.forEach(track => {
-        const opt = document.createElement("option");
-        opt.value = track.id;
-        opt.textContent = track.track_name || "Untitled Track";
-        trackSelect.appendChild(opt);
-      });
-      trackSelect.value = latestTrack?.id || "";
-    }
-
-    return tracks;
-  } catch (err) {
-    console.error("❌ Error loading session tracks:", err);
-    return [];
-  }
-}
 
 
 // ==========================================================
@@ -434,33 +405,6 @@ form.addEventListener("submit", async (e) => {
 });
 
 
-// ==========================================================
-// 🔸 Session Creation via Backend
-// ==========================================================
-async function createSessionInBackend(sessionName) {
-  const userId = 1;
-  try {
-    const response = await fetch("/sessions/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ session_name: sessionName, user_id: userId }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error("Session creation failed with:", error);
-      return null;
-    }
-
-    const result = await response.json();
-    console.log("✅ Created session:", result);
-    return result;
-
-  } catch (err) {
-    console.error("❌ Session creation fetch failed", err);
-    return null;
-  }
-}
 
 // ==========================================================
 // 🔸 Display Feedback for Selected Track
