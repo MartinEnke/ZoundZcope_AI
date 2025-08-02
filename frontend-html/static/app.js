@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initUploadUI();
   setupTrackSelectHandler();
   renderRecentFeedbackPanel();
-  restoreZoundzcopeState();
+
   setupExportButton();
   setupProfileDropdown();
   setupMobileMenu();
@@ -57,6 +57,6 @@ document.addEventListener("DOMContentLoaded", () => {
 window.addEventListener("pageshow", (e) => {
   if (e.persisted) {
     renderRecentFeedbackPanel();
-    restoreZoundzcopeState();
+
   }
 });

@@ -1,8 +1,11 @@
 // export-feedback.js
 
 export function setupExportButton() {
+  console.log("Export button clicked");
   const exportBtn = document.getElementById("exportFeedbackBtn");
-  if (!exportBtn) return;
+  if (!exportBtn || exportButtonInitialized) return;
+
+  exportButtonInitialized = true;
 
   exportBtn.addEventListener("click", async () => {
     const sessionId = window.lastSessionId || "";
