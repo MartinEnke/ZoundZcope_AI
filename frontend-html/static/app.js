@@ -1,93 +1,12 @@
 // app.js
 import { renderRecentFeedbackPanel, toggleFollowup } from "./recent-feedback.js";
+import { initUploadUI } from "./upload-ui.js";
 
 
 
 let refTrackAnalysisData = null;
 
 
-
-
-// ==========================================================
-// 📥 File Input Handling + Placeholder Logic
-// ==========================================================
-document.addEventListener("DOMContentLoaded", () => {
-  // Original track input and filename span
-  const fileInput = document.getElementById("file-upload");
-  const fileNameSpan = document.getElementById("file-name");
-
-  if (fileInput && fileNameSpan) {
-    fileInput.addEventListener("change", () => {
-      if (fileInput.files.length > 0) {
-        fileNameSpan.textContent = fileInput.files[0].name;
-        fileNameSpan.style.color = "#2196f3";  // blue tone for original track
-      } else {
-        fileNameSpan.textContent = "Click to upload your track";
-        fileNameSpan.style.color = ""; // reset color to default
-      }
-    });
-  }
-
-  // Reference track input and filename span
-  const refFileInput = document.getElementById("ref-file-upload");
-  const refFileNameSpan = document.getElementById("ref-file-name");
-
-  if (refFileInput && refFileNameSpan) {
-    refFileInput.addEventListener("change", () => {
-      if (refFileInput.files.length > 0) {
-        refFileNameSpan.textContent = refFileInput.files[0].name;
-        refFileNameSpan.style.color = "#8b5cf6";  // violet tone for reference track (Tailwind purple-600)
-      } else {
-        refFileNameSpan.textContent = "Choose Reference Track";
-        refFileNameSpan.style.color = ""; // reset color to default
-      }
-    });
-  }
-
-  const input = document.getElementById("track_name");
-  const fakePlaceholder = document.getElementById("track-fake-placeholder");
-
-  if (input && fakePlaceholder) {
-    function toggleFakePlaceholder() {
-      fakePlaceholder.style.display = input.value.trim() === "" ? "flex" : "none";
-    }
-
-    input.addEventListener("input", toggleFakePlaceholder);
-    input.addEventListener("focus", toggleFakePlaceholder);
-    input.addEventListener("blur", toggleFakePlaceholder);
-
-    toggleFakePlaceholder();
-  }
-});
-
-// ==========================================================
-// 🔸 File Upload Filename Preview
-// ==========================================================
-document.addEventListener("DOMContentLoaded", () => {
-  const fileInput = document.getElementById("file-upload");
-  const fileNameSpan = document.getElementById("file-name");
-
-  if (fileInput && fileNameSpan) {
-    fileInput.addEventListener("change", () => {
-      fileNameSpan.textContent = fileInput.files.length > 0
-        ? fileInput.files[0].name
-        : "Click to upload your track";
-    });
-  }
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  const refFileInput = document.getElementById("ref-file-upload");
-  const refFileNameSpan = document.getElementById("ref-file-name");
-
-  if (refFileInput && refFileNameSpan) {
-    refFileInput.addEventListener("change", () => {
-      refFileNameSpan.textContent = refFileInput.files.length > 0
-        ? refFileInput.files[0].name
-        : "Choose Reference Track";
-    });
-  }
-});
 // ==========================================================
 // 🔁 Helper: Load Session Tracks After Upload
 // ==========================================================
@@ -742,6 +661,7 @@ window.addEventListener("pageshow", (e) => {
 
 
 document.addEventListener("DOMContentLoaded", () => {
+  initUploadUI();
   const menuBtn = document.getElementById("mobile-menu-button");
   const dropdown = document.getElementById("mobile-menu-dropdown");
 
