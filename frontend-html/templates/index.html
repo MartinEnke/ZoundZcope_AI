@@ -280,8 +280,6 @@
   <div id="ref-label">REFERENCE</div>
 </div>
 
-<div id="ref-rms-display" style="color: white; margin-top: 5px; font-size: 14px;"></div>
-
 <!-- Original track waveform -->
 <div id="waveform" style="margin-top: 20px;"></div>
 
@@ -357,11 +355,14 @@
 <!-- Load WaveSurfer FIRST -->
 <script src="https://unpkg.com/wavesurfer.js"></script>
 
-<!-- Your main app logic -->
-<script src="/static/app.js"></script>
-
-<!-- Your new waveform logic -->
+<!-- Waveform logic must load first so app.js can use it -->
 <script src="/static/waveform-logic.js"></script>
+
+<!-- Optional: rag assistant module -->
+<script src="/static/rag-assistant.js"></script>
+
+<!-- Your main app logic (must be last) -->
+<script src="/static/app.js"></script>
 
 <footer class="w-full text-white text-center py-4 bottom-0 left-0 z-50 select-none text-sm font-light">
   &copy; 2025 ZoundZcope AI™
