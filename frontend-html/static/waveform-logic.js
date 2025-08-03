@@ -57,7 +57,12 @@ function updateRMSDisplayAtTime(time) {
 // ========== 🎵 Init Main Waveform ========== //
 function initMainWaveform(result) {
   const container = document.getElementById("waveform");
-  if (!container) return;
+  if (!container || !result?.track_path) {
+    console.warn("⛔ No waveform container or track path found.");
+    return;
+  }
+
+  console.log("🎧 Initializing waveform with:", result.track_path);
 
   container.innerHTML = "";
   container.classList.remove("waveform-playing");
@@ -77,7 +82,6 @@ function initMainWaveform(result) {
   const url = result.track_path + `?t=${Date.now()}`;
   window.wavesurfer.load(url);
 
-  console.log("🎧 Main waveform loading:", url);
   focusedWaveform = "main";
 
   fetch(result.rms_path)
@@ -170,30 +174,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (main) {
     main.addEventListener("click", () => {
-  focusedWaveform = "main";
-  if (!window.wavesurfer.isPlaying()) {
-    window.wavesurfer.play();
-    if (refWavesurfer?.isPlaying()) refWavesurfer.pause();
-    console.log("▶️ Main waveform started after click");
-  }
-});
+      focusedWaveform = "main";
+      if (!window.wavesurfer.isPlaying()) {
+        window.wavesurfer.play();
+        if (refWavesurfer?.isPlaying()) refWavesurfer.pause();
+        console.log("▶️ Main waveform started after click");
+      }
+    });
   }
 
   if (ref) {
     ref.addEventListener("click", () => {
-  if (refClickCooldown) return;
-  refClickCooldown = true;
-  setTimeout(() => (refClickCooldown = false), 300);
+      if (refClickCooldown) return;
+      refClickCooldown = true;
+      setTimeout(() => (refClickCooldown = false), 300);
 
-  focusedWaveform = "ref";
-  if (!refWaveformReady) return;
+      focusedWaveform = "ref";
+      if (!refWaveformReady) return;
 
-  if (!refWavesurfer.isPlaying()) {
-    refWavesurfer.play();
-    if (window.wavesurfer?.isPlaying()) window.wavesurfer.pause();
-    console.log("▶️ Ref waveform started after click");
-  }
-});
+      if (!refWavesurfer.isPlaying()) {
+        refWavesurfer.play();
+        if (window.wavesurfer?.isPlaying()) window.wavesurfer.pause();
+        console.log("▶️ Ref waveform started after click");
+      }
+    });
   }
 });
 
@@ -217,7 +221,5 @@ document.addEventListener("keydown", (e) => {
     active.play();
   }
 });
-
-
 
 export { initMainWaveform, loadReferenceWaveform };

@@ -8,55 +8,39 @@ import { setupTrackSelectHandler } from './track-feedback-loader.js';
 import { setupExportButton } from "./export-feedback.js";
 import { setupProfileDropdown } from "./profile-dropdown.js";
 import { setupMobileMenu } from "./mobile-menu.js";
+import { restoreZoundZcopeState, clearZoundZcopeState } from "./state-persistence.js";
+
+
 
 let refTrackAnalysisData = null;
 
 setupUploadHandler();
 
-function restoreZoundzcopeState() {
-  const output = document.getElementById("analysisOutput");
-  const feedbackBox = document.getElementById("gptResponse");
-  const followupBox = document.getElementById("aiFollowupResponse");
-  const resultsSection = document.getElementById("results");
-  const feedbackSection = document.getElementById("feedback");
-
-  const lastAnalysis = localStorage.getItem("zoundzcope_last_analysis");
-  const lastFeedback = localStorage.getItem("zoundzcope_last_feedback");
-  const lastFollowup = localStorage.getItem("zoundzcope_last_followup");
-
-  if (lastAnalysis && lastFeedback) {
-    output.innerHTML = lastAnalysis;
-    feedbackBox.innerHTML = lastFeedback;
-    resultsSection.classList.remove("hidden");
-    feedbackSection.classList.remove("hidden");
-  }
-
-  if (lastFollowup) {
-    followupBox.innerHTML = lastFollowup;
-    followupBox.classList.remove("hidden");
-  }
-}
-
 // ============================
 // ✅ DOMContentLoaded Block
 // ============================
 document.addEventListener("DOMContentLoaded", () => {
+  restoreZoundZcopeState(); // ✅ Load persistent state
   initUploadUI();
   setupTrackSelectHandler();
   renderRecentFeedbackPanel();
-
   setupExportButton();
   setupProfileDropdown();
   setupMobileMenu();
-
 });
 
+document.getElementById("resetStateBtn")?.addEventListener("click", () => {
+  if (confirm("Are you sure you want to reset all analysis and session data?")) {
+    clearZoundZcopeState();
+    location.reload(); // optional: refresh to fully reset
+  }
+});
 // ============================
 // ✅ Page Show (Back/Forward Cache)
 // ============================
 window.addEventListener("pageshow", (e) => {
   if (e.persisted) {
+    restoreZoundZcopeState();
     renderRecentFeedbackPanel();
-
   }
 });

@@ -1,5 +1,7 @@
 // export-feedback.js
 
+let exportButtonInitialized = false;
+
 export function setupExportButton() {
   console.log("Export button clicked");
   const exportBtn = document.getElementById("exportFeedbackBtn");

@@ -1,4 +1,5 @@
 // upload-handler.js
+import { saveZoundZcopeState } from "./state-persistence.js";
 import {
   hideSummarizeButton,
   showSummarizeButton,
@@ -134,6 +135,8 @@ export function setupUploadHandler() {
         window.lastSessionId = sessionId;
         window.lastTrackId = tracks[0]?.id || "";
 
+        localStorage.setItem("zoundzcope_last_track_id", window.lastTrackId);
+
         if (sessionIdInput) {
           sessionIdInput.value = sessionId;
         }
@@ -143,6 +146,21 @@ export function setupUploadHandler() {
         lastManualSummaryGroup = -1;
 
         renderFeedbackAnalysis(result, refTrackAnalysisData);
+
+        saveZoundZcopeState({
+  analysisHTML: document.getElementById("analysisOutput").innerHTML,
+  feedbackHTML: document.getElementById("gptResponse").innerHTML,
+  followupHTML: document.getElementById("aiFollowupResponse").innerHTML,
+  summaryHTML: document.getElementById("aiSummaryResponse").innerHTML,
+  trackPath: result.track_path,
+  rmsPath: result.rms_path,
+  genre: document.getElementById("genre-input").value,
+  subgenre: document.getElementById("subgenre-input").value,
+  type: document.getElementById("type-input").value,
+  profile: document.getElementById("profile-input").value,
+  sessionId: sessionId,
+});
+
       } else {
         console.error("Upload failed response:", result);
         alert("Upload failed: " + JSON.stringify(result));
