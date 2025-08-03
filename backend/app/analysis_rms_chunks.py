@@ -19,9 +19,6 @@ def get_chunk_duration_from_bpm(bpm, fraction=0.5, min_chunk=0.2, max_chunk=0.6)
 def compute_rms_chunks(file_path, chunk_duration=0.5, json_output_path=None, smoothing_factor=0.95):
     print(f"🔍 Using RMS chunk duration: {chunk_duration:.3f} sec")
     y, sr = librosa.load(file_path, mono=True)
-    # Normalize peak to 0 dBFS
-    peak = np.max(np.abs(y))
-    y = y / (peak + 1e-9)
     samples_per_chunk = int(sr * chunk_duration)
     total_chunks = len(y) // samples_per_chunk
 
