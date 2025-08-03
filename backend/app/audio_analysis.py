@@ -1,5 +1,6 @@
 import numpy as np
 
+
 # Fix deprecated alias for compatibility with newer numpy
 if not hasattr(np, 'complex'):
     np.complex = complex
@@ -164,7 +165,7 @@ def describe_spectral_balance(band_energies: dict, genre: str = "electronic") ->
     return "Spectral balance analyzed, but genre could not be matched precisely."
 
 
-def compute_windowed_rms_db(y_mono, sr, window_duration=0.5):
+def compute_windowed_rms_db(y_mono, sr, window_duration=0.5, top_percent=0.1):
     window_size = int(sr * window_duration)
     hop_size = int(window_size / 2)
 
@@ -174,16 +175,40 @@ def compute_windowed_rms_db(y_mono, sr, window_duration=0.5):
         rms = np.sqrt(np.mean(block ** 2))
         rms_blocks.append(rms)
 
-    # Now calculate:
     rms_blocks = np.array(rms_blocks)
+
+    # Average RMS across entire track
     rms_db_avg = 20 * np.log10(np.mean(rms_blocks) + 1e-9)
 
-    # Loudest 10%
-    sorted_rms = np.sort(rms_blocks)
-    top_10 = sorted_rms[int(len(sorted_rms) * 0.9):]
-    rms_db_peak = 20 * np.log10(np.mean(top_10) + 1e-9)
+    # Peak RMS from top X% loudest blocks
+    top_n = max(1, int(len(rms_blocks) * top_percent))
+    top_blocks = np.sort(rms_blocks)[-top_n:]
+    rms_db_peak = 20 * np.log10(np.mean(top_blocks) + 1e-9)
 
     return round(rms_db_avg, 2), round(rms_db_peak, 2)
+
+
+def compute_loudest_section_lufs(y, sr, meter=None, window_duration=1.0, top_percent=0.1):
+    if meter is None:
+        meter = pyln.Meter(sr)
+
+    window_size = int(sr * window_duration)
+    hop_size = window_size // 2
+    scores = []
+    segments = []
+
+    for i in range(0, len(y) - window_size, hop_size):
+        segment = y[i:i + window_size]
+        loudness = meter.integrated_loudness(segment)
+        scores.append(loudness)
+        segments.append(segment)
+
+    # Sort by loudness, keep top X%
+    top_n = max(1, int(len(scores) * top_percent))
+    top_segments = [segments[i] for i in np.argsort(scores)[-top_n:]]
+    combined = np.concatenate(top_segments)
+
+    return meter.integrated_loudness(combined)
 
 
 def detect_transient_strength(y, sr):
@@ -246,7 +271,16 @@ def generate_peak_issues_description(peak_db: float):
 
 def analyze_audio(file_path, genre=None):
     y, sr = librosa.load(file_path, mono=False)
+    if y.ndim == 1:
+        y_stereo = np.stack([y, y])  # fake stereo
+    else:
+        y_stereo = y
+    y_avg = np.mean(y_stereo, axis=0)  # simple L+R averaging
     print(f"y shape: {y.shape}, ndim: {y.ndim}")
+
+    # ✅ Integrated RMS (matches Voxengo-style meters)
+    integrated_rms = np.sqrt(np.mean(y_avg ** 2))
+    rms_db_integrated = 20 * np.log10(integrated_rms + 1e-9)
 
     y_mono = librosa.to_mono(y)
 
@@ -260,7 +294,7 @@ def analyze_audio(file_path, genre=None):
     # ✅ Compute loudness + RMS on normalized audio
     rms_db_avg, rms_db_peak = compute_windowed_rms_db(y_norm, sr)
     meter = pyln.Meter(sr)
-    loudness = meter.integrated_loudness(y_norm)
+    loudness = compute_loudest_section_lufs(y_norm, sr, meter)
 
     # 🧠 Get peak issue info from unnormalized peak
     peak_issues, peak_explanation_parts = generate_peak_issues_description(peak_db)
@@ -286,8 +320,10 @@ def analyze_audio(file_path, genre=None):
     tempo = float(tempo_arr)
     key = detect_key(y_norm, sr)
 
-    # 🧮 Dynamic range (still meaningful with normalized signal)
-    dynamic_range = peak_db - rms_db_avg  # This reflects actual range even after norm
+    # Overall dynamic headroom
+    dynamic_range_avg = peak_db - rms_db_avg
+    # Dynamic range more interesting for transients
+    dynamic_range_peak = peak_db - rms_db_peak
 
     # ✅ Stereo width (must use original y to retain L/R difference)
     width_ratio = 0.0
@@ -337,7 +373,7 @@ def analyze_audio(file_path, genre=None):
         "tempo": f"{tempo:.2f}",
         "key": key,
         "lufs": f"{loudness:.2f}",
-        "dynamic_range": f"{dynamic_range:.2f}",
+        "dynamic_range": round(float(dynamic_range_peak), 2),
         "stereo_width_ratio": f"{width_ratio:.2f}",
         "stereo_width": stereo_width_label,
         "low_end_energy_ratio": f"{normalized_low_end:.2f}",
@@ -348,6 +384,6 @@ def analyze_audio(file_path, genre=None):
         "peak_issue_explanation": " ".join(peak_explanation_parts),
         "avg_transient_strength": avg_transients,
         "max_transient_strength": max_transients,
-        "transient_description": describe_transients(avg_transients, max_transients),
-        "issues": json.dumps(issues)
+        "transient_description": describe_transients(avg_transients, max_transients)
+
     }
