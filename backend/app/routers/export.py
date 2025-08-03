@@ -54,13 +54,13 @@ Mixing & Mastering Feedback and Presets Report
 
 AI Feedback:
 
-- ISSUE:
-  [Describe the issue clearly in a few sentences.]
+- INSIGHT:
+  [Describe the insight clearly in a few sentences.]
 
-- IMPROVEMENT:
+- SUGGESTION:
   [Describe the suggested improvement clearly.]
 
-(Repeat multiple ISSUE and IMPROVEMENT pairs as needed.)
+(Repeat multiple INSIGHT and SUGGESTION pairs as needed.)
 
 Recommended Ableton Preset Parameters:
 
@@ -236,7 +236,7 @@ def create_pdf(full_report_text: str) -> BytesIO:
             continue
 
         # Uppercase ISSUE / IMPROVEMENT labels
-        if line.startswith("- ISSUE:") or line.startswith("- IMPROVEMENT:"):
+        if line.startswith("- INSIGHT:") or line.startswith("- SUGGESTION:"):
             flush_bullet_group()
             label, _, rest = line.partition(":")
             label = label.replace("- ", "").upper() + ":"
@@ -468,7 +468,7 @@ Below is the multi-track comparison feedback that was previously generated:
 \"\"\"
 
 Now generate **only** the recommended plugin and preset parameters that could help resolve the issues or enhance cohesion, based on the feedback above.
-
+**Mention which plugin and adjustments are meant for which track.**
 Output the results under the following section:
 
 ---
