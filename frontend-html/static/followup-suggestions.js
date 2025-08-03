@@ -5,11 +5,11 @@
 // ==========================================================
 const predefinedFollowupQuestions = {
   mixdown: [
-    "Which element is clashing most in this mix?",
-    "Which plugin could improve transient clarity on the snare?",
-    "How can I better use stereo panning to separate instruments?",
-    "Should I apply multiband compression on the drum bus?",
-    "Does this mix need subtractive EQ in the low-mids?"
+    "Which frequency range feels too dominant or lacking overall?",
+    "Does the stereo width feel balanced across the spectrum?",
+    "How can I improve dynamic range without losing energy?",
+    "Is my loudness appropriate for a mastering-ready track?",
+    "Does the low end feel too heavy, muddy, or underpowered?"
   ],
   mastering: [
     "Is this mix ready for mastering or should I adjust it first?",
@@ -26,11 +26,12 @@ const predefinedFollowupQuestions = {
     "Does this master need a low-shelf boost below 80Hz?"
   ],
   electronic: [
-    "Does this mix have the punch of Flume’s productions?",
-    "How can I make the drop hit harder?",
-    "Which synth plugin would enhance the lead’s texture?",
-    "Should I automate filter cutoff for more movement?",
-    "How can I tighten the sidechain compression?"
+    "How can I add more movement or modulation in the midrange?",
+    "Is the sidechain compression reacting musically and not over-pumping?",
+    "Do the transients feel snappy and well-shaped for this genre?",
+    "Is the sub-bass well-controlled and sitting cleanly in the mix?",
+    "Does the dynamic range support both energy and impact?",
+    "Are the highs crisp and present without becoming harsh?",
   ],
   pop: [
     "How can I make the vocal sound more polished?",
@@ -177,36 +178,41 @@ function loadQuickFollowupButtons(type, genre, profile) {
     ...(predefinedFollowupQuestions[profile] || [])
   ]);
 
-  Array.from(uniqueQuestions).slice(0, 15).forEach((q) => {
-    const btn = document.createElement("button");
-    btn.textContent = q;
+  let questions = Array.from(uniqueQuestions);
+if (questions.length % 2 !== 0) {
+  questions = questions.slice(0, questions.length - 1);
+}
 
-    btn.className = `
-      quick-followup-button
-      w-full
-      px-4 py-2
-      rounded-md
-      bg-white/5
-      text-white
-      text-sm
-      font-medium
-      shadow-sm
-      border border-white/10
-      backdrop-blur-md
-      transition-all duration-200
-      hover:bg-white/10
-      hover:scale-[1.01]
-    `.trim();
+questions.forEach((q) => {
+  const btn = document.createElement("button");
+  btn.textContent = q;
 
-    btn.style.fontSize = "0.825rem";
+  btn.className = `
+    quick-followup-button
+    w-full
+    px-4 py-2
+    rounded-md
+    bg-white/5
+    text-white
+    text-sm
+    font-medium
+    shadow-sm
+    border border-white/10
+    backdrop-blur-md
+    transition-all duration-200
+    hover:bg-white/10
+    hover:scale-[1.01]
+  `.trim();
 
-    btn.addEventListener("click", () => {
-      document.getElementById("customQuestion").value = q;
-      document.getElementById("askAIButton").click();
-    });
+  btn.style.fontSize = "0.825rem";
 
-    btnWrapper.appendChild(btn);
+  btn.addEventListener("click", () => {
+    document.getElementById("customQuestion").value = q;
+    document.getElementById("askAIButton").click();
   });
+
+  btnWrapper.appendChild(btn);
+});
 
   container.classList.toggle("hidden", btnWrapper.children.length === 0);
 }
