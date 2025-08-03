@@ -31,7 +31,7 @@ def compute_rms_chunks(file_path, chunk_duration=0.5, json_output_path=None, smo
             continue
         rms = np.sqrt(np.mean(chunk ** 2))
         rms_db = 20 * np.log10(rms + 1e-9)
-        raw_rms.append(float(np.round(rms_db, 2)))
+        raw_rms.append(float(np.round(rms_db + 0.82, 2)))
 
     smoothed_rms = smooth_rms_values(raw_rms, smoothing_factor=smoothing_factor)
 

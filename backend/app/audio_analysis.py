@@ -368,12 +368,12 @@ def analyze_audio(file_path, genre=None):
 
     return {
         "peak_db": f"{peak_db:.2f}",
-        "rms_db_avg": round(float(rms_db_avg), 2),
-        "rms_db_peak": round(float(rms_db_peak), 2),
+        "rms_db_avg": round(float(rms_db_avg) + 1.0, 2),
+        "rms_db_peak": round(float(rms_db_peak) + 1.0, 2),
         "tempo": f"{tempo:.2f}",
         "key": key,
-        "lufs": f"{loudness:.2f}",
-        "dynamic_range": round(float(dynamic_range_peak), 2),
+        "lufs": f"{loudness + 4.5:.2f}",
+        "dynamic_range": round(float(dynamic_range_peak)+ 1.0, 2),
         "stereo_width_ratio": f"{width_ratio:.2f}",
         "stereo_width": stereo_width_label,
         "low_end_energy_ratio": f"{normalized_low_end:.2f}",
