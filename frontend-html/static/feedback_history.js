@@ -466,12 +466,37 @@ sessionDiv.addEventListener("drop", async (e) => {
 
     if (!res.ok) throw new Error(await res.text());
 
-    await loadManageSection();  // Refresh UI
+    // ✅ Save scroll position BEFORE layout shift
+    const previousScrollY = window.scrollY;
+
+    await loadManageSection();
+
+    // ✅ Restore scroll position manually
+    window.scrollTo({ top: previousScrollY });
+
+    // ✅ Visual feedback only
+    setTimeout(() => {
+      const sessionWrapper = document.querySelector(`[data-session-wrapper="${newSessionId}"]`);
+      const title = sessionWrapper?.querySelector("span.text-lg.font-semibold");
+      if (title) {
+        title.classList.add("text-green-400");
+        setTimeout(() => title.classList.remove("text-green-400"), 1500);
+      }
+
+      const trackRow = document.querySelector(`[data-track-item="${trackId}"]`);
+      if (trackRow) {
+        trackRow.classList.add("bg-green-400/10", "transition-colors", "duration-[3000ms]");
+        setTimeout(() => {
+          trackRow.classList.remove("bg-green-400/10");
+        }, 3000);
+      }
+    }, 100);
   } catch (err) {
     alert("Error moving track: " + err.message);
     console.error("❌ Move track failed:", err);
   }
 });
+
 
       const sessionHeader = document.createElement("div");
       sessionHeader.className = "flex items-center justify-between mb-2";
