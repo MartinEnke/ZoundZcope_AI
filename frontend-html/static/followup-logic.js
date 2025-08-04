@@ -50,30 +50,34 @@ document.getElementById("askAIButton").addEventListener("click", async () => {
   if (!trackId || !sessionId) return alert("Please upload and analyze first.");
 
   outputBox.classList.remove("hidden");
+
+  // ⬅️ Show temporary "thinking..." inside a group wrapper
+  const groupWrapper = document.createElement("div");
+  groupWrapper.className = "followup-summary-group space-y-3 mt-4";
+
   const thinkingEl = document.createElement("p");
-  thinkingEl.className = "mt-4 italic text-pink-400 text-opacity-80 animate-pulse";
+  thinkingEl.className = "italic text-pink-400 text-opacity-80 animate-pulse";
   thinkingEl.textContent = "Thinking...";
-  outputBox.appendChild(thinkingEl);
+  groupWrapper.appendChild(thinkingEl);
 
-  const requestBody = {
-    analysis_text: analysis,
-    feedback_text: feedback,
-    user_question: question,
-    session_id: sessionId,
-    track_id: trackId,
-    feedback_profile: profile,
-    followup_group: followupGroupIndex,
-  };
-
-  if (typeof refTrackAnalysisData !== "undefined" && refTrackAnalysisData !== null) {
-    requestBody.ref_analysis_data = refTrackAnalysisData;
-  }
+  outputBox.appendChild(groupWrapper);
 
   try {
     const res = await fetch("/chat/ask-followup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        analysis_text: analysis,
+        feedback_text: feedback,
+        user_question: question,
+        session_id: sessionId,
+        track_id: trackId,
+        feedback_profile: profile,
+        followup_group: followupGroupIndex,
+        ...(typeof refTrackAnalysisData !== "undefined" && refTrackAnalysisData !== null
+          ? { ref_analysis_data: refTrackAnalysisData }
+          : {})
+      }),
     });
 
     if (!res.ok) throw new Error(`Server error: ${res.status}`);
@@ -81,29 +85,31 @@ document.getElementById("askAIButton").addEventListener("click", async () => {
     const data = await res.json();
     const answer = data.answer;
 
-    if (data.summary_created) showInfoToast("💡 Internal summary created to keep conversations concise.");
+    // Remove thinking...
+    thinkingEl.remove();
 
-    thinkingEl.classList.remove("animate-pulse");
-    thinkingEl.innerHTML = `<span class="text-blue-400 text-lg">➤</span>`;
-
+    // ✅ Now add question and answer
     const questionP = document.createElement("p");
     const strongQ = document.createElement("strong");
     strongQ.textContent = "Q:";
     questionP.appendChild(strongQ);
     questionP.appendChild(document.createTextNode(" " + question));
-    outputBox.appendChild(questionP);
 
     const answerDiv = document.createElement("div");
     answerDiv.innerHTML = marked.parse(answer);
-    outputBox.appendChild(answerDiv);
 
+    groupWrapper.appendChild(questionP);
+    groupWrapper.appendChild(answerDiv);
+
+    // ✅ Make summary button appear
     const manualSummarizeBtn = document.getElementById("manualSummarizeBtn");
-    if (manualSummarizeBtn.style.display === "none") {
+    if (manualSummarizeBtn && manualSummarizeBtn.style.display === "none") {
       manualSummarizeBtn.style.display = "inline-block";
     }
 
     followupThread.push({ question, answer });
 
+    // 🧠 Optional: Store in local history
     try {
       const raw = localStorage.getItem("zoundzcope_history") || "[]";
       const history = JSON.parse(raw);
@@ -132,6 +138,7 @@ document.getElementById("askAIButton").addEventListener("click", async () => {
     outputBox.innerHTML += `<p class='text-red-400'>Something went wrong: ${err.message}</p>`;
   }
 });
+
 
 function showSummarizeButton() {
   const manualSummarizeBtn = document.getElementById("manualSummarizeBtn");
@@ -195,7 +202,14 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       `;
 
-      outputBox.appendChild(summaryEl);
+      const allGroups = outputBox.querySelectorAll(".followup-summary-group");
+const lastGroup = allGroups[allGroups.length - 1];
+
+if (lastGroup) {
+  lastGroup.appendChild(summaryEl);
+} else {
+  outputBox.appendChild(summaryEl); // fallback
+}
       localStorage.setItem("zoundzcope_last_followup_summary", summaryEl.outerHTML);
 
       lastManualSummaryGroup = followupGroupIndex;

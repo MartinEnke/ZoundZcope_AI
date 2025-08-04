@@ -17,7 +17,7 @@ export function saveZoundZcopeState({
   localStorage.setItem("zoundzcope_last_analysis", analysisHTML);
   localStorage.setItem("zoundzcope_last_feedback", feedbackHTML);
   localStorage.setItem("zoundzcope_last_followup", followupHTML);
-  localStorage.setItem("zoundzcope_last_followup_summary", summaryHTML);
+
   localStorage.setItem("zoundzcope_waveform_path", trackPath);
   localStorage.setItem("zoundzcope_rms_path", rmsPath);
   localStorage.setItem("zoundzcope_genre", genre);
@@ -31,12 +31,11 @@ export function restoreZoundZcopeState() {
   const analysisHTML = localStorage.getItem("zoundzcope_last_analysis");
   const feedbackHTML = localStorage.getItem("zoundzcope_last_feedback");
   const followupHTML = localStorage.getItem("zoundzcope_last_followup");
-  const summaryHTML = localStorage.getItem("zoundzcope_last_followup_summary");
+
 
   const output = document.getElementById("analysisOutput");
   const feedbackBox = document.getElementById("gptResponse");
   const followupBox = document.getElementById("aiFollowupResponse");
-  const summaryBox = document.getElementById("aiSummaryResponse");
   const customSection = document.getElementById("custom-ai-section");
 
   if (analysisHTML) {
@@ -51,27 +50,19 @@ export function restoreZoundZcopeState() {
 
   let customVisible = false;
 
-if (followupHTML) {
-  followupBox.innerHTML = followupHTML;
-  followupBox.classList.remove("hidden");
-  customVisible = true;
-}
+  if (followupHTML) {
+    followupBox.innerHTML = followupHTML;
+    followupBox.classList.remove("hidden");
+    customVisible = true;
+  }
 
-if (summaryHTML) {
-  summaryBox.innerHTML = summaryHTML;
-  summaryBox.classList.remove("hidden");
-  customVisible = true;
-}
+  if (feedbackHTML && !customVisible) {
+    customVisible = true;
+  }
 
-// ⬇️ Also show custom section if feedback exists (even without followups/summaries)
-if (feedbackHTML && !customVisible) {
-  customVisible = true;
-}
-
-if (customVisible && customSection) {
-  customSection.classList.remove("hidden");
-}
-
+  if (customVisible && customSection) {
+    customSection.classList.remove("hidden");
+  }
 
   // Restore dropdown values
   const map = [
@@ -116,12 +107,13 @@ if (customVisible && customSection) {
   window.lastSessionId = localStorage.getItem("zoundzcope_session");
 }
 
+
 export function clearZoundZcopeState() {
   const keys = [
     "zoundzcope_last_analysis",
     "zoundzcope_last_feedback",
     "zoundzcope_last_followup",
-    "zoundzcope_last_followup_summary",
+
     "zoundzcope_genre",
     "zoundzcope_subgenre",
     "zoundzcope_type",
