@@ -546,7 +546,7 @@ select.custom-dropdown:focus {
 
 
 .reset-btn {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(0, 0, 0, 0.9);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: rgba(255, 255, 255, 0.8);
@@ -561,8 +561,8 @@ select.custom-dropdown:focus {
 }
 
 .reset-btn:hover {
-  background-color: rgba(150, 90, 150, 0.05);
-  border-color: rgba(150, 90, 150, 0.25);
+  background-color: rgba(255, 90, 255, 0.1);
+  border-color: rgba(255, 10, 150, 0.25);
   box-shadow:
     0 0 6px rgba(255, 255, 255, 0.08),
     0 0 12px rgba(255, 255, 255, 0.15);

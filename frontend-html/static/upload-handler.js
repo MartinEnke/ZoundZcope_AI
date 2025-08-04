@@ -102,27 +102,41 @@ export function setupUploadHandler() {
     }
 
     const fileInput = document.getElementById("file-upload");
-    let finalTrackName = "Untitled Track";
-    if (fileInput && fileInput.files.length > 0) {
-      const fullName = fileInput.files[0].name;
-      finalTrackName = fullName.replace(/\.[^/.]+$/, "");
-    }
+let finalTrackName = "Untitled Track";
 
-    const fileDisplayName = fileInput.files[0]?.name || "Choose a file";
-document.getElementById("file-name").textContent = fileDisplayName;
-localStorage.setItem("zoundzcope_file_name", fileDisplayName);
+if (fileInput && fileInput.files.length > 0) {
+  const fullName = fileInput.files[0].name;
+  finalTrackName = fullName.replace(/\.[^/.]+$/, "");
 
-    formData.set("track_name", finalTrackName);
-    formData.set("feedback_profile", feedbackProfile);
+  const fileDisplayName = fullName;
+  const fileLabel = document.getElementById("file-name");
 
-    const refFileInput = document.getElementById("ref-file-upload");
-    if (refFileInput && refFileInput.files.length > 0) {
-      formData.append("ref_file", refFileInput.files[0]);
-    }
+  if (fileLabel) {
+    fileLabel.textContent = fileDisplayName;
+    fileLabel.className = "text-gray-400"; // ✅ apply color
+    localStorage.setItem("zoundzcope_file_name", fileDisplayName);
+    localStorage.setItem("zoundzcope_file_name_color", fileLabel.className); // ✅ save color
+  }
+}
 
-    const refDisplayName = refFileInput.files[0]?.name || "Choose Reference Track";
-document.getElementById("ref-file-name").textContent = refDisplayName;
-localStorage.setItem("zoundzcope_ref_file_name", refDisplayName);
+formData.set("track_name", finalTrackName);
+formData.set("feedback_profile", feedbackProfile);
+
+const refFileInput = document.getElementById("ref-file-upload");
+
+if (refFileInput && refFileInput.files.length > 0) {
+  formData.append("ref_file", refFileInput.files[0]);
+
+  const refDisplayName = refFileInput.files[0].name;
+  const refLabel = document.getElementById("ref-file-name");
+
+  if (refLabel) {
+    refLabel.textContent = refDisplayName;
+    refLabel.className = "text-gray-400"; // ✅ apply color
+    localStorage.setItem("zoundzcope_ref_file_name", refDisplayName);
+    localStorage.setItem("zoundzcope_ref_file_name_color", refLabel.className); // ✅ save color
+  }
+}
 
     try {
       const response = await fetch("/upload/", {

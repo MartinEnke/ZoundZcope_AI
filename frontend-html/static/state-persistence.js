@@ -102,16 +102,24 @@ export function restoreZoundZcopeState() {
 
   // ✅ Restore uploaded file name labels
   const uploadedName = localStorage.getItem("zoundzcope_file_name");
-  if (uploadedName) {
-    const fileLabel = document.getElementById("file-name");
-    if (fileLabel) fileLabel.textContent = uploadedName;
+const uploadedColor = localStorage.getItem("zoundzcope_file_name_color");
+if (uploadedName) {
+  const fileLabel = document.getElementById("file-name");
+  if (fileLabel) {
+    fileLabel.textContent = uploadedName;
+    if (uploadedColor) fileLabel.className = uploadedColor;
   }
+}
 
-  const refName = localStorage.getItem("zoundzcope_ref_file_name");
-  if (refName) {
-    const refLabel = document.getElementById("ref-file-name");
-    if (refLabel) refLabel.textContent = refName;
+const refName = localStorage.getItem("zoundzcope_ref_file_name");
+const refColor = localStorage.getItem("zoundzcope_ref_file_name_color");
+if (refName) {
+  const refLabel = document.getElementById("ref-file-name");
+  if (refLabel) {
+    refLabel.textContent = refName;
+    if (refColor) refLabel.className = refColor;
   }
+}
 
   // ✅ Restore waveform
   const waveformPath = localStorage.getItem("zoundzcope_waveform_path");
