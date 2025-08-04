@@ -201,7 +201,8 @@
 >
   Analyze
 </button>
-            <button id="resetStateBtn">Reset</button>
+
+
           </form>
         </section>
 
@@ -213,7 +214,18 @@
 
       <!-- RIGHT COLUMN: Feedback -->
       <section id="feedback" class="hidden lg:w-[65%] min-w-0 mt-6 lg:mt-0 bg-black/10 p-6 rounded-lg shadow-inner space-y-4">
-  <h2 class="text-2xl font-bold text-white mb-4">AI Feedback</h2>
+  <div class="flex justify-between items-start mb-4">
+  <h2 class="text-2xl font-bold text-white">AI Feedback</h2>
+  <button
+    id="resetStateBtn"
+    type="button"
+    class="reset-btn text-sm"
+    title="Reset all selections and uploaded files"
+  >
+    Reset
+  </button>
+</div>
+
 
   <div id="gptResponse" class="text-base leading-relaxed text-white/90 space-y-3"></div>
 
