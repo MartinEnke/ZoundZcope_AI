@@ -185,3 +185,26 @@ def delete_session(id: str, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": f"Session and all related tracks, analysis, and chats deleted"}
+
+
+@router.post("/create")
+def create_session(
+    session_name: str = Form(...),
+    user_id: int = Form(...),
+    db: Session = Depends(get_db)
+):
+    session_id = str(uuid.uuid4())
+    new_session = UserSession(
+        id=session_id,
+        session_name=session_name,
+        user_id=user_id
+    )
+
+    db.add(new_session)
+    db.commit()
+    db.refresh(new_session)
+
+    return {
+        "id": new_session.id,
+        "session_name": new_session.session_name
+    }

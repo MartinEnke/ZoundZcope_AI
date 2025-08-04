@@ -1,3 +1,5 @@
+// feedback_history.js
+
 let justClosedDropdown = false;
 // ==========================================================
 // 🔸 Load Tracks When a Session Is Selected
@@ -673,6 +675,40 @@ trackItem.addEventListener("dragstart", (e) => {
     console.error("Failed to load manage section:", err);
   }
 }
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const addSessionBtn = document.getElementById("add-session-btn");
+  if (!addSessionBtn) return;
+
+  addSessionBtn.addEventListener("click", async () => {
+    const name = prompt("Enter a name for your new session:", "Untitled Session");
+    if (!name) return;
+
+    const formData = new FormData();
+    formData.append("session_name", name);
+    formData.append("user_id", 1);  // ⚠️ Replace with actual logged-in user ID later
+
+    try {
+      const res = await fetch("/sessions/create", {
+  method: "POST",
+  body: formData,
+});
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText);
+      }
+
+      await loadManageSection(); // Refresh the UI
+    } catch (err) {
+      console.error("❌ Failed to create session:", err);
+      alert("Error creating session.");
+    }
+  });
+});
+
+
 
 
 // ==========================================================
