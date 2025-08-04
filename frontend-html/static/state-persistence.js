@@ -49,17 +49,29 @@ export function restoreZoundZcopeState() {
     document.getElementById("feedback").classList.remove("hidden");
   }
 
-  if (followupHTML) {
-    followupBox.innerHTML = followupHTML;
-    followupBox.classList.remove("hidden");
-    customSection?.classList.remove("hidden");
-  }
+  let customVisible = false;
 
-  if (summaryHTML) {
-    summaryBox.innerHTML = summaryHTML;
-    summaryBox.classList.remove("hidden");
-    customSection?.classList.remove("hidden");
-  }
+if (followupHTML) {
+  followupBox.innerHTML = followupHTML;
+  followupBox.classList.remove("hidden");
+  customVisible = true;
+}
+
+if (summaryHTML) {
+  summaryBox.innerHTML = summaryHTML;
+  summaryBox.classList.remove("hidden");
+  customVisible = true;
+}
+
+// ⬇️ Also show custom section if feedback exists (even without followups/summaries)
+if (feedbackHTML && !customVisible) {
+  customVisible = true;
+}
+
+if (customVisible && customSection) {
+  customSection.classList.remove("hidden");
+}
+
 
   // Restore dropdown values
   const map = [
