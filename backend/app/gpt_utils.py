@@ -417,19 +417,32 @@ def generate_comparison_feedback(comparison_data: List[dict]) -> str:
     Returns:
         str: AI-generated comparison feedback.
     """
-    prompt = """You are an audio mastering engineer. 
-    Compare the following tracks in terms of sonic cohesion, technical quality, 
-    and stylistic consistency. Mention any differences, similarities, and possible 
-    improvements relative to each other. If they seem identical, point that out as well.\n\n"""
+    prompt = (
+        "You are an expert audio mastering engineer.\n"
+        "Compare the following tracks in terms of:\n"
+        "- Sonic cohesion across all tracks\n"
+        "- Technical differences (LUFS, stereo width, spectral balance, etc.)\n"
+        "- Strengths, weaknesses, and stylistic consistency\n\n"
+        "Each track includes both technical analysis and prior AI feedback.\n"
+        "Prior feedback uses 'INSIGHT:' and 'SUGGESTION:' to indicate observations and recommendations.\n\n"
+        "Give a detailed comparison summary and specific suggestions where appropriate.\n\n"
+    )
+
     for idx, entry in enumerate(comparison_data, 1):
-        prompt += f"🎵 Track {idx}: **{entry['track_name']}**\n"
-        prompt += f"{entry['analysis_summary']}\n"
-        prompt += f"🗨️ Chat Summary:\n{entry['chat_history']}\n\n"
+        prompt += f"🎵 Track {idx}: {entry['track_name']}\n"
+        prompt += f"📊 Analysis Summary:\n{entry['analysis_summary'].strip()}\n"
+        prompt += f"💬 Prior Feedback:\n{entry['chat_history'].strip()}\n\n"
+
+    prompt += (
+        "### Comparison Summary\n"
+        "Write a cohesive summary of how the tracks compare. Highlight what works well, what needs attention, and whether they sound like they belong together in an album or playlist.\n"
+        "Use bullet points or clear section headings like 'Strengths', 'Weaknesses', and 'Suggestions'."
+    )
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": "You are an audio mastering engineer helping evaluate sonic cohesion."},
+            {"role": "system", "content": "You are an experienced audio mastering engineer evaluating track cohesion and quality."},
             {"role": "user", "content": prompt}
         ]
     )

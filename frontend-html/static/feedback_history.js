@@ -321,10 +321,10 @@ async function fetchTracks(sessionId) {
     const res = await fetch(`/chat/tracks/${trackId}/messages`);
     let messages = await res.json();
 
-    // Filter only initial feedback messages (profile "pro" and followup_group = 0 or null/undefined)
+    // Filter only initial feedback messages
     messages = messages.filter(msg =>
-  (msg.followup_group === 0 || msg.followup_group === "0" || msg.followup_group == null)
-);
+      msg.followup_group === 0 || msg.followup_group === "0" || msg.followup_group == null
+    );
 
     feedbackBox.innerHTML = "";
     if (messages.length === 0) {
@@ -333,68 +333,60 @@ async function fetchTracks(sessionId) {
     }
 
     messages.forEach(msg => {
-      // Split message into pairs first
+      if (!msg.message?.trim()) return;
+
       const pairs = msg.message.split(/\n\s*\n/);
-
-      // Check if any pair contains ISSUE or IMPROVEMENT
       const hasValidPairs = pairs.some(pairText =>
-        /-?\s*ISSUE:\s*/i.test(pairText) || /-?\s*IMPROVEMENT:\s*/i.test(pairText)
+        /-?\s*(INSIGHT|SUGGESTION):\s*/i.test(pairText)
       );
+      if (!hasValidPairs) return;
 
-      if (!hasValidPairs) {
-        // Skip this message entirely if no valid pairs found
-        return;
+      const wrapper = document.createElement("div");
+      wrapper.className = "p-4 bg-white/5 rounded-xl backdrop-blur";
+
+      // Capitalize helper
+      function capitalize(word) {
+        return word ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() : "";
       }
 
-      const div = document.createElement("div");
-      div.className = "mb-6";
+      const meta = document.createElement("p");
+      const type = msg.type?.toLowerCase();
+      const typeClass =
+        type === "mixdown" ? "text-pink-400"
+        : type === "master" || type === "mastering" ? "text-blue-400"
+        : "text-white";
 
-      function capitalize(word) {
-  if (!word) return "";
-  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-}
+      meta.className = `font-semibold ${typeClass} mb-4`;
+      meta.textContent = `Type: ${capitalize(msg.type)} | Profile: ${msg.feedback_profile || "Default"}`;
+      wrapper.appendChild(meta);
 
-const heading = document.createElement("p");
-
-// Choose color based on track type
-const typeClass = msg.type?.toLowerCase() === "mixdown"
-  ? "text-pink-400"
-  : msg.type?.toLowerCase() === "master"
-  ? "text-blue-400"
-  : msg.type?.toLowerCase() === "mastering"
-  ? "text-blue-400"
-  : "text-white";
-
-heading.className = `font-semibold ${typeClass} mb-4`;
-heading.textContent = `Type: ${capitalize(msg.type)} | Profile: ${msg.feedback_profile || "Default"}`;
-div.appendChild(heading);
-
-      // Now render all valid pairs
       pairs.forEach(pairText => {
-        const pairDiv = document.createElement("div");
-        pairDiv.className = "bg-white/10 p-4 rounded-md mb-3 text-white/90 text-sm";
+        const insightMatch = pairText.match(/-?\s*INSIGHT:\s*(.*)/i);
+        const suggestionMatch = pairText.match(/-?\s*SUGGESTION:\s*([\s\S]*)/i);
 
-        const issueMatch = pairText.match(/-?\s*ISSUE:\s*(.*)/i);
-        const improvementMatch = pairText.match(/-?\s*IMPROVEMENT:\s*([\s\S]*)/i);
+        if (insightMatch || suggestionMatch) {
+          const pairDiv = document.createElement("div");
+          pairDiv.className = "bg-white/10 p-4 rounded-md mb-3 text-white/90 text-sm";
 
-        if (issueMatch) {
-          const issueP = document.createElement("p");
-          issueP.className = "font-semibold mb-1";
-          issueP.textContent = "ISSUE: " + issueMatch[1].trim();
-          pairDiv.appendChild(issueP);
+          if (insightMatch) {
+            const insightP = document.createElement("p");
+            insightP.className = "font-semibold mb-1 text-purple-300";
+            insightP.textContent = "INSIGHT: " + insightMatch[1].trim();
+            pairDiv.appendChild(insightP);
+          }
+
+          if (suggestionMatch) {
+            const suggestionP = document.createElement("p");
+            suggestionP.className = "mb-0 text-white-300";
+            suggestionP.textContent = "SUGGESTION: " + suggestionMatch[1].trim();
+            pairDiv.appendChild(suggestionP);
+          }
+
+          wrapper.appendChild(pairDiv);
         }
-
-        if (improvementMatch) {
-          const improvementP = document.createElement("p");
-          improvementP.className = "mb-0";
-          improvementP.textContent = "IMPROVEMENT: " + improvementMatch[1].trim();
-          pairDiv.appendChild(improvementP);
-        }
-
-        div.appendChild(pairDiv);
       });
 
-      feedbackBox.appendChild(div);
+      feedbackBox.appendChild(wrapper);
     });
 
     feedbackContainer.classList.remove("hidden");
