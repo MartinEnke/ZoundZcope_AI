@@ -108,6 +108,10 @@ export function setupUploadHandler() {
       finalTrackName = fullName.replace(/\.[^/.]+$/, "");
     }
 
+    const fileDisplayName = fileInput.files[0]?.name || "Choose a file";
+document.getElementById("file-name").textContent = fileDisplayName;
+localStorage.setItem("zoundzcope_file_name", fileDisplayName);
+
     formData.set("track_name", finalTrackName);
     formData.set("feedback_profile", feedbackProfile);
 
@@ -115,6 +119,10 @@ export function setupUploadHandler() {
     if (refFileInput && refFileInput.files.length > 0) {
       formData.append("ref_file", refFileInput.files[0]);
     }
+
+    const refDisplayName = refFileInput.files[0]?.name || "Choose Reference Track";
+document.getElementById("ref-file-name").textContent = refDisplayName;
+localStorage.setItem("zoundzcope_ref_file_name", refDisplayName);
 
     try {
       const response = await fetch("/upload/", {

@@ -20,6 +20,10 @@ document.addEventListener("DOMContentLoaded", () => {
     createNew.addEventListener("click", () => {
       label.textContent = "New Session";
       hiddenInput.value = "";
+
+      localStorage.setItem("zoundzcope_session", "");
+      localStorage.setItem("zoundzcope_session_label", "New Session");
+
       input.classList.remove("hidden");
       options.classList.add("hidden");
       // Clear track dropdown when new session selected
@@ -38,6 +42,10 @@ document.addEventListener("DOMContentLoaded", () => {
       li.addEventListener("click", async () => {
         label.textContent = session.session_name;
         hiddenInput.value = session.id;
+
+        localStorage.setItem("zoundzcope_session", session.id);
+        localStorage.setItem("zoundzcope_session_label", session.session_name);
+
         input.classList.add("hidden");
         options.classList.add("hidden");
 
@@ -92,6 +100,9 @@ document.addEventListener("DOMContentLoaded", () => {
     item.addEventListener("click", () => {
       const value = item.getAttribute("data-value");
       const label = item.textContent;
+
+      localStorage.setItem("zoundzcope_type", value);
+      localStorage.setItem("zoundzcope_type_label", label);
 
       selectedText.textContent = label;
       hiddenInput.value = value;
@@ -161,6 +172,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       genreSelected.textContent = genreLabel;
       genreInput.value = genreKey;
+
+      localStorage.setItem("zoundzcope_genre", genreKey);
+      localStorage.setItem("zoundzcope_genre_label", genreLabel);
+
       genreOptionsList.classList.add("hidden");
 
       // Show subgenre options
@@ -186,6 +201,10 @@ document.addEventListener("DOMContentLoaded", () => {
         li.addEventListener("click", () => {
           subgenreSelected.textContent = sub;
           subgenreInput.value = sub.toLowerCase();
+
+          localStorage.setItem("zoundzcope_subgenre", sub.toLowerCase());
+          localStorage.setItem("zoundzcope_subgenre_label", sub);
+
           subgenreOptions.classList.add("hidden");
           subgenreButton.classList.add("selected-field");
           customSubgenreInput.classList.add("hidden");
@@ -195,6 +214,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       subgenreSelected.textContent = "Select Subgenre";
       subgenreInput.value = "";
+
+      localStorage.setItem("zoundzcope_subgenre", "");
+      localStorage.setItem("zoundzcope_subgenre_label", "Custom Subgenre");
+
       customSubgenreInput.classList.add("hidden");
     }
   });
@@ -237,6 +260,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       profileSelected.textContent = label;
       profileInput.value = value;
+
+      localStorage.setItem("zoundzcope_profile", value);
+      localStorage.setItem("zoundzcope_profile_label", label);
+
       profileOptions.classList.add("hidden");
       profileButton.classList.add("selected-field");
     });

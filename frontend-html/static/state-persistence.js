@@ -20,18 +20,20 @@ export function saveZoundZcopeState({
 
   localStorage.setItem("zoundzcope_waveform_path", trackPath);
   localStorage.setItem("zoundzcope_rms_path", rmsPath);
+
   localStorage.setItem("zoundzcope_genre", genre);
   localStorage.setItem("zoundzcope_subgenre", subgenre);
   localStorage.setItem("zoundzcope_type", type);
   localStorage.setItem("zoundzcope_profile", profile);
   localStorage.setItem("zoundzcope_session", sessionId);
+
+  // ⚠️ Labels must already be set in localStorage during selection (see dropdown-logic.js)
 }
 
 export function restoreZoundZcopeState() {
   const analysisHTML = localStorage.getItem("zoundzcope_last_analysis");
   const feedbackHTML = localStorage.getItem("zoundzcope_last_feedback");
   const followupHTML = localStorage.getItem("zoundzcope_last_followup");
-
 
   const output = document.getElementById("analysisOutput");
   const feedbackBox = document.getElementById("gptResponse");
@@ -49,7 +51,6 @@ export function restoreZoundZcopeState() {
   }
 
   let customVisible = false;
-
   if (followupHTML) {
     followupBox.innerHTML = followupHTML;
     followupBox.classList.remove("hidden");
@@ -64,7 +65,7 @@ export function restoreZoundZcopeState() {
     customSection.classList.remove("hidden");
   }
 
-  // Restore dropdown values
+  // ✅ Restore dropdown values
   const map = [
     ["genre-input", "zoundzcope_genre"],
     ["subgenre-input", "zoundzcope_subgenre"],
@@ -77,7 +78,42 @@ export function restoreZoundZcopeState() {
     if (val) document.getElementById(id).value = val;
   });
 
-  // Restore waveform
+  // ✅ Restore visible dropdown labels
+  [
+  ["type", "Select Track Context"],
+  ["genre", "Select Genre"],
+  ["subgenre", "Select Subgenre"],
+  ["profile", "Feedback Profile"],
+  ["session", "Select Session"]
+].forEach(([key, fallback]) => {
+  const label = localStorage.getItem(`zoundzcope_${key}_label`);
+  const el = document.getElementById(`${key}-selected`) ||
+             document.getElementById(`${key}-dropdown-label`);
+  if (el) {
+    el.textContent = label || fallback;
+
+    // 🔥 NEW: Reapply "selected-field" class if label was stored
+    const button = document.getElementById(`${key}-button`);
+    if (label && button) {
+      button.classList.add("selected-field");
+    }
+  }
+});
+
+  // ✅ Restore uploaded file name labels
+  const uploadedName = localStorage.getItem("zoundzcope_file_name");
+  if (uploadedName) {
+    const fileLabel = document.getElementById("file-name");
+    if (fileLabel) fileLabel.textContent = uploadedName;
+  }
+
+  const refName = localStorage.getItem("zoundzcope_ref_file_name");
+  if (refName) {
+    const refLabel = document.getElementById("ref-file-name");
+    if (refLabel) refLabel.textContent = refName;
+  }
+
+  // ✅ Restore waveform
   const waveformPath = localStorage.getItem("zoundzcope_waveform_path");
   const rmsPath = localStorage.getItem("zoundzcope_rms_path");
 
@@ -93,7 +129,7 @@ export function restoreZoundZcopeState() {
     });
   }
 
-  // Restore quick follow-up chips
+  // ✅ Restore follow-up chips
   const genre = localStorage.getItem("zoundzcope_genre");
   const type = localStorage.getItem("zoundzcope_type");
   const profile = localStorage.getItem("zoundzcope_profile");
@@ -102,7 +138,7 @@ export function restoreZoundZcopeState() {
     window.ZoundZcope.loadQuickFollowupButtons(type, genre, profile);
   }
 
-  // Restore backend linkage
+  // ✅ Backend linkage
   window.lastTrackId = localStorage.getItem("zoundzcope_last_track_id");
   window.lastSessionId = localStorage.getItem("zoundzcope_session");
 }
@@ -113,14 +149,20 @@ export function clearZoundZcopeState() {
     "zoundzcope_last_analysis",
     "zoundzcope_last_feedback",
     "zoundzcope_last_followup",
-
-    "zoundzcope_genre",
-    "zoundzcope_subgenre",
-    "zoundzcope_type",
-    "zoundzcope_profile",
-    "zoundzcope_session",
     "zoundzcope_waveform_path",
     "zoundzcope_rms_path",
+    "zoundzcope_genre",
+    "zoundzcope_genre_label",
+    "zoundzcope_subgenre",
+    "zoundzcope_subgenre_label",
+    "zoundzcope_type",
+    "zoundzcope_type_label",
+    "zoundzcope_profile",
+    "zoundzcope_profile_label",
+    "zoundzcope_session",
+    "zoundzcope_session_label",
+    "zoundzcope_file_name",
+    "zoundzcope_ref_file_name",
     "zoundzcope_last_track_id"
   ];
   keys.forEach(key => localStorage.removeItem(key));
