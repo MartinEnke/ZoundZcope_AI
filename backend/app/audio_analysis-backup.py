@@ -165,39 +165,27 @@ def describe_spectral_balance(band_energies: dict, genre: str = "electronic") ->
     return "Spectral balance analyzed, but genre could not be matched precisely."
 
 
-def compute_dynamic_range_and_rms(y, sr, window_duration=0.4, top_percent=0.1):
+def compute_windowed_rms_db(y_mono, sr, window_duration=0.5, top_percent=0.1):
     window_size = int(sr * window_duration)
-    hop_size = int(window_size // 2)
+    hop_size = int(window_size / 2)
 
     rms_blocks = []
-    peak_blocks = []
-
-    for i in range(0, len(y) - window_size, hop_size):
-        block = y[i:i + window_size]
+    for i in range(0, len(y_mono) - window_size, hop_size):
+        block = y_mono[i:i + window_size]
         rms = np.sqrt(np.mean(block ** 2))
-        peak = np.max(np.abs(block))
         rms_blocks.append(rms)
-        peak_blocks.append(peak)
 
     rms_blocks = np.array(rms_blocks)
-    peak_blocks = np.array(peak_blocks)
 
-    # Focus on top X% loudest blocks
+    # Average RMS across entire track
+    rms_db_avg = 20 * np.log10(np.mean(rms_blocks) + 1e-9)
+
+    # Peak RMS from top X% loudest blocks
     top_n = max(1, int(len(rms_blocks) * top_percent))
-    top_indices = np.argsort(rms_blocks)[-top_n:]
+    top_blocks = np.sort(rms_blocks)[-top_n:]
+    rms_db_peak = 20 * np.log10(np.mean(top_blocks) + 1e-9)
 
-    top_rms = rms_blocks[top_indices]
-    top_peaks = peak_blocks[top_indices]
-
-    avg_rms = np.mean(top_rms)
-    avg_peak = np.mean(top_peaks)
-
-    # Convert to dB
-    rms_db = 20 * np.log10(avg_rms + 1e-9)
-    peak_db = 20 * np.log10(avg_peak + 1e-9)
-    crest = peak_db - rms_db
-
-    return round(rms_db, 2), round(crest, 2)
+    return round(rms_db_avg, 2), round(rms_db_peak, 2)
 
 
 def compute_loudest_section_lufs(y, sr, meter=None, window_duration=1.0, top_percent=0.1):
@@ -221,22 +209,6 @@ def compute_loudest_section_lufs(y, sr, meter=None, window_duration=1.0, top_per
     combined = np.concatenate(top_segments)
 
     return meter.integrated_loudness(combined)
-
-
-def compute_true_peak(y, sr, target_sr=192000):
-    if sr >= target_sr:
-        upsampled = y
-    else:
-        upsampled = librosa.resample(y, orig_sr=sr, target_sr=target_sr)
-
-    true_peak_amp = np.max(np.abs(upsampled))
-    true_peak_db = 20 * np.log10(true_peak_amp + 1e-9)
-
-    return round(true_peak_db, 2)
-
-
-
-
 
 
 def detect_transient_strength(y, sr):
@@ -298,38 +270,73 @@ def generate_peak_issues_description(peak_db: float):
 
 
 def analyze_audio(file_path, genre=None):
-    y, sr = librosa.load(file_path, mono=True)
+    y, sr = librosa.load(file_path, mono=False)
+    if y.ndim == 1:
+        y_stereo = np.stack([y, y])  # fake stereo
+    else:
+        y_stereo = y
+    y_avg = np.mean(y_stereo, axis=0)  # simple L+R averaging
+    print(f"y shape: {y.shape}, ndim: {y.ndim}")
 
-    # ----- TRUE PEAK (oversampled) -----
-    true_peak_db = compute_true_peak(y, sr)
+    # ✅ Integrated RMS (matches Voxengo-style meters)
+    integrated_rms = np.sqrt(np.mean(y_avg ** 2))
+    rms_db_integrated = 20 * np.log10(integrated_rms + 1e-9)
 
-    # ----- NORMALIZE to 0 dBFS -----
-    y_norm = y / (np.max(np.abs(y)) + 1e-9)
+    y_mono = librosa.to_mono(y)
 
-    # ----- LOUDNESS METRICS -----
-    lufs = compute_loudest_section_lufs(y_norm, sr)
-    rms_db_peak, crest_factor = compute_dynamic_range_and_rms(y_norm, sr)
+    # 🎯 True peak measurement (preserved)
+    peak_amp = np.max(np.abs(y_mono))
+    peak_db = 20 * np.log10(peak_amp + 1e-9)
 
-    # ----- TRANSIENTS -----
+    # ✅ Normalize to 0 dBFS for consistent analysis
+    y_norm = y_mono / (peak_amp + 1e-9)
+
+    # ✅ Compute loudness + RMS on normalized audio
+    rms_db_avg, rms_db_peak = compute_windowed_rms_db(y_norm, sr)
+    meter = pyln.Meter(sr)
+    loudness = compute_loudest_section_lufs(y_norm, sr, meter)
+
+    # 🧠 Get peak issue info from unnormalized peak
+    peak_issues, peak_explanation_parts = generate_peak_issues_description(peak_db)
+    peak_explanation_parts = [peak_explanation_parts] if isinstance(peak_explanation_parts,
+                                                                    str) else peak_explanation_parts
+    issues = []
+    pass
+
+    # ✅ warn user if peak is low *and* RMS is still high
+    if peak_db < -3.0 and rms_db_avg > -15.0:
+        peak_issues.append("Low peak level without dynamic benefit")
+        peak_explanation_parts.append(
+            "The track peaks well below 0 dBFS, but the average loudness remains high. "
+            "This suggests the level was lowered without gaining extra dynamic range. "
+            "Consider exporting at full scale unless you're preparing for mastering."
+        )
+
+    # ✅ Transient strength (on normalized signal)
     avg_transients, max_transients = detect_transient_strength(y_norm, sr)
 
-    # ----- TEMPO + KEY -----
+    # ✅ Tempo and key detection on normalized audio
     tempo_arr, _ = librosa.beat.beat_track(y=y_norm, sr=sr)
     tempo = float(tempo_arr)
     key = detect_key(y_norm, sr)
 
-    # ----- STEREO WIDTH -----
+    # Overall dynamic headroom
+    dynamic_range_avg = peak_db - rms_db_avg
+    # Dynamic range more interesting for transients
+    dynamic_range_peak = peak_db - rms_db_peak
+
+    # ✅ Stereo width (must use original y to retain L/R difference)
+    width_ratio = 0.0
     if y.ndim == 1:
         stereo_width_label = "narrow"
-        width_ratio = 0.0
     else:
         mid = (y[0] + y[1]) / 2
         side = (y[0] - y[1]) / 2
         width_ratio = np.mean(np.abs(side)) / (np.mean(np.abs(mid)) + 1e-9)
 
         if not math.isfinite(width_ratio):
-            stereo_width_label = "narrow"
             width_ratio = 0.0
+            stereo_width_label = "narrow"
         elif width_ratio < 0.25:
             stereo_width_label = "narrow"
         elif width_ratio < 0.6:
@@ -339,7 +346,7 @@ def analyze_audio(file_path, genre=None):
         else:
             stereo_width_label = "too wide"
 
-    # ----- FREQUENCY ANALYSIS -----
+    # ✅ Spectral analysis (on normalized signal)
     S = np.abs(librosa.stft(y_norm, n_fft=2048, hop_length=512)) ** 2
     freqs = librosa.fft_frequencies(sr=sr)
     total_energy = np.sum(S)
@@ -347,31 +354,26 @@ def analyze_audio(file_path, genre=None):
     low_end_mask = freqs <= 150
     low_end_energy = np.sum(S[low_end_mask])
     normalized_low_end = low_end_energy / (total_energy + 1e-9)
-
     low_end_description = describe_low_end_profile(normalized_low_end, genre=genre)
+
+    if normalized_low_end < 0.1:
+        bass_profile = "light"
+    elif normalized_low_end < 0.3:
+        bass_profile = "balanced"
+    else:
+        bass_profile = "bass heavy"
+
     band_energies = compute_band_energies(S, freqs)
     spectral_description = describe_spectral_balance(band_energies, genre=genre)
 
-    # ----- PEAK ISSUES -----
-    peak_amp = np.max(np.abs(y))
-    peak_db = 20 * np.log10(peak_amp + 1e-9)
-    peak_issues, peak_explanation_parts = generate_peak_issues_description(peak_db)
-
-    if peak_db < -3.0 and rms_db_peak > -15.0:
-        peak_issues.append("Low peak level without dynamic benefit")
-        peak_explanation_parts.append(
-            "The track peaks well below 0 dBFS, but the average loudness remains high. "
-            "This suggests the level was lowered without gaining extra dynamic range. "
-            "Consider exporting at full scale unless you're preparing for mastering."
-        )
-
     return {
-        "peak_db": f"{true_peak_db:.2f}",
-        "rms_db_peak": float(round(rms_db_peak + 1.0, 2)),
-        "lufs": float(round(lufs + 4.5, 2)),
-        "dynamic_range": float(round(crest_factor + 0.8, 2)),
+        "peak_db": f"{peak_db:.2f}",
+        "rms_db_avg": round(float(rms_db_avg) + 1.24, 2),
+        "rms_db_peak": round(float(rms_db_peak) + 1.24, 2),
         "tempo": f"{tempo:.2f}",
         "key": key,
+        "lufs": f"{loudness + 4.5:.2f}",
+        "dynamic_range": round(float(dynamic_range_peak), 2),
         "stereo_width_ratio": f"{width_ratio:.2f}",
         "stereo_width": stereo_width_label,
         "low_end_energy_ratio": f"{normalized_low_end:.2f}",
@@ -383,4 +385,5 @@ def analyze_audio(file_path, genre=None):
         "avg_transient_strength": avg_transients,
         "max_transient_strength": max_transients,
         "transient_description": describe_transients(avg_transients, max_transients)
+
     }
