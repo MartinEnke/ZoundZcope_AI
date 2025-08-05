@@ -50,9 +50,10 @@
     </p>
 
     <p class="max-w-3xl text-sm italic text-white/60 mb-8 border-l-4 border-blue-600 pl-4">
-      <strong>Note:</strong> Manual testing usually analyzes selected sections or brief moments of a track, whereas the automated program
-      analyzes the entire track from start to finish. This difference in scope can cause metric variations such as RMS, peak levels,
-      and spectral characteristics. Plugin sensitivities and measurement methods may also vary, contributing to discrepancies.
+      <strong>Note:</strong> This analysis focuses on the loudest sections of the track rather than the entire timeline.
+      Metrics like LUFS, RMS peak, and dynamic range are calculated from these high-energy moments to better reflect
+      perceived loudness and match professional metering tools. This may lead to more aligned results with manual inspection
+      tools (e.g., Youlean, SPAN), though slight discrepancies can still arise due to plugin-specific methods and smoothing algorithms.
     </p>
 
     <!-- Test 1 Table -->
@@ -83,15 +84,15 @@
             </tr>
             <tr class="even:bg-gray-900">
               <td class="border border-gray-700 px-4 py-2">LUFS</td>
-              <td class="border border-gray-700 px-4 py-2">Not measured</td>
-              <td class="border border-gray-700 px-4 py-2">-16.10 dB</td>
-              <td class="border border-gray-700 px-4 py-2">No manual LUFS data; program value seems reasonable</td>
+              <td class="border border-gray-700 px-4 py-2">-11.10</td>
+              <td class="border border-gray-700 px-4 py-2">-11.0</td>
+              <td class="border border-gray-700 px-4 py-2"></td>
             </tr>
             <tr>
               <td class="border border-gray-700 px-4 py-2">Dynamic Range</td>
-              <td class="border border-gray-700 px-4 py-2">Not measured</td>
-              <td class="border border-gray-700 px-4 py-2">13.60 dB</td>
-              <td class="border border-gray-700 px-4 py-2">Program computes full-track dynamic range</td>
+              <td class="border border-gray-700 px-4 py-2">11.4</td>
+              <td class="border border-gray-700 px-4 py-2">12.1 dB</td>
+              <td class="border border-gray-700 px-4 py-2"></td>
             </tr>
             <tr class="even:bg-gray-900">
               <td class="border border-gray-700 px-4 py-2">Stereo Width</td>
@@ -144,15 +145,15 @@
             </tr>
             <tr class="even:bg-gray-900">
               <td class="border border-gray-700 px-4 py-2">LUFS</td>
-              <td class="border border-gray-700 px-4 py-2">Not measured</td>
-              <td class="border border-gray-700 px-4 py-2">-13.13 dB</td>
-              <td class="border border-gray-700 px-4 py-2">Program LUFS seems plausible</td>
+              <td class="border border-gray-700 px-4 py-2">-9.3</td>
+              <td class="border border-gray-700 px-4 py-2">-9.0</td>
+              <td class="border border-gray-700 px-4 py-2"></td>
             </tr>
             <tr>
               <td class="border border-gray-700 px-4 py-2">Dynamic Range</td>
-              <td class="border border-gray-700 px-4 py-2">Not measured</td>
-              <td class="border border-gray-700 px-4 py-2">15.50 dB</td>
-              <td class="border border-gray-700 px-4 py-2">Dynamic range reflects full audio file</td>
+              <td class="border border-gray-700 px-4 py-2">10.4</td>
+              <td class="border border-gray-700 px-4 py-2">9.9 dB</td>
+              <td class="border border-gray-700 px-4 py-2"></td>
             </tr>
             <tr class="even:bg-gray-900">
               <td class="border border-gray-700 px-4 py-2">Stereo Width</td>
