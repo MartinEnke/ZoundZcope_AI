@@ -1145,10 +1145,39 @@ button.classList.add("view-active");
 function exportComparison(groupId) {
   const url = `/export/export-comparison?group_id=${encodeURIComponent(groupId)}`;
 
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "";  // Let the server's Content-Disposition handle filename
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  fetch(url, {
+    method: "GET",
+    headers: {
+      "Accept": "application/pdf"
+    }
+  })
+    .then(response => {
+      if (!response.ok) throw new Error("Failed to fetch PDF");
+
+      const disposition = response.headers.get("Content-Disposition");
+      let filename = "Zoundzcope_AI-Comparison.pdf"; // fallback
+
+      if (disposition && disposition.includes("filename=")) {
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match && match[1]) {
+          filename = match[1];
+        }
+      }
+
+      return response.blob().then(blob => ({ blob, filename }));
+    })
+    .then(({ blob, filename }) => {
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+    })
+    .catch(error => {
+      console.error("Export failed:", error);
+      alert("Could not export comparison PDF.");
+    });
 }

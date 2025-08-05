@@ -52,7 +52,7 @@ ZoundZcope AI
 
 Mixing & Mastering Feedback and Presets Report
 
-AI Feedback:
+AI Feedback:  
 
 - INSIGHT:
   [Describe the insight clearly in a few sentences.]
@@ -128,7 +128,7 @@ def draw_wrapped_text(p, text, x, y, max_width, line_height=14):
     return y
 
 
-def create_pdf(full_report_text: str) -> BytesIO:
+def create_pdf(full_report_text: str, track_name: str = "") -> BytesIO:
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter,
                             rightMargin=40, leftMargin=40,
@@ -230,7 +230,17 @@ def create_pdf(full_report_text: str) -> BytesIO:
             continue
 
         # Section headers
-        if line in ["AI Feedback:", "Recommended Ableton Preset Parameters:"]:
+        if line.startswith("AI Feedback"):
+            flush_bullet_group()
+
+            if track_name and track_name not in line:
+                escaped_name = escape(track_name)
+                line = f"AI Feedback: <b>{escaped_name}</b>"
+
+            elements.append(Paragraph(line, section_header_style))
+            continue
+
+        if line == "Recommended Ableton Preset Parameters:":
             flush_bullet_group()
             elements.append(Paragraph(line, section_header_style))
             continue
@@ -411,9 +421,8 @@ def export_feedback_presets(
     if not track:
         raise HTTPException(status_code=404, detail="Track not found")
 
-    # Detect if this is a reference track by name or however you identify it
+    # Handle reference tracks
     if "(Reference)" in (track.track_name or ""):
-        # Find main track(s) for this session excluding reference tracks
         main_track = (
             db.query(Track)
             .filter(
@@ -430,9 +439,10 @@ def export_feedback_presets(
                 detail="No main track found for this session to export feedback",
             )
         print(f"Reference track detected, switching export to main track {main_track.id}")
+        track = main_track  # update track object reference
         track_id = main_track.id
 
-    # Now fetch feedback messages for the track_id (could be original or switched)
+    # Fetch feedback
     messages = (
         db.query(ChatMessage)
         .filter_by(session_id=session_id, track_id=track_id, sender='assistant')
@@ -445,16 +455,33 @@ def export_feedback_presets(
 
     feedback_text = "\n\n".join(msg.message for msg in messages)
 
+    # Generate full report text
     full_report = generate_preset_text_from_feedback(feedback_text)
-    pdf_buffer = create_pdf(full_report)
+
+    # 🔧 Inject track name into the section title
+    if "AI Feedback:" in full_report:
+        full_report = full_report.replace(
+            "AI Feedback:",
+            f"AI Feedback – {track.track_name.strip()}:"
+        )
+
+    # Generate PDF
+    pdf_buffer = create_pdf(full_report, track_name=track.track_name)
+    print("Track name used for filename:", track.track_name)
+    clean_name = re.sub(r'[^\w\s-]', '', track.track_name or '').strip()
+    clean_name = re.sub(r'[\s]+', ' ', clean_name)
+    safe_track_name = clean_name.replace(" ", "_")
+
+    filename = f"Zoundzcope_AI-Report-{safe_track_name}.pdf"
 
     return StreamingResponse(
         pdf_buffer,
         media_type="application/pdf",
         headers={
-            "Content-Disposition": f"attachment; filename=feedback_presets_{session_id}_{track_id}.pdf"
+            "Content-Disposition": f'attachment; filename="{filename}"'
         }
     )
+
 
 
 def generate_presets_from_comparison_feedback(feedback_text: str) -> str:
@@ -519,16 +546,49 @@ def export_comparison_feedback(group_id: str = Query(...), db: Session = Depends
     if not messages:
         raise HTTPException(status_code=404, detail="No comparison feedback found")
 
+    # Extract feedback from first message
     first_msg = next((m for m in messages if m.message and m.message.strip()), messages[0])
     feedback_text = first_msg.message
 
+    # Get involved track names (assuming messages have track_id and track is linked)
+    # Get all distinct tracks associated with this comparison group
+    track_query = (
+        db.query(Track)
+        .join(ChatMessage, ChatMessage.track_id == Track.id)
+        .filter(ChatMessage.comparison_group_id == group_id)
+        .distinct()
+        .all()
+    )
+
+    track_names = [t.track_name.strip() for t in track_query if t.track_name]
+
+    # Sanitize and join track names for filename
+    import re
+
+    def sanitize(name):
+        name = re.sub(r'[^\w\s-]', '', name).strip()
+        name = re.sub(r'[\s]+', ' ', name)  # collapse spaces
+        return name
+
+    clean_names = [sanitize(name) for name in track_names]
+
+    # ✅ Truncate if too many tracks
+    if len(clean_names) > 3:
+        filename_part = ", ".join(clean_names[:3]) + ", etc"
+    else:
+        filename_part = ", ".join(clean_names)
+
+    filename_part = filename_part.replace(" ", "_")  # Optional: keep or remove underscores
+    filename = f'Zoundzcope_AI-Comparison-{filename_part}.pdf'
+
+    # Generate content
     preset_text = generate_presets_from_comparison_feedback(feedback_text)
     pdf_buffer = create_comparison_pdf(feedback_text, preset_text)
-
+    print("📁 Final comparison PDF filename:", filename)
     return StreamingResponse(
         pdf_buffer,
         media_type="application/pdf",
         headers={
-            "Content-Disposition": f"attachment; filename=comparison_feedback_{group_id}.pdf"
+            "Content-Disposition": f'attachment; filename="{filename}"'
         }
     )
