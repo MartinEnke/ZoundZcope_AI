@@ -178,6 +178,53 @@
       </div>
     </section>
 
+    <!-- Token & Cost Summary -->
+<section class="mt-16">
+  <h2 class="text-2xl font-semibold mb-4 text-green-400">RAG AI Token Usage & Cost Summary</h2>
+  <p class="text-white/80 mb-4 max-w-3xl">
+    The following table shows the token usage statistics from recent RAG-based analysis requests, including prompt and completion tokens.
+    This helps provide transparency into model usage and approximate cost per session.
+  </p>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full table-auto border border-gray-700 rounded-md text-sm">
+      <thead class="bg-green-900 text-white">
+        <tr>
+          <th class="border border-gray-600 px-4 py-2 text-left">#</th>
+          <th class="border border-gray-600 px-4 py-2 text-left">Prompt Tokens</th>
+          <th class="border border-gray-600 px-4 py-2 text-left">Response Tokens</th>
+          <th class="border border-gray-600 px-4 py-2 text-left">Total Tokens</th>
+        </tr>
+      </thead>
+      <tbody class="bg-black text-white">
+        <tr class="even:bg-gray-900"><td class="border px-4 py-2">1</td><td class="border px-4 py-2">445</td><td class="border px-4 py-2">327</td><td class="border px-4 py-2">772</td></tr>
+        <tr><td class="border px-4 py-2">2</td><td class="border px-4 py-2">824</td><td class="border px-4 py-2">142</td><td class="border px-4 py-2">966</td></tr>
+        <tr class="even:bg-gray-900"><td class="border px-4 py-2">3</td><td class="border px-4 py-2">1127</td><td class="border px-4 py-2">400</td><td class="border px-4 py-2">1527</td></tr>
+        <tr><td class="border px-4 py-2">4</td><td class="border px-4 py-2">785</td><td class="border px-4 py-2">47</td><td class="border px-4 py-2">832</td></tr>
+        <tr class="even:bg-gray-900"><td class="border px-4 py-2">5</td><td class="border px-4 py-2">781</td><td class="border px-4 py-2">82</td><td class="border px-4 py-2">863</td></tr>
+        <tr><td class="border px-4 py-2">6</td><td class="border px-4 py-2">1237</td><td class="border px-4 py-2">190</td><td class="border px-4 py-2">1427</td></tr>
+        <tr class="even:bg-gray-900"><td class="border px-4 py-2">7</td><td class="border px-4 py-2">675</td><td class="border px-4 py-2">82</td><td class="border px-4 py-2">757</td></tr>
+        <tr><td class="border px-4 py-2">8</td><td class="border px-4 py-2">509</td><td class="border px-4 py-2">209</td><td class="border px-4 py-2">718</td></tr>
+      </tbody>
+      <tfoot class="bg-gray-800 text-white font-semibold">
+        <tr>
+          <td class="border px-4 py-2 text-right" colspan="3">Total Tokens</td>
+          <td class="border px-4 py-2">6,862</td>
+        </tr>
+        <tr>
+          <td class="border px-4 py-2 text-right" colspan="3">Estimated Cost</td>
+          <td class="border px-4 py-2">$0.05 USD</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <p class="text-white/60 text-sm mt-4 max-w-2xl italic">
+    Cost estimation based on <strong>OpenAI GPT-4o pricing</strong> — $0.005 / 1K prompt tokens and $0.015 / 1K completion tokens.
+  </p>
+</section>
+
+
     <!-- FOOTER -->
     <footer class="mt-20 text-center text-sm text-white/50">
       &copy; 2025 ZoundZcope - Audio Analysis Transparency Report

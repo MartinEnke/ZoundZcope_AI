@@ -5,6 +5,9 @@ import numpy as np
 from openai import OpenAI
 from sentence_transformers import SentenceTransformer
 import numpy as np
+import tiktoken
+
+
 
 # Load the model once globally to avoid reloading every call
 _model = None
@@ -194,5 +197,13 @@ def search_index(index, query_embedding, top_k=3):
     """
     distances, indices = index.search(np.array([query_embedding]), top_k)
     return indices[0], distances[0]
+
+
+def count_tokens(text, model="gpt-4o"):
+    """
+    Count tokens for a given string using tiktoken.
+    """
+    encoding = tiktoken.encoding_for_model(model)
+    return len(encoding.encode(text))
 
 

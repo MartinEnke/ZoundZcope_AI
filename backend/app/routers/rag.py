@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from backend.rag.rag_utils import load_faiss_index, load_metadata, embed_query, search_index
+from backend.rag.rag_utils import load_faiss_index, load_metadata, embed_query, search_index, count_tokens
 from openai import OpenAI
 import re
 import os
@@ -91,6 +91,8 @@ def build_prompt_tut(query, retrieved_chunks, history):
     for chunk in retrieved_chunks:
         prompt += f"File: {chunk['filename']}, Section {chunk['chunk_index']}:\n{chunk['text']}\n\n"
     prompt += f"User question: {query}\n\nPlease provide a detailed and accurate answer."
+
+
     return prompt
 
 def generate_answer(prompt: str):
@@ -103,6 +105,19 @@ def generate_answer(prompt: str):
         max_tokens=500,
         temperature=0.3,
     )
+
+    # 🔢 Count tokens in the prompt
+    prompt_tokens = count_tokens(prompt)
+    print(f"🧮 Prompt token count: {prompt_tokens}")
+
+    # 🔢 Count tokens in the response
+    response_text = response.choices[0].message.content
+    response_tokens = count_tokens(response_text)
+    print(f"📦 Response token count: {response_tokens}")
+
+    # 📊 Total token count
+    total = prompt_tokens + response_tokens
+    print(f"📊 Total tokens used: {total}")
     return response.choices[0].message.content
 
 def search_and_answer(index, metadata, question, history, build_prompt_fn, context_note=""):
@@ -146,20 +161,40 @@ async def rag_tut(question: Question):
     return {"answer": answer}
 
 
+
+
+_last_summary_length = 0  # Tracks how many Q&A pairs existed at last summary
+
 def summarize_history(history, context_note=""):
-    if len(history) < 2:
-        return history  # no summarization needed
+    global _last_summary_length
 
-    print("🧠 Summarizing 4 QA pairs...")
+    # Count how many Q&A pairs since the last summary
+    non_summary_history = [p for p in history if p["question"] != "__summary__"]
 
+    if len(non_summary_history) - _last_summary_length < 4:
+        print("⏩ Not enough new Q&As for summarization")
+        return history
+
+    print("🧠 Rolling summarization triggered...")
+
+    # Build the prompt: include latest summary (if any) + next 4 Q&As
     summary_prompt = (
         f"You're an assistant summarizing a technical chat session.\n"
         f"{context_note}\n"
         "Summarize the following conversation concisely while preserving all relevant technical details:\n\n"
     )
-    for pair in history[:4]:
+
+    # Find last summary (if any)
+    last_summary = next((p for p in history if p["question"] == "__summary__"), None)
+    if last_summary:
+        summary_prompt += f"Previous Summary:\n{last_summary['answer']}\n\n"
+
+    # Get the next 4 Q&A pairs after the last summary
+    new_pairs = non_summary_history[_last_summary_length:_last_summary_length + 4]
+    for pair in new_pairs:
         summary_prompt += f"User: {pair['question']}\nAI: {pair['answer']}\n\n"
 
+    # Call LLM to generate summary
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -172,6 +207,11 @@ def summarize_history(history, context_note=""):
     summary = response.choices[0].message.content
     print("✅ Summary generated:\n", summary)
 
-    # Replace the first 4 entries with a summary
-    new_history = [{"question": "Summary so far", "answer": summary}] + history[4:]
+    # Update state: we’ve now summarized up to this point
+    _last_summary_length += 4
+
+    # New history starts with the new summary + rest of Q&As
+    new_history = [{"question": "__summary__", "answer": summary}]
+    new_history += non_summary_history[_last_summary_length:]
+
     return new_history
