@@ -13,16 +13,14 @@ from contextlib import asynccontextmanager
 from app.routers import rag
 
 
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Registered routes:")
-    for route in app.routes:
-        if isinstance(route, APIRoute):
-            print(route.path, route.methods)
-        else:
-            print(route.path, "(mount or other)")
+    # print("Registered routes:")
+    # for route in app.routes:
+    #     if isinstance(route, APIRoute):
+    #         print(route.path, route.methods)
+    #     else:
+    #         print(route.path, "(mount or other)")
 
     # Start your periodic cleanup task here:
     task = asyncio.create_task(periodic_cleanup_task())
@@ -79,14 +77,14 @@ app.add_middleware(
 app.include_router(upload.router, prefix="/upload", tags=["Upload"])
 app.include_router(chat.router, prefix="/chat", tags=["Chat"])
 app.include_router(rag.router, prefix="/chat", tags=["RAG"])
-print("Chat router included")
+# print("Chat router included")
 app.include_router(sessions.router)
 app.include_router(tracks.router, prefix="/tracks", tags=["Tracks"])
 app.include_router(export.router, prefix="/export", tags=["Export"])
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
-print("Connected to DB at:", engine.url)
+# print("Connected to DB at:", engine.url)
 
 
 
@@ -101,7 +99,7 @@ async def serve_frontend(request: Request):
         )
         latest_file = files[0] if files else None
     except Exception as e:
-        print("Error reading uploads:", e)
+        # print("Error reading uploads:", e)
         latest_file = None
 
     track_path = f"/uploads/{latest_file}" if latest_file else None
@@ -130,7 +128,7 @@ async def periodic_cleanup_task():
             cleanup_old_uploads()
         except Exception as e:
             logger.error(f"Periodic cleanup error: {e}")
-        await asyncio.sleep(24 * 60 * 60)  # Run daily
+        await asyncio.sleep(12 * 60 * 60)  # Run twice daily
 
 @app.on_event("startup")
 async def startup_event():

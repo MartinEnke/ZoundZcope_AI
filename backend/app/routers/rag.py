@@ -105,7 +105,11 @@ def generate_answer(prompt: str):
     )
     return response.choices[0].message.content
 
-def search_and_answer(index, metadata, question, history, build_prompt_fn):
+def search_and_answer(index, metadata, question, history, build_prompt_fn, context_note=""):
+    # Auto-summarize if too many QA pairs
+    if len(history) >= 4:
+        history = summarize_history(history, context_note)
+
     query_emb = embed_query(question)
     indices, _ = search_index(index, query_emb, top_k=5)
     retrieved = [metadata[i] for i in indices]
@@ -117,12 +121,57 @@ def search_and_answer(index, metadata, question, history, build_prompt_fn):
 async def rag_docs(question: Question):
     if not question.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
-    answer = search_and_answer(docs_index, docs_metadata, question.question, question.history, build_prompt_docs)
+    answer = search_and_answer(
+        docs_index,
+        docs_metadata,
+        question.question,
+        question.history,
+        build_prompt_docs,
+        context_note="The assistant is helping the user understand code from documentation."
+    )
     return {"answer": answer}
 
 @router.post("/rag_tut")
 async def rag_tut(question: Question):
     if not question.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
-    answer = search_and_answer(tut_index, tut_metadata, question.question, question.history, build_prompt_tut)
+    answer = search_and_answer(
+        tut_index,
+        tut_metadata,
+        question.question,
+        question.history,
+        build_prompt_tut,
+        context_note="The assistant is helping the user understand the implementation and logic of an AI-based audio assistant project."
+    )
     return {"answer": answer}
+
+
+def summarize_history(history, context_note=""):
+    if len(history) < 2:
+        return history  # no summarization needed
+
+    print("🧠 Summarizing 4 QA pairs...")
+
+    summary_prompt = (
+        f"You're an assistant summarizing a technical chat session.\n"
+        f"{context_note}\n"
+        "Summarize the following conversation concisely while preserving all relevant technical details:\n\n"
+    )
+    for pair in history[:4]:
+        summary_prompt += f"User: {pair['question']}\nAI: {pair['answer']}\n\n"
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are summarizing a technical Q&A exchange."},
+            {"role": "user", "content": summary_prompt}
+        ],
+        max_tokens=300,
+        temperature=0.3,
+    )
+    summary = response.choices[0].message.content
+    print("✅ Summary generated:\n", summary)
+
+    # Replace the first 4 entries with a summary
+    new_history = [{"question": "Summary so far", "answer": summary}] + history[4:]
+    return new_history
