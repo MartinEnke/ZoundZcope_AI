@@ -11,6 +11,9 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 from app.routers import rag
+from app.routers import tokens
+
+
 
 
 @asynccontextmanager
@@ -77,6 +80,7 @@ app.add_middleware(
 app.include_router(upload.router, prefix="/upload", tags=["Upload"])
 app.include_router(chat.router, prefix="/chat", tags=["Chat"])
 app.include_router(rag.router, prefix="/chat", tags=["RAG"])
+app.include_router(tokens.router)
 # print("Chat router included")
 app.include_router(sessions.router)
 app.include_router(tracks.router, prefix="/tracks", tags=["Tracks"])
@@ -84,6 +88,7 @@ app.include_router(export.router, prefix="/export", tags=["Export"])
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+
 # print("Connected to DB at:", engine.url)
 
 

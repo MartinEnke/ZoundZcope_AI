@@ -6,7 +6,7 @@ load_dotenv()
 import html
 import re
 from typing import List
-
+from app.token_tracker import add_token_usage
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # client = OpenAI(
@@ -309,12 +309,20 @@ def generate_feedback_response(prompt: str) -> str:
         """
     response = client.chat.completions.create(
         model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}]
+        messages=[{"role": "user", "content": prompt}],
+        max_tokens=300
     )
     # response = client.chat.completions.create(
     #     model="mistralai/Mixtral-8x7B-Instruct-v0.1",
     #     messages=[{"role": "user", "content": prompt}]
     # )
+
+    # Add this after response
+    prompt_tokens = response.usage.prompt_tokens
+    completion_tokens = response.usage.completion_tokens
+    total_tokens = prompt_tokens + completion_tokens
+    add_token_usage(total_tokens, model_name="gpt-4o-mini")
+
     return response.choices[0].message.content.strip()
 
 
@@ -444,7 +452,14 @@ def generate_comparison_feedback(comparison_data: List[dict]) -> str:
         messages=[
             {"role": "system", "content": "You are an experienced audio mastering engineer evaluating track cohesion and quality."},
             {"role": "user", "content": prompt}
-        ]
+        ],
+        max_tokens=300
     )
+
+    # Add this after response
+    prompt_tokens = response.usage.prompt_tokens
+    completion_tokens = response.usage.completion_tokens
+    total_tokens = prompt_tokens + completion_tokens
+    add_token_usage(total_tokens, model_name="gpt-4o-mini")
 
     return response.choices[0].message.content.strip()

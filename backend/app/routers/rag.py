@@ -4,6 +4,7 @@ from backend.rag.rag_utils import load_faiss_index, load_metadata, embed_query, 
 from openai import OpenAI
 import re
 import os
+from app.token_tracker import add_token_usage
 
 print("Current working directory:", os.getcwd())
 
@@ -106,6 +107,8 @@ def generate_answer(prompt: str):
         temperature=0.3,
     )
 
+
+
     # 🔢 Count tokens in the prompt
     prompt_tokens = count_tokens(prompt)
     print(f"🧮 Prompt token count: {prompt_tokens}")
@@ -118,6 +121,13 @@ def generate_answer(prompt: str):
     # 📊 Total token count
     total = prompt_tokens + response_tokens
     print(f"📊 Total tokens used: {total}")
+
+    # Add this after response
+    prompt_tokens = response.usage.prompt_tokens
+    completion_tokens = response.usage.completion_tokens
+    total_tokens = prompt_tokens + completion_tokens
+    add_token_usage(total_tokens, model_name="gpt-4o-mini")
+
     return response.choices[0].message.content
 
 def search_and_answer(index, metadata, question, history, build_prompt_fn, context_note=""):
@@ -204,6 +214,13 @@ def summarize_history(history, context_note=""):
         max_tokens=300,
         temperature=0.3,
     )
+
+    # Add this after response
+    prompt_tokens = response.usage.prompt_tokens
+    completion_tokens = response.usage.completion_tokens
+    total_tokens = prompt_tokens + completion_tokens
+    add_token_usage(total_tokens, model_name="gpt-4o-mini")
+
     summary = response.choices[0].message.content
     print("✅ Summary generated:\n", summary)
 
