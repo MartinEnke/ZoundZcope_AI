@@ -265,9 +265,10 @@
 
 
    <section class="mt-16">
-  <h2 class="text-2xl font-semibold mb-4 text-green-400">RAG AI Token Usage & Cost Summary (Accurate Pricing)</h2>
+  <h2 class="text-2xl font-semibold mb-4 text-green-400">RAG AI Token Usage & Cost Summary (Detailed Prompt + Response Split)</h2>
   <p class="text-white/80 mb-4 max-w-3xl">
-    The table below reflects real prompt and completion token counts for each RAG-based request. Costs are calculated using OpenAI GPT-4o pricing: <code>$0.005</code> / 1K prompt tokens and <code>$0.015</code> / 1K response tokens.
+    Each RAG-based request is broken down by prompt and response token counts, with separate cost estimations for both components based on GPT-4o pricing:
+    <code>$0.005</code> / 1K prompt tokens and <code>$0.015</code> / 1K response tokens.
   </p>
 
   <div class="overflow-x-auto">
@@ -275,26 +276,29 @@
       <thead class="bg-green-900 text-white">
         <tr>
           <th class="border border-gray-600 px-4 py-2 text-left">#</th>
-          <th class="border border-gray-600 px-4 py-2 text-left">Prompt Tokens</th>
-          <th class="border border-gray-600 px-4 py-2 text-left">Response Tokens</th>
-          <th class="border border-gray-600 px-4 py-2 text-left">Total Tokens</th>
-          <th class="border border-gray-600 px-4 py-2 text-left">Estimated Cost</th>
+          <th class="border border-gray-600 px-4 py-2 text-left">Prompt</th>
+          <th class="border border-gray-600 px-4 py-2 text-left">Response</th>
+          <th class="border border-gray-600 px-4 py-2 text-left">Total</th>
+          <th class="border border-gray-600 px-4 py-2 text-left">Cost Prompt</th>
+          <th class="border border-gray-600 px-4 py-2 text-left">Cost Response</th>
+          <th class="border border-gray-600 px-4 py-2 text-left">Total Cost</th>
         </tr>
       </thead>
       <tbody class="bg-black text-white">
-        <tr class="even:bg-gray-900"><td class="border px-4 py-2">1</td><td class="border px-4 py-2">445</td><td class="border px-4 py-2">327</td><td class="border px-4 py-2">772</td><td class="border px-4 py-2">$0.007</td></tr>
-        <tr><td class="border px-4 py-2">2</td><td class="border px-4 py-2">824</td><td class="border px-4 py-2">142</td><td class="border px-4 py-2">966</td><td class="border px-4 py-2">$0.007</td></tr>
-        <tr class="even:bg-gray-900"><td class="border px-4 py-2">3</td><td class="border px-4 py-2">1127</td><td class="border px-4 py-2">400</td><td class="border px-4 py-2">1527</td><td class="border px-4 py-2">$0.013</td></tr>
-        <tr><td class="border px-4 py-2">4</td><td class="border px-4 py-2">785</td><td class="border px-4 py-2">47</td><td class="border px-4 py-2">832</td><td class="border px-4 py-2">$0.005</td></tr>
-        <tr class="even:bg-gray-900"><td class="border px-4 py-2">5</td><td class="border px-4 py-2">781</td><td class="border px-4 py-2">82</td><td class="border px-4 py-2">863</td><td class="border px-4 py-2">$0.006</td></tr>
-        <tr><td class="border px-4 py-2">6</td><td class="border px-4 py-2">1237</td><td class="border px-4 py-2">190</td><td class="border px-4 py-2">1427</td><td class="border px-4 py-2">$0.011</td></tr>
-        <tr class="even:bg-gray-900"><td class="border px-4 py-2">7</td><td class="border px-4 py-2">675</td><td class="border px-4 py-2">82</td><td class="border px-4 py-2">757</td><td class="border px-4 py-2">$0.005</td></tr>
-        <tr><td class="border px-4 py-2">8</td><td class="border px-4 py-2">509</td><td class="border px-4 py-2">209</td><td class="border px-4 py-2">718</td><td class="border px-4 py-2">$0.007</td></tr>
+        <tr class="even:bg-gray-900"><td class="border px-4 py-2">1</td><td class="border px-4 py-2">445</td><td class="border px-4 py-2">327</td><td class="border px-4 py-2">772</td><td class="border px-4 py-2">$0.002</td><td class="border px-4 py-2">$0.005</td><td class="border px-4 py-2">$0.007</td></tr>
+        <tr><td class="border px-4 py-2">2</td><td class="border px-4 py-2">824</td><td class="border px-4 py-2">142</td><td class="border px-4 py-2">966</td><td class="border px-4 py-2">$0.004</td><td class="border px-4 py-2">$0.002</td><td class="border px-4 py-2">$0.007</td></tr>
+        <tr class="even:bg-gray-900"><td class="border px-4 py-2">3</td><td class="border px-4 py-2">1127</td><td class="border px-4 py-2">400</td><td class="border px-4 py-2">1527</td><td class="border px-4 py-2">$0.006</td><td class="border px-4 py-2">$0.006</td><td class="border px-4 py-2">$0.013</td></tr>
+        <tr><td class="border px-4 py-2">4</td><td class="border px-4 py-2">785</td><td class="border px-4 py-2">47</td><td class="border px-4 py-2">832</td><td class="border px-4 py-2">$0.004</td><td class="border px-4 py-2">$0.001</td><td class="border px-4 py-2">$0.005</td></tr>
+        <tr class="even:bg-gray-900"><td class="border px-4 py-2">5</td><td class="border px-4 py-2">781</td><td class="border px-4 py-2">82</td><td class="border px-4 py-2">863</td><td class="border px-4 py-2">$0.004</td><td class="border px-4 py-2">$0.001</td><td class="border px-4 py-2">$0.006</td></tr>
+        <tr><td class="border px-4 py-2">6</td><td class="border px-4 py-2">1237</td><td class="border px-4 py-2">190</td><td class="border px-4 py-2">1427</td><td class="border px-4 py-2">$0.006</td><td class="border px-4 py-2">$0.003</td><td class="border px-4 py-2">$0.011</td></tr>
+        <tr class="even:bg-gray-900"><td class="border px-4 py-2">7</td><td class="border px-4 py-2">675</td><td class="border px-4 py-2">82</td><td class="border px-4 py-2">757</td><td class="border px-4 py-2">$0.003</td><td class="border px-4 py-2">$0.001</td><td class="border px-4 py-2">$0.005</td></tr>
+        <tr><td class="border px-4 py-2">8</td><td class="border px-4 py-2">509</td><td class="border px-4 py-2">209</td><td class="border px-4 py-2">718</td><td class="border px-4 py-2">$0.003</td><td class="border px-4 py-2">$0.003</td><td class="border px-4 py-2">$0.007</td></tr>
       </tbody>
       <tfoot class="bg-gray-800 text-white font-semibold">
         <tr>
-          <td class="border px-4 py-2 text-right" colspan="3">Total Tokens</td>
-          <td class="border px-4 py-2">6,862</td>
+          <td class="border px-4 py-2 text-right" colspan="4">Total Tokens</td>
+          <td class="border px-4 py-2">–</td>
+          <td class="border px-4 py-2">–</td>
           <td class="border px-4 py-2">$0.061</td>
         </tr>
       </tfoot>
@@ -302,7 +306,7 @@
   </div>
 
   <p class="text-white/60 text-sm mt-4 max-w-2xl italic">
-    Cost estimation based on <strong>OpenAI GPT-4o</strong>: $0.005 per 1K prompt tokens, $0.015 per 1K response tokens. Values are rounded to the nearest thousandth for transparency.
+    Estimated using real split per row: Prompt × $0.005 / 1K and Response × $0.015 / 1K. Rounded to the nearest thousandth.
   </p>
 </section>
 
