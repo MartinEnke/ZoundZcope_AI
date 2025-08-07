@@ -19,18 +19,32 @@
        style="background-image: url('/static/logo old.png'); background-size: 1800px; background-position: center -450px;"></div>
 
   <header class="fixed inset-x-0 top-0 z-50 bg-black bg-opacity-75 backdrop-filter backdrop-blur-sm border-b-2 border-white border-opacity-80 shadow-md flex items-center justify-between p-4">
-    <a href="/" class="flex items-center hover:opacity-80 transition">
-      <img src="/static/Logo.png" alt="Logo" class="h-10 w-10 mr-3">
-      <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
-    </a>
-    <!-- Desktop: Info + Feedback History Links -->
-  <nav class="hidden md:flex items-center gap-6">
-    <a href="info.html" class="link-sweep-pinkblue text-lg font-medium">
-      <span>Info</span>
-    </a>
+  <!-- Left: Logo -->
+  <a href="/" class="flex items-center hover:opacity-80 transition">
+    <img src="/static/Logo.png" alt="Logo" class="h-10 w-10 mr-3">
+    <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
+  </a>
 
-  </nav>
-  </header>
+  <!-- Desktop: Info only -->
+  <nav class="hidden md:flex items-center gap-6">
+  <a href="info.html" class="text-white hover:text-blue-400 text-base transition font-medium">Info</a>
+</nav>
+
+  <!-- Mobile: ⋮ Dropdown Menu -->
+  <div class="relative md:hidden">
+    <button id="mobile-menu-button" class="text-white text-2xl px-2 py-1 rounded hover:bg-white/10">
+      ⋮
+    </button>
+    <div id="mobile-menu-dropdown"
+         class="milky-dropdown absolute right-0 mt-2 w-48 text-sm text-white z-50 hidden space-y-1 bg-black/70 backdrop-blur-md rounded-md shadow-lg">
+      <a href="info.html" class="text-white hover:text-blue-400 text-base transition font-medium">
+
+      <a href="/" class="block px-4 py-2 hover:bg-white/10 rounded">Home</a>
+    </div>
+  </div>
+</header>
+
+
 
   <main class="relative z-10 pt-28 max-w-4xl mx-auto px-3 space-y-8">
     <h1 class="text-2xl font-bold mb-6">Feedback History</h1>
@@ -124,7 +138,16 @@
   <footer class="text-center text-white/60 text-sm py-12 px-4 max-w-4xl mx-auto leading-relaxed border-t border-white/10 mt-20">
   <p>&copy; 2025 <strong class="text-white">ZoundZcope</strong></p>
 </footer>
+  <script>
+  const menuBtn = document.getElementById('mobile-menu-button');
+  const dropdown = document.getElementById('mobile-menu-dropdown');
 
+  if (menuBtn && dropdown) {
+    menuBtn.addEventListener('click', () => {
+      dropdown.classList.toggle('hidden');
+    });
+  }
+</script>
   <script src="/static/feedback_history.js"></script>
 </body>
 </html>

@@ -34,21 +34,18 @@
 
   <!-- Desktop: Info + Feedback History Links -->
   <nav class="hidden md:flex items-center gap-6">
-    <a href="info.html" class="link-sweep-pinkblue text-lg font-medium">
-      <span>Info</span>
-    </a>
-    <a href="/feedback_history.html" class="link-sweep-pinkblue text-lg font-medium">
-      <span>Feedback History</span>
-    </a>
-  </nav>
+  <a href="info.html" class="text-white hover:text-blue-400 text-base transition font-medium">Info</a>
+  <a href="/feedback_history.html" class="text-white hover:text-blue-400 text-base transition font-medium">Feedback History</a>
+</nav>
 
   <!-- Mobile: ⋮ Menu -->
   <div class="relative md:hidden">
     <button id="mobile-menu-button" class="text-white text-2xl px-2 py-1 rounded hover:bg-white/10">
       ⋮
     </button>
-    <div id="mobile-menu-dropdown"
-         class="milky-dropdown absolute right-0 mt-2 w-48 text-sm text-white z-50 hidden space-y-1">
+   <div id="mobile-menu-dropdown"
+     class="milky-dropdown absolute right-0 mt-2 w-48 text-sm text-white z-50 hidden space-y-1 bg-black/70 backdrop-blur-md rounded-md shadow-lg">
+
       <a href="/info.html" class="block px-4 py-2 hover:bg-white/10 rounded">Info</a>
       <a href="/feedback_history.html" class="block px-4 py-2 hover:bg-white/10 rounded">Feedback History</a>
     </div>

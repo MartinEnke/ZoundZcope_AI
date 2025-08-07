@@ -360,14 +360,16 @@ select.custom-dropdown:focus {
 }
 
 .milky-dropdown {
-  background-color: rgba(0, 0, 0, 0.10);
-  backdrop-filter: blur(10px);
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(20px); /* Safari support */
   border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 0.5rem;
   padding: 0.5rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
+
+
 .followup-btn {
   padding: 0.25rem 0.75rem;
   background: rgba(255, 255, 255, 0.08);
@@ -959,4 +961,12 @@ transition: max-height 0.3s ease;
 
 .reset-btn-lg:hover {
   box-shadow: 0 0 20px rgba(180, 130, 255, 0.5);
+}
+
+
+#mobile-menu-dropdown {
+  background-color: rgba(0, 0, 0, 0.7); /* 70% opaque black */
+  backdrop-filter: blur(8px);
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
