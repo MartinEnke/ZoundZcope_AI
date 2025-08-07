@@ -1,6 +1,8 @@
 import re
 import html
 import os
+import tiktoken
+
 
 # Allowed values (adjust as needed)
 ALLOWED_TYPES = {"mixdown", "mastering", "master"}
@@ -88,3 +90,12 @@ def normalize_subgenre(sub: str) -> str:
 
     # Escape for prompt safety
     return html.escape(sub)
+
+
+def count_tokens(text, model="gpt-4o"):
+    """
+    Count tokens for a given string using tiktoken.
+    """
+    encoding = tiktoken.encoding_for_model(model)
+    return len(encoding.encode(text))
+

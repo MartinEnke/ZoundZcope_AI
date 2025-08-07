@@ -237,7 +237,7 @@ def ask_followup(req: FollowUpRequest, db: Session = Depends(get_db)):
         .first()
     )
 
-    if user_msgs_count >= 2 and not existing_summary:
+    if user_msgs_count >= 4 and not existing_summary:
         # Fetch all messages in this group (user + assistant)
         msgs = (
             db.query(ChatMessage)

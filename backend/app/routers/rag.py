@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from backend.rag.rag_utils import load_faiss_index, load_metadata, embed_query, search_index, count_tokens
+from backend.rag.rag_utils import load_faiss_index, load_metadata, embed_query, search_index
+from backend.app.utils import count_tokens
 from openai import OpenAI
 import re
 import os

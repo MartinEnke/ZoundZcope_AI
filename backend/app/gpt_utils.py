@@ -1,5 +1,5 @@
 from openai import OpenAI
-from app.utils import normalize_type, normalize_profile, normalize_genre, ALLOWED_GENRES, normalize_subgenre
+from app.utils import normalize_type, normalize_profile, normalize_genre, ALLOWED_GENRES, normalize_subgenre, count_tokens
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -317,10 +317,23 @@ def generate_feedback_response(prompt: str) -> str:
     #     messages=[{"role": "user", "content": prompt}]
     # )
 
+    # 🔢 Count tokens in the prompt
+    prompt_tokens = count_tokens(prompt)
+    print(f"🧮 AI Feedback Prompt token count: {prompt_tokens}")
+
+    # 🔢 Count tokens in the response
+    response_text = response.choices[0].message.content
+    response_tokens = count_tokens(response_text)
+    print(f"📦 AI Feedback Response token count: {response_tokens}")
+
+    # 📊 Total token count
+    total = prompt_tokens + response_tokens
+    print(f"📊 Total tokens used: {total}")
+
     # Add this after response
-    prompt_tokens = response.usage.prompt_tokens
+    prompt_tokens_count = response.usage.prompt_tokens
     completion_tokens = response.usage.completion_tokens
-    total_tokens = prompt_tokens + completion_tokens
+    total_tokens = prompt_tokens_count + completion_tokens
     add_token_usage(total_tokens, model_name="gpt-4o-mini")
 
     return response.choices[0].message.content.strip()
@@ -456,10 +469,23 @@ def generate_comparison_feedback(comparison_data: List[dict]) -> str:
         max_tokens=300
     )
 
+    # 🔢 Count tokens in the prompt
+    prompt_tokens = count_tokens(prompt)
+    print(f"🧮 Comparison Prompt token count: {prompt_tokens}")
+
+    # 🔢 Count tokens in the response
+    response_text = response.choices[0].message.content
+    response_tokens = count_tokens(response_text)
+    print(f"📦 Comparison Response token count: {response_tokens}")
+
+    # 📊 Total token count
+    total = prompt_tokens + response_tokens
+    print(f"📊 Total tokens used: {total}")
+
     # Add this after response
-    prompt_tokens = response.usage.prompt_tokens
+    prompt_tokens_count = response.usage.prompt_tokens
     completion_tokens = response.usage.completion_tokens
-    total_tokens = prompt_tokens + completion_tokens
+    total_tokens = prompt_tokens_count + completion_tokens
     add_token_usage(total_tokens, model_name="gpt-4o-mini")
 
     return response.choices[0].message.content.strip()

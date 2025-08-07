@@ -80,46 +80,45 @@ export function restoreZoundZcopeState() {
 
   // ✅ Restore visible dropdown labels
   [
-  ["type", "Select Track Context"],
-  ["genre", "Select Genre"],
-  ["subgenre", "Select Subgenre"],
-  ["profile", "Feedback Profile"],
-  ["session", "Select Session"]
-].forEach(([key, fallback]) => {
-  const label = localStorage.getItem(`zoundzcope_${key}_label`);
-  const el = document.getElementById(`${key}-selected`) ||
-             document.getElementById(`${key}-dropdown-label`);
-  if (el) {
-    el.textContent = label || fallback;
+    ["type", "Select Track Context"],
+    ["genre", "Select Genre"],
+    ["subgenre", "Select Subgenre"],
+    ["profile", "Feedback Profile"],
+    ["session", "Select Session"]
+  ].forEach(([key, fallback]) => {
+    const label = localStorage.getItem(`zoundzcope_${key}_label`);
+    const el = document.getElementById(`${key}-selected`) ||
+               document.getElementById(`${key}-dropdown-label`);
+    if (el) {
+      el.textContent = label || fallback;
 
-    // 🔥 NEW: Reapply "selected-field" class if label was stored
-    const button = document.getElementById(`${key}-button`);
-    if (label && button) {
-      button.classList.add("selected-field");
+      const button = document.getElementById(`${key}-button`);
+      if (label && button) {
+        button.classList.add("selected-field");
+      }
     }
-  }
-});
+  });
 
   // ✅ Restore uploaded file name labels
   const uploadedName = localStorage.getItem("zoundzcope_file_name");
-const uploadedColor = localStorage.getItem("zoundzcope_file_name_color");
-if (uploadedName) {
-  const fileLabel = document.getElementById("file-name");
-  if (fileLabel) {
-    fileLabel.textContent = uploadedName;
-    if (uploadedColor) fileLabel.className = uploadedColor;
+  const uploadedColor = localStorage.getItem("zoundzcope_file_name_color");
+  if (uploadedName) {
+    const fileLabel = document.getElementById("file-name");
+    if (fileLabel) {
+      fileLabel.textContent = uploadedName;
+      if (uploadedColor) fileLabel.className = uploadedColor;
+    }
   }
-}
 
-const refName = localStorage.getItem("zoundzcope_ref_file_name");
-const refColor = localStorage.getItem("zoundzcope_ref_file_name_color");
-if (refName) {
-  const refLabel = document.getElementById("ref-file-name");
-  if (refLabel) {
-    refLabel.textContent = refName;
-    if (refColor) refLabel.className = refColor;
+  const refName = localStorage.getItem("zoundzcope_ref_file_name");
+  const refColor = localStorage.getItem("zoundzcope_ref_file_name_color");
+  if (refName) {
+    const refLabel = document.getElementById("ref-file-name");
+    if (refLabel) {
+      refLabel.textContent = refName;
+      if (refColor) refLabel.className = refColor;
+    }
   }
-}
 
   // ✅ Restore waveform
   const waveformPath = localStorage.getItem("zoundzcope_waveform_path");
@@ -149,6 +148,24 @@ if (refName) {
   // ✅ Backend linkage
   window.lastTrackId = localStorage.getItem("zoundzcope_last_track_id");
   window.lastSessionId = localStorage.getItem("zoundzcope_session");
+
+  // ✅ Restore internal follow-up state for auto-summarization logic
+  if (followupHTML && typeof window.followupThread !== "undefined" && typeof window.followupGroupIndex !== "undefined") {
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = followupHTML;
+    const qElements = tempDiv.querySelectorAll("p strong");
+    let questionCount = 0;
+    qElements.forEach(strongEl => {
+      if (strongEl.textContent.trim().toLowerCase() === "q:") {
+        questionCount++;
+      }
+    });
+
+    // Update internal counters
+    window.followupGroupIndex = Math.floor(questionCount / 4);
+    window.followupThread = Array(questionCount % 4).fill({});
+    console.log(`🔁 Restored follow-up state: ${questionCount} Qs → group ${window.followupGroupIndex}, thread length: ${window.followupThread.length}`);
+  }
 }
 
 
@@ -176,3 +193,5 @@ export function clearZoundZcopeState() {
   keys.forEach(key => localStorage.removeItem(key));
   console.log("🧹 ZoundZcope state cleared.");
 }
+
+

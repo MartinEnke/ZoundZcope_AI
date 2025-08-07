@@ -10,18 +10,46 @@ let lastManualSummaryGroup = -1;
 function showInfoToast(message) {
   const toast = document.createElement("div");
   toast.textContent = message;
-  toast.className = `
-    fixed bottom-5 right-5 bg-blue-600 text-white px-4 py-2 rounded shadow-lg
-    opacity-90 z-50 transition-opacity duration-500
-  `;
+
+  Object.assign(toast.style, {
+    position: "fixed",
+    bottom: "30px",
+    right: "30px",
+    background: "rgba(255, 255, 255, 0.07)",
+    color: "white",
+    padding: "12px 20px",
+    borderRadius: "16px",
+    fontSize: "15px",
+    fontWeight: "500",
+    letterSpacing: "0.3px",
+    zIndex: "9999",
+    opacity: "0",
+    transition: "opacity 0.4s ease, transform 0.4s ease",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+    boxShadow: "0 0 12px rgba(236, 72, 153, 0.35), 0 0 12px rgba(59, 130, 246, 0.35)",
+    transform: "translateY(20px)",
+    pointerEvents: "none",
+  });
 
   document.body.appendChild(toast);
 
+  // Animate in
+  requestAnimationFrame(() => {
+    toast.style.opacity = "0.95";
+    toast.style.transform = "translateY(0)";
+  });
+
+  // Animate out after 3 seconds
   setTimeout(() => {
-    toast.style.opacity = '0';
-    setTimeout(() => document.body.removeChild(toast), 500);
-  }, 3000);
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(20px)";
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 400);
+  }, 6000);
 }
+
 
 // ============================
 // Ask Follow-Up
@@ -84,6 +112,12 @@ document.getElementById("askAIButton").addEventListener("click", async () => {
 
     const data = await res.json();
     const answer = data.answer;
+
+    console.log("Summary created?", data.summary_created);
+
+    if (data.summary_created) {
+  showInfoToast("AI generated an auto-summary for this follow-up thread.");
+}
 
     // Remove thinking...
     thinkingEl.remove();
