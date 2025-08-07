@@ -297,7 +297,7 @@ Now return 3-4 bullet points for adjustments in the most crucial areas.
 """.strip()
 
 
-def generate_feedback_response(prompt: str) -> str:
+def generate_feedback_response(prompt: str, max_tokens: int = 300) -> str:
     """
         Sends a prompt string to the AI model and returns the generated feedback text.
 
@@ -310,7 +310,7 @@ def generate_feedback_response(prompt: str) -> str:
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=300
+        max_tokens=max_tokens
     )
     # response = client.chat.completions.create(
     #     model="mistralai/Mixtral-8x7B-Instruct-v0.1",
@@ -427,13 +427,17 @@ Respond below:
 """
 
 
-def generate_comparison_feedback(comparison_data: List[dict]) -> str:
+def generate_comparison_feedback(comparison_data: List[dict], max_tokens: int = 300) -> str:
     """
     Builds a multi-track comparison prompt and returns AI feedback.
     Each dict in `comparison_data` should contain:
         - 'track_name'
         - 'analysis_summary'
         - 'chat_history'
+
+    Args:
+        comparison_data: List of track data for comparison.
+        max_tokens: Maximum number of tokens to generate in the response.
 
     Returns:
         str: AI-generated comparison feedback.
@@ -466,7 +470,7 @@ def generate_comparison_feedback(comparison_data: List[dict]) -> str:
             {"role": "system", "content": "You are an experienced audio mastering engineer evaluating track cohesion and quality."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=300
+        max_tokens=max_tokens
     )
 
     # 🔢 Count tokens in the prompt
@@ -488,4 +492,4 @@ def generate_comparison_feedback(comparison_data: List[dict]) -> str:
     total_tokens = prompt_tokens_count + completion_tokens
     add_token_usage(total_tokens, model_name="gpt-4o-mini")
 
-    return response.choices[0].message.content.strip()
+    return response_text.strip()

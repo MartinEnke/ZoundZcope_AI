@@ -413,7 +413,7 @@ Spectral balance: {track.analysis.spectral_balance_description or 'n/a'}
         raise HTTPException(status_code=404, detail="No analysis or chat data found.")
 
     # 🧠 Get AI response using helper
-    feedback = generate_comparison_feedback(comparison_data)
+    feedback = generate_comparison_feedback(comparison_data, max_tokens=500)
 
     # 🧾 Save in chat history
     group_id = str(uuid.uuid4())
