@@ -7,8 +7,8 @@ async function updateTokenStats() {
     if (statsElement) {
       statsElement.innerHTML = `
         <strong>Live Usage</strong><br />
-        🔢 Tokens used: ${data.total_tokens}<br />
-        💸 Estimated cost: $${data.total_cost.toFixed(4)}
+        Tokens used: ${data.total_tokens}<br />
+        Estimated cost: $${data.total_cost.toFixed(4)}
       `;
     }
   } catch (err) {

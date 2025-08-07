@@ -947,3 +947,16 @@ transition: max-height 0.3s ease;
     left: 150%;
   }
 
+
+.live-usage-panel {
+  box-shadow: 0 0 20px rgba(160, 100, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.live-usage-panel:hover {
+  box-shadow: 0 0 25px rgba(180, 130, 255, 0.5);
+}
+
+.reset-btn-lg:hover {
+  box-shadow: 0 0 20px rgba(180, 130, 255, 0.5);
+}

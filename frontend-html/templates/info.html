@@ -5,12 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ZoundZcope AI | Manual vs Program Accuracy</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/style.css" />
   <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
   <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
   <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png" />
   <link rel="manifest" href="/static/favicon/site.webmanifest" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <!-- Inline fallback styles -->
+  <style>
+    .live-usage-panel {
+      box-shadow: 0 0 20px rgba(160, 100, 255, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .live-usage-panel:hover {
+      box-shadow: 0 0 25px rgba(180, 130, 255, 0.5);
+    }
+
+    .reset-btn-lg:hover {
+      box-shadow: 0 0 20px rgba(180, 130, 255, 0.5);
+    }
+  </style>
 </head>
 <body class="bg-gradient-to-b from-black via-gray-900 to-black text-white min-h-screen">
 
@@ -174,14 +189,14 @@
     </section>
 
 
-      <!-- Token Calculation Intro -->
+ <!-- Token Calculation Intro -->
 <section class="text-center space-y-6">
   <h2 class="text-3xl font-extrabold text-purple-400">AI Token Usage & Cost Breakdown</h2>
   <p class="text-lg text-white/80 max-w-3xl mx-auto leading-relaxed">
     This section outlines the token consumption and estimated cost per analysis stage, based on actual interactions with the ZoundZcope backend. It includes comparisons between single-track, multi-track, and reference-based sessions to provide full transparency.
   </p>
   <p class="text-sm italic text-white/60 border-l-4 border-purple-600 pl-4 max-w-2xl mx-auto">
-    <strong>Note:</strong> Token counts reflect real prompts and responses using OpenAI’s GPT-4o pricing model. Costs are calculated separately for prompt and response tokens and rounded to the nearest thousandth for clarity.
+    <strong>Note:</strong> Token counts reflect real prompts and responses using OpenAI’s GPT-4o Mini pricing model. Costs are calculated separately for prompt and response tokens and rounded to the nearest thousandth for clarity.
   </p>
 </section>
 
@@ -189,7 +204,7 @@
 <section class="mt-16">
   <h2 class="text-2xl font-semibold mb-4 text-purple-400">Token Usage per Stage: Single Track vs Track + Reference</h2>
   <p class="text-white/80 mb-4 max-w-3xl">
-    The following table compares token usage and precise estimated costs based on real prompt and response token counts for a typical session. Each stage uses a progressively darker violet to reflect workflow: Initial Feedback, Follow-ups, and Export. Cost estimation uses OpenAI GPT-4o pricing: <code>$0.005</code> / 1K prompt tokens and <code>$0.015</code> / 1K response tokens.
+    The following table compares token usage and precise estimated costs based on real prompt and response token counts for a typical session. Each stage uses a progressively darker violet to reflect workflow: Initial Feedback, Follow-ups, and Export. Cost estimation uses OpenAI GPT-4o Mini pricing: <code>$0.0005</code> / 1K prompt tokens and <code>$0.0015</code> / 1K response tokens.
   </p>
 
   <div class="overflow-x-auto">
@@ -213,7 +228,7 @@
           <td class="border border-gray-700 px-4 py-2">300 / 300</td>
           <td class="border border-gray-700 px-4 py-2">1,615 / 1,756</td>
           <td class="border border-gray-700 px-4 py-2">
-            $0.02 / $0.023
+            $0.001 / $0.0012
           </td>
         </tr>
 
@@ -225,7 +240,7 @@
           <td class="border border-gray-700 px-4 py-2">1,334 / 1,154</td>
           <td class="border border-gray-700 px-4 py-2">5,798 / 6,101</td>
           <td class="border border-gray-700 px-4 py-2">
-            $0.044 + $0.020 = <strong>$0.064</strong><br/>$0.049 + $0.017 = <strong>$0.066</strong>
+            $0.0022 + $0.002 = <strong>$0.0042</strong><br/>$0.0025 + $0.0017 = <strong>$0.0042</strong>
           </td>
         </tr>
         <tr class="bg-purple-400 text-black">
@@ -234,7 +249,7 @@
           <td class="border border-gray-700 px-4 py-2">241 / 239</td>
           <td class="border border-gray-700 px-4 py-2">712 / 693</td>
           <td class="border border-gray-700 px-4 py-2">
-            $0.002 + $0.004 = <strong>$0.006</strong><br/>$0.002 + $0.004 = <strong>$0.006</strong>
+            $0.0002 + $0.0004 = <strong>$0.0006</strong><br/>$0.0002 + $0.0004 = <strong>$0.0006</strong>
           </td>
         </tr>
 
@@ -246,7 +261,7 @@
           <td class="border border-gray-700 px-4 py-2">300 / 300</td>
           <td class="border border-gray-700 px-4 py-2">2,121 / 2,220</td>
           <td class="border border-gray-700 px-4 py-2">
-            $0.009 + $0.005 = <strong>$0.014</strong><br/>$0.010 + $0.005 = <strong>$0.015</strong>
+            $0.0009 + $0.0005 = <strong>$0.0014</strong><br/>$0.001 + $0.0005 = <strong>$0.0015</strong>
           </td>
         </tr>
       </tbody>
@@ -257,7 +272,7 @@
           <td class="border border-gray-700 px-4 py-2">2,175 / 1,993</td>
           <td class="border border-gray-700 px-4 py-2">10,246 / 10,770</td>
           <td class="border border-gray-700 px-4 py-2">
-            $0.055 + $0.033 = <strong>$0.088</strong><br/>$0.059 + $0.030 = <strong>$0.089</strong>
+            $0.004 + $0.0033 = <strong>$0.0073</strong><br/>$0.0044 + $0.003 = <strong>$0.0074</strong>
           </td>
         </tr>
       </tfoot>
@@ -265,15 +280,14 @@
   </div>
 
   <p class="text-white/60 text-sm mt-4 max-w-2xl italic">
-    All costs are estimated using OpenAI GPT-4o pricing and real prompt/response splits. Totals rounded to 3 decimal places.
+    All costs are estimated using OpenAI GPT-4o Mini pricing and real prompt/response splits. Totals rounded to 3 decimal places.
   </p>
 </section>
 
-
-    <section class="mt-16">
+   <section class="mt-16">
   <h2 class="text-2xl font-semibold mb-4 text-purple-400">Token Usage per Stage: Multi-Track Comparison</h2>
   <p class="text-white/80 mb-4 max-w-3xl">
-    The following table shows actual token usage and precise estimated costs for multi-track comparison sessions. Each stage reflects real interactions, such as comparison feedback and export generation. Cost estimation is based on OpenAI GPT-4o pricing: <code>$0.005</code> / 1K prompt tokens and <code>$0.015</code> / 1K response tokens.
+    The following table shows actual token usage and precise estimated costs for multi-track comparison sessions. Each stage reflects real interactions, such as comparison feedback and export generation. Cost estimation is based on OpenAI GPT-4o Mini pricing: <code>$0.0005</code> / 1K prompt tokens and <code>$0.0015</code> / 1K response tokens.
   </p>
 
   <div class="overflow-x-auto">
@@ -296,7 +310,7 @@
           <td class="border border-gray-700 px-4 py-2">944</td>
           <td class="border border-gray-700 px-4 py-2">500</td>
           <td class="border border-gray-700 px-4 py-2">1,444</td>
-          <td class="border border-gray-700 px-4 py-2">$0.005 + $0.008 = <strong>$0.013</strong></td>
+          <td class="border border-gray-700 px-4 py-2">$0.0005 + $0.0008 = <strong>$0.0013</strong></td>
         </tr>
         <tr class="bg-purple-400 text-black">
           <td class="border border-gray-700 px-4 py-2 font-semibold">Test 1 - Stage 2</td>
@@ -304,7 +318,7 @@
           <td class="border border-gray-700 px-4 py-2">708</td>
           <td class="border border-gray-700 px-4 py-2">300</td>
           <td class="border border-gray-700 px-4 py-2">1,008</td>
-          <td class="border border-gray-700 px-4 py-2">$0.004 + $0.005 = <strong>$0.009</strong></td>
+          <td class="border border-gray-700 px-4 py-2">$0.0004 + $0.0005 = <strong>$0.0009</strong></td>
         </tr>
 
         <!-- Test 2 - 4 Track Comparison -->
@@ -314,7 +328,7 @@
           <td class="border border-gray-700 px-4 py-2">3,621</td>
           <td class="border border-gray-700 px-4 py-2">500</td>
           <td class="border border-gray-700 px-4 py-2">4,121</td>
-          <td class="border border-gray-700 px-4 py-2">$0.018 + $0.008 = <strong>$0.026</strong></td>
+          <td class="border border-gray-700 px-4 py-2">$0.0018 + $0.0008 = <strong>$0.0026</strong></td>
         </tr>
         <tr class="bg-purple-700">
           <td class="border border-gray-700 px-4 py-2 font-semibold">Test 2 - Stage 2</td>
@@ -322,7 +336,7 @@
           <td class="border border-gray-700 px-4 py-2">710</td>
           <td class="border border-gray-700 px-4 py-2">276</td>
           <td class="border border-gray-700 px-4 py-2">986</td>
-          <td class="border border-gray-700 px-4 py-2">$0.004 + $0.004 = <strong>$0.008</strong></td>
+          <td class="border border-gray-700 px-4 py-2">$0.0004 + $0.0004 = <strong>$0.0008</strong></td>
         </tr>
       </tbody>
       <tfoot class="bg-gray-800 text-white font-semibold">
@@ -331,24 +345,23 @@
           <td class="border border-gray-700 px-4 py-2">5,983</td>
           <td class="border border-gray-700 px-4 py-2">1,576</td>
           <td class="border border-gray-700 px-4 py-2">7,559</td>
-          <td class="border border-gray-700 px-4 py-2">$0.031 + $0.024 = <strong>$0.055</strong></td>
+          <td class="border border-gray-700 px-4 py-2">$0.003 + $0.0024 = <strong>$0.0054</strong></td>
         </tr>
       </tfoot>
     </table>
   </div>
 
   <p class="text-white/60 text-sm mt-4 max-w-2xl italic">
-    All costs reflect GPT-4o rates using separate prompt/response token billing. This table shows actual measured usage from real comparison requests.
+    All costs reflect GPT-4o Mini rates using separate prompt/response token billing. This table shows actual measured usage from real comparison requests.
   </p>
 </section>
-
 
 
    <section class="mt-16">
   <h2 class="text-2xl font-semibold mb-4 text-green-400">RAG AI Token Usage & Cost Summary (Detailed Prompt + Response Split)</h2>
   <p class="text-white/80 mb-4 max-w-3xl">
-    Each RAG-based request is broken down by prompt and response token counts, with separate cost estimations for both components based on GPT-4o pricing:
-    <code>$0.005</code> / 1K prompt tokens and <code>$0.015</code> / 1K response tokens.
+    Each RAG-based request is broken down by prompt and response token counts, with separate cost estimations for both components based on GPT-4o Mini pricing:
+    <code>$0.0005</code> / 1K prompt tokens and <code>$0.0015</code> / 1K response tokens.
   </p>
 
   <div class="overflow-x-auto">
@@ -365,47 +378,57 @@
         </tr>
       </thead>
       <tbody class="bg-black text-white">
-        <tr class="even:bg-gray-900"><td class="border px-4 py-2">1</td><td class="border px-4 py-2">445</td><td class="border px-4 py-2">327</td><td class="border px-4 py-2">772</td><td class="border px-4 py-2">$0.002</td><td class="border px-4 py-2">$0.005</td><td class="border px-4 py-2">$0.007</td></tr>
-        <tr><td class="border px-4 py-2">2</td><td class="border px-4 py-2">824</td><td class="border px-4 py-2">142</td><td class="border px-4 py-2">966</td><td class="border px-4 py-2">$0.004</td><td class="border px-4 py-2">$0.002</td><td class="border px-4 py-2">$0.007</td></tr>
-        <tr class="even:bg-gray-900"><td class="border px-4 py-2">3</td><td class="border px-4 py-2">1127</td><td class="border px-4 py-2">400</td><td class="border px-4 py-2">1527</td><td class="border px-4 py-2">$0.006</td><td class="border px-4 py-2">$0.006</td><td class="border px-4 py-2">$0.013</td></tr>
-        <tr><td class="border px-4 py-2">4</td><td class="border px-4 py-2">785</td><td class="border px-4 py-2">47</td><td class="border px-4 py-2">832</td><td class="border px-4 py-2">$0.004</td><td class="border px-4 py-2">$0.001</td><td class="border px-4 py-2">$0.005</td></tr>
-        <tr class="even:bg-gray-900"><td class="border px-4 py-2">5</td><td class="border px-4 py-2">781</td><td class="border px-4 py-2">82</td><td class="border px-4 py-2">863</td><td class="border px-4 py-2">$0.004</td><td class="border px-4 py-2">$0.001</td><td class="border px-4 py-2">$0.006</td></tr>
-        <tr><td class="border px-4 py-2">6</td><td class="border px-4 py-2">1237</td><td class="border px-4 py-2">190</td><td class="border px-4 py-2">1427</td><td class="border px-4 py-2">$0.006</td><td class="border px-4 py-2">$0.003</td><td class="border px-4 py-2">$0.011</td></tr>
-        <tr class="even:bg-gray-900"><td class="border px-4 py-2">7</td><td class="border px-4 py-2">675</td><td class="border px-4 py-2">82</td><td class="border px-4 py-2">757</td><td class="border px-4 py-2">$0.003</td><td class="border px-4 py-2">$0.001</td><td class="border px-4 py-2">$0.005</td></tr>
-        <tr><td class="border px-4 py-2">8</td><td class="border px-4 py-2">509</td><td class="border px-4 py-2">209</td><td class="border px-4 py-2">718</td><td class="border px-4 py-2">$0.003</td><td class="border px-4 py-2">$0.003</td><td class="border px-4 py-2">$0.007</td></tr>
+        <tr class="even:bg-gray-900"><td class="border px-4 py-2">1</td><td class="border px-4 py-2">445</td><td class="border px-4 py-2">327</td><td class="border px-4 py-2">772</td><td class="border px-4 py-2">$0.0002</td><td class="border px-4 py-2">$0.0005</td><td class="border px-4 py-2">$0.0007</td></tr>
+        <tr><td class="border px-4 py-2">2</td><td class="border px-4 py-2">824</td><td class="border px-4 py-2">142</td><td class="border px-4 py-2">966</td><td class="border px-4 py-2">$0.0004</td><td class="border px-4 py-2">$0.0002</td><td class="border px-4 py-2">$0.0006</td></tr>
+        <tr class="even:bg-gray-900"><td class="border px-4 py-2">3</td><td class="border px-4 py-2">1127</td><td class="border px-4 py-2">400</td><td class="border px-4 py-2">1527</td><td class="border px-4 py-2">$0.0006</td><td class="border px-4 py-2">$0.0006</td><td class="border px-4 py-2">$0.0012</td></tr>
+        <tr><td class="border px-4 py-2">4</td><td class="border px-4 py-2">785</td><td class="border px-4 py-2">47</td><td class="border px-4 py-2">832</td><td class="border px-4 py-2">$0.0004</td><td class="border px-4 py-2">$0.0001</td><td class="border px-4 py-2">$0.0005</td></tr>
+        <tr class="even:bg-gray-900"><td class="border px-4 py-2">5</td><td class="border px-4 py-2">781</td><td class="border px-4 py-2">82</td><td class="border px-4 py-2">863</td><td class="border px-4 py-2">$0.0004</td><td class="border px-4 py-2">$0.0001</td><td class="border px-4 py-2">$0.0005</td></tr>
+        <tr><td class="border px-4 py-2">6</td><td class="border px-4 py-2">1237</td><td class="border px-4 py-2">190</td><td class="border px-4 py-2">1427</td><td class="border px-4 py-2">$0.0006</td><td class="border px-4 py-2">$0.0003</td><td class="border px-4 py-2">$0.0009</td></tr>
+        <tr class="even:bg-gray-900"><td class="border px-4 py-2">7</td><td class="border px-4 py-2">675</td><td class="border px-4 py-2">82</td><td class="border px-4 py-2">757</td><td class="border px-4 py-2">$0.0003</td><td class="border px-4 py-2">$0.0001</td><td class="border px-4 py-2">$0.0004</td></tr>
+        <tr><td class="border px-4 py-2">8</td><td class="border px-4 py-2">509</td><td class="border px-4 py-2">209</td><td class="border px-4 py-2">718</td><td class="border px-4 py-2">$0.0003</td><td class="border px-4 py-2">$0.0003</td><td class="border px-4 py-2">$0.0006</td></tr>
       </tbody>
       <tfoot class="bg-gray-800 text-white font-semibold">
         <tr>
           <td class="border px-4 py-2 text-right" colspan="4">Total Tokens</td>
           <td class="border px-4 py-2">–</td>
           <td class="border px-4 py-2">–</td>
-          <td class="border px-4 py-2">$0.061</td>
+          <td class="border px-4 py-2">$0.0054</td>
         </tr>
       </tfoot>
     </table>
   </div>
 
   <p class="text-white/60 text-sm mt-4 max-w-2xl italic">
-    Estimated using real split per row: Prompt × $0.005 / 1K and Response × $0.015 / 1K. Rounded to the nearest thousandth.
+    Estimated using real split per row: Prompt × $0.0005 / 1K and Response × $0.0015 / 1K. Rounded to the nearest thousandth.
   </p>
 </section>
-    </section>
 
 
 
-    <!-- Reset Stats Section -->
-    <section class="text-center">
-      <div id="live-token-stats" class="text-white/70 text-sm mb-2">Loading live stats...</div>
-      <button onclick="resetTokenStats()" class="bg-red-600 hover:bg-red-700 transition px-4 py-2 rounded font-semibold text-sm">
-        🔄 Reset Token Counter
-      </button>
-    </section>
+   <!-- Reset Stats Section -->
+<!-- Reset Stats Section -->
+<!-- Live Usage Panel + Reset Button -->
+<section class="text-center mt-12">
+  <div class="live-usage-panel inline-block px-6 py-5 mb-6 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-xl text-white hover:shadow-purple-400 transition-all duration-300">
+  <h3 class="text-xl font-semibold text-purple-300 mb-2 tracking-wide drop-shadow">Live Token Usage</h3>
+  <div id="live-token-stats" class="text-white text-lg font-mono tracking-wider">
+    Loading live stats...
+  </div>
+</div>
 
+  <div>
+    <button onclick="resetTokenStats()" class="reset-btn-lg mt-4 px-6 py-3 bg-gradient-to-br from-purple-500/40 to-purple-700/60 text-white font-semibold rounded-full backdrop-blur-md border border-white/30 shadow-md hover:scale-105 hover:shadow-purple-500/70 transition-all duration-300">
+  Reset Token Counter
+</button>
+  </div>
+</section>
+</main>
     <!-- Footer -->
-    <footer class="text-center text-white/50 text-sm py-12">
-      &copy; 2025 ZoundZcope – Audio Transparency Report
-    </footer>
-  </main>
+    <!-- Footer -->
+<footer class="text-center text-white/60 text-sm py-12 px-4 max-w-4xl mx-auto leading-relaxed border-t border-white/10 mt-20">
+  <p>&copy; 2025 <strong class="text-white">ZoundZcope</strong></p>
+</footer>
+
 
   <!-- Scripts -->
   <script>
