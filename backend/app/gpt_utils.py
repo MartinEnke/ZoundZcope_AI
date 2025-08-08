@@ -15,7 +15,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 REFERENCE_TRACK_INSTRUCTION = (
-    "If a reference track analysis is provided, you MUST compare the submitted track's analysis with the reference track's data."
+    "If a reference track analysis is provided, use it as a benchmark to compare the submitted track's analysis with the reference track's data."
     "Give specific feedback on differences and how to improve the submitted track based on the comparison."
     "If no reference data is available, Do NOT mention, assume, or imply any reference track in the feedback."
 )
@@ -41,12 +41,6 @@ ROLE_CONTEXTS = {
         
         Your feedback should be friendly and help the user **prepare** their mix for the next step, not enhance or master it.  
         Be clear, encouraging, and technically specific.
-        
-        End with a brief readiness summary:
-        
-        🟢 Technically ready  
-        🟡 Needs minor tweaks  
-        🔴 Major issues to fix
         """
     ),
     "mastering": (
@@ -101,13 +95,6 @@ ROLE_CONTEXTS = {
         - **Transients** — Are they crisp, punchy, or squashed?
         
         Be genre-aware in your judgments. For example, heavy limiting might be fine in EDM, but not in jazz or folk.
-        
-        Conclude with a summary judgment:
-        
-        🟢 Master sounds professional and release-ready  
-        🟡 Acceptable, but some adjustments could improve quality  
-        🔴 Needs revision — the master has issues that affect competitiveness or translation
-        
         Use friendly, helpful language that guides the user toward high-quality results."""
     ),
 }
@@ -461,7 +448,7 @@ def generate_comparison_feedback(comparison_data: List[dict], max_tokens: int = 
     prompt += (
         "### Comparison Summary\n"
         "Write a cohesive summary of how the tracks compare. Highlight what works well, what needs attention, and whether they sound like they belong together in an album or playlist.\n"
-        "Use bullet points or clear section headings like 'Strengths', 'Weaknesses', and 'Suggestions'."
+        "Use bullet points or clear section headings like 'Sonic Cohesion Across Tracks', 'Strengths', 'Weaknesses', 'Suggestions', and Conclusions."
     )
 
     response = client.chat.completions.create(
