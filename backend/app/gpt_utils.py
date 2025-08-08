@@ -1,5 +1,4 @@
-from openai import OpenAI
-from app.utils import normalize_type, normalize_profile, normalize_genre, ALLOWED_GENRES, normalize_subgenre, count_tokens
+from app.utils import normalize_type, normalize_profile, normalize_genre, ALLOWED_GENRES, normalize_subgenre, count_tokens, count_tokens_gemini
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -8,10 +7,19 @@ import re
 from typing import List
 from app.token_tracker import add_token_usage
 import time
+from groq import Groq
+from openai import OpenAI
+
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # client = OpenAI(
 #     base_url="https://api.together.xyz/v1",  # You can still use Together
+# )
+
+
+# client = Groq(
+#     api_key=os.environ.get("GROQ_API_KEY"),
 # )
 
 
@@ -350,7 +358,7 @@ Now return 3-4 bullet points for adjustments in the most crucial areas.
 """.strip()
 
 
-def generate_feedback_response(prompt: str, max_tokens: int = 500) -> str:
+def generate_feedback_response(prompt: str, max_tokens: int = 500, use_groq: bool = False) -> str:
     """
         Sends a prompt string to the AI model and returns the generated feedback text.
 
@@ -367,6 +375,18 @@ def generate_feedback_response(prompt: str, max_tokens: int = 500) -> str:
         messages=[{"role": "user", "content": prompt}],
         max_tokens=max_tokens
     )
+
+    # Send to Groq API
+    # response = client.chat.completions.create(
+    #     model="llama-3.3-70b-versatile",
+    #     messages=[{"role": "user", "content": prompt}],
+    #     max_tokens=max_tokens
+    #
+    # )
+
+    # print(response.choices[0].message.content)
+
+
     # response = client.chat.completions.create(
     #     model="mistralai/Mixtral-8x7B-Instruct-v0.1",
     #     messages=[{"role": "user", "content": prompt}]
@@ -376,13 +396,14 @@ def generate_feedback_response(prompt: str, max_tokens: int = 500) -> str:
     elapsed_time = end_time - start_time
     print(f"⏱️ Feedback generation time: {elapsed_time:.2f} seconds")
 
-    # 🔢 Count tokens in the prompt
+    # 🔢 Count tokens in the prompt for OpenAI
     prompt_tokens = count_tokens(prompt)
     print(f"🧮 AI Feedback Prompt token count: {prompt_tokens}")
 
-    # 🔢 Count tokens in the response
+    # 🔢 Count tokens in the response from OpenAI
     response_text = response.choices[0].message.content
     response_tokens = count_tokens(response_text)
+
     print(f"📦 AI Feedback Response token count: {response_tokens}")
 
     # 📊 Total token count

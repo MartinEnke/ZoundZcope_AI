@@ -353,7 +353,8 @@
   </div>
 
   <p class="text-white/60 text-sm mt-4 max-w-2xl italic">
-    All costs reflect GPT-4o Mini rates using separate prompt/response token billing. This table shows actual measured usage from real comparison requests.
+    All costs reflect GPT-4o Mini rates using separate prompt/response token billing.
+    This table shows actual measured usage from real comparison requests.
   </p>
 </section>
 
@@ -400,7 +401,8 @@
   </div>
 
   <p class="text-white/60 text-sm mt-4 max-w-2xl italic">
-    Estimated using real split per row: Prompt × $0.0005 / 1K and Response × $0.0015 / 1K. Rounded to the nearest thousandth.
+    Estimated using real split per row: Prompt × $0.0005 / 1K and Response × $0.0015 / 1K.
+    Rounded to the nearest thousandth.
   </p>
 </section>
 
@@ -423,6 +425,70 @@
 </button>
   </div>
 </section>
+
+
+      <section class="text-center space-y-6">
+  <h1 class="text-4xl font-extrabold text-blue-400">AI Model Comparison: One-Shot vs Few-Shot</h1>
+  <p class="text-lg text-white/80 max-w-3xl mx-auto leading-relaxed">
+    This section provides an overview of the performance differences between OpenAI's GPT-4o Mini One-Shot and Groq Llama 3.3 70B Few-Shot approaches.
+  </p>
+  <p class="text-sm italic text-white/60 border-l-4 border-blue-600 pl-4 max-w-2xl mx-auto">
+    <strong>Note:</strong> The final prompt consists of multiple parts that dynamically change based on the user's input, making it already rich in context. The comparison focuses solely on the example outputs, with the rest of the prompt remaining consistent. This test was only for the initial feedback and does not cover other AI stages like follow-up questions, multi-track comparison, or PDF export for feedback + presets.
+  </p>
+</section>
+
+<section id="comparison" class="space-y-16">
+  <!-- OpenAI 4o Mini: One-Shot vs Few-Shot -->
+  <div class="bg-black bg-opacity-30 text-white rounded-md p-6 mx-auto max-w-3xl border-2 border-gray-600 shadow-lg">
+    <h2 class="text-2xl font-semibold text-blue-400 mb-4">OpenAI 4o Mini</h2>
+    <h3 class="text-xl font-semibold text-purple-400">One-Shot</h3>
+    <ul class="list-disc ml-8">
+      <li>Effective, focused feedback with clear, actionable insights.</li>
+      <li>Faster processing with fewer tokens, leading to better efficiency.</li>
+      <li>More concise responses, ideal for quick adjustments.</li>
+    </ul>
+    <h3 class="text-xl font-semibold text-purple-400 mt-6">Few-Shot</h3>
+    <ul class="list-disc ml-8">
+      <li>Slower, with higher token usage and cost.</li>
+      <li>More inaccuracies and misalignments with user expectations.</li>
+      <li>Less focused, with unnecessary complexity.</li>
+    </ul>
+    <h3 class="text-xl font-semibold text-green-400 mt-6">Conclusion</h3>
+    <p>One-Shot approach is better for delivering high-quality feedback efficiently, while Few-Shot suffers from unnecessary complexity, slower responses, and higher costs.</p>
+  </div>
+
+  <!-- Groq Llama 3.3 70B: One-Shot vs Few-Shot -->
+  <div class="bg-black bg-opacity-30 text-white rounded-md p-6 mx-auto max-w-3xl border-2 border-gray-600 shadow-lg">
+    <h2 class="text-2xl font-semibold text-blue-400 mb-4">Groq Llama 3.3 70B</h2>
+    <h3 class="text-xl font-semibold text-purple-400">One-Shot</h3>
+    <ul class="list-disc ml-8">
+      <li>Strong in genre framing, ideal for understanding genre-specific nuances.</li>
+      <li>Lacks specific technical examples, with less prescriptive actions.</li>
+    </ul>
+    <h3 class="text-xl font-semibold text-purple-400 mt-6">Few-Shot</h3>
+    <ul class="list-disc ml-8">
+      <li>More detailed and actionable, with clear guidance on EQ, compression, etc.</li>
+      <li>Provides specific technical actions, but can lack genre framing.</li>
+    </ul>
+    <h3 class="text-xl font-semibold text-green-400 mt-6">Conclusion</h3>
+    <p>Few-Shot approach offers more precise, actionable feedback for technical tasks, while One-Shot excels in genre context and broad advice.</p>
+  </div>
+
+  <!-- Final Test: One-Shot vs Few-Shot -->
+  <div class="bg-black bg-opacity-30 text-white rounded-md p-6 mx-auto max-w-3xl border-2 border-gray-600 shadow-lg">
+    <h2 class="text-2xl font-semibold text-blue-400 mb-4">Final Test: OpenAI 4o Mini vs Groq Llama 3.3 70B</h2>
+    <h3 class="text-xl font-semibold text-purple-400">Key Differences</h3>
+    <ul class="list-disc ml-8">
+      <li><strong>Precision vs Detail:</strong> One-Shot (OpenAI) is precise but less detailed. Few-Shot (Groq) is more comprehensive with a fuller analysis.</li>
+      <li><strong>Cost/Token Efficiency:</strong> One-Shot (OpenAI) is more expensive per request but faster, while Few-Shot (Groq) offers better value.</li>
+      <li><strong>Speed:</strong> One-Shot (OpenAI) is slower but efficient for users requiring quick adjustments, while Few-Shot (Groq) is faster.</li>
+    </ul>
+    <h3 class="text-xl font-semibold text-green-400 mt-6">Which to Choose?</h3>
+    <p>If you need clear, actionable feedback with precise adjustments, choose One-Shot (OpenAI). If you need more detailed technical advice with a focus on cost and speed, Few-Shot (Groq) is the better option.</p>
+  </div>
+</section>
+
+
 </main>
     <!-- Footer -->
     <!-- Footer -->

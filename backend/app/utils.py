@@ -99,3 +99,11 @@ def count_tokens(text, model="gpt-4o"):
     encoding = tiktoken.encoding_for_model(model)
     return len(encoding.encode(text))
 
+
+def count_tokens_gemini(text, model="gemini"):
+    """
+    Approximate token count for a given string based on character count.
+    """
+    char_count = len(text)
+    return int(char_count / 4)  # Approximate token count (1 token ≈ 4 characters)
+
