@@ -7,6 +7,7 @@ import html
 import re
 from typing import List
 from app.token_tracker import add_token_usage
+import time
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # client = OpenAI(
@@ -179,6 +180,69 @@ EXAMPLE_OUTPUTS = {
 }
 
 
+FEW_SHOT_EXAMPLES_PRO = """
+#### Example Output 1
+- INSIGHT: The low-end sits heavily around 60 Hz, creating a slight build-up that can cloud the groove in busier sections.
+  SUGGESTION: Use dynamic EQ or sidechain ducking between kick and bass to keep the bottom end tight while preserving punch.
+
+- INSIGHT: Overall loudness is on the high side for a clean mixdown, leaving limited space for mastering moves.
+  SUGGESTION: Drop the output by roughly 2 dB to restore headroom and give the mastering stage more breathing room.
+
+- INSIGHT: High-mid content (3–5 kHz) becomes a touch edgy during choruses.
+  SUGGESTION: Apply gentle dynamic control or multiband compression in that range to smooth harsh moments without losing mix clarity.
+
+#### Example Output 2
+- INSIGHT: Current loudness is on the softer side for a Disco-House mixdown, but not far off from a healthy target.
+  SUGGESTION: Aim for a controlled lift into the -9 to -12 LUFS range using transparent compression and limiting to match genre energy.
+
+- INSIGHT: The stereo field feels nice and open, though high-mids above 8 kHz could breathe a little more.
+  SUGGESTION: Try subtle mid–side widening or EQ lift in that band, ensuring mono compatibility stays intact.
+
+- INSIGHT: Sub content fades off just above 45 Hz, which is lighter than what’s expected on club systems.
+  SUGGESTION: Add gentle low-shelf EQ or harmonic enhancement to extend the bottom octave for a fuller, room-filling low end.
+
+#### Example Output 3
+- INSIGHT: The reference has noticeably more energy below 80 Hz, giving it extra weight.
+  SUGGESTION: Add a small boost or broaden the bass presence to bring your low-end depth closer to the reference.
+
+- INSIGHT: Your overall loudness trails the reference slightly, though dynamics are healthy.
+  SUGGESTION: Apply tasteful broadband limiting to raise level while keeping transient clarity intact.
+
+- INSIGHT: Transients, particularly on snares, are softer than in the reference.
+  SUGGESTION: Enhance the attack with light transient shaping or an upper-mid lift to match the reference’s punch.
+
+#### Example Output 4
+- INSIGHT: Loudness is pushing toward the hotter end for this genre, which can reduce dynamic nuance.
+  SUGGESTION: Ease overall compression to let peaks breathe more naturally without sacrificing impact.
+
+- INSIGHT: Low-mids around 200 Hz feel slightly congested, softening guitar and vocal definition.
+  SUGGESTION: Apply a broad, gentle cut between 180–250 Hz to open up the mix and improve clarity.
+
+- INSIGHT: Stereo image is well balanced, but choruses could open up further for impact.
+  SUGGESTION: Use M/S or automation to gently expand width in those sections for a more immersive feel.
+
+#### Example Output 5
+- INSIGHT: The reference has tighter dynamics, giving it more drive and energy.
+  SUGGESTION: Introduce subtle transient shaping or light saturation to add punch and match that forward feel.
+
+- INSIGHT: Your bass is fuller around 100 Hz than the reference, which can overshadow mids.
+  SUGGESTION: Tame the low shelf slightly or use parallel saturation to keep warmth while tightening the low end.
+
+- INSIGHT: Highs are a bit brighter than the reference, adding extra sheen.
+  SUGGESTION: Smooth the top with a gentle EQ roll-off or softer curve to align with the reference’s tonal character.
+
+#### Example Output 6
+- INSIGHT: The reference feels more rhythmically defined due to stronger transient impact on kick and snare.
+  SUGGESTION: Boost transient attack slightly or refine compression release to sharpen rhythmic clarity.
+
+- INSIGHT: Your upper-mid stereo spread is a touch wider than the reference’s more focused image.
+  SUGGESTION: Narrow that range slightly to match the reference’s cohesive sound while keeping overall width.
+
+- INSIGHT: Loudness is already in line with the reference and well within target range.
+  SUGGESTION: Keep current loudness, but verify your true peak ceiling matches best practice at around -1.0 dBTP.
+"""
+
+
 def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data: dict, feedback_profile: str, ref_analysis_data: dict = None) -> str:
     """
             Constructs a detailed AI prompt combining role context, communication style,
@@ -237,6 +301,8 @@ def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data
     format_rule = FORMAT_RULES.get(feedback_profile, FORMAT_RULES["detailed"])
 
     example_output = EXAMPLE_OUTPUTS.get(feedback_profile, "")
+    # example_output = FEW_SHOT_EXAMPLES_PRO
+
 
     # Final assembly
     return f"""
@@ -284,7 +350,7 @@ Now return 3-4 bullet points for adjustments in the most crucial areas.
 """.strip()
 
 
-def generate_feedback_response(prompt: str, max_tokens: int = 300) -> str:
+def generate_feedback_response(prompt: str, max_tokens: int = 500) -> str:
     """
         Sends a prompt string to the AI model and returns the generated feedback text.
 
@@ -294,6 +360,8 @@ def generate_feedback_response(prompt: str, max_tokens: int = 300) -> str:
         Returns:
             str: The AI-generated feedback text, stripped of leading/trailing whitespace.
         """
+    start_time = time.perf_counter()  # Start timer
+
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}],
@@ -303,6 +371,10 @@ def generate_feedback_response(prompt: str, max_tokens: int = 300) -> str:
     #     model="mistralai/Mixtral-8x7B-Instruct-v0.1",
     #     messages=[{"role": "user", "content": prompt}]
     # )
+
+    end_time = time.perf_counter()  # End timer
+    elapsed_time = end_time - start_time
+    print(f"⏱️ Feedback generation time: {elapsed_time:.2f} seconds")
 
     # 🔢 Count tokens in the prompt
     prompt_tokens = count_tokens(prompt)
@@ -448,7 +520,7 @@ def generate_comparison_feedback(comparison_data: List[dict], max_tokens: int = 
     prompt += (
         "### Comparison Summary\n"
         "Write a cohesive summary of how the tracks compare. Highlight what works well, what needs attention, and whether they sound like they belong together in an album or playlist.\n"
-        "Use bullet points or clear section headings like 'Sonic Cohesion Across Tracks', 'Strengths', 'Weaknesses', 'Suggestions', and Conclusions."
+        "Use bullet points or clear section headings like 'Sonic Cohesion Across Tracks', 'Strengths', 'Weaknesses', 'Suggestions', and 'Conclusions'."
     )
 
     response = client.chat.completions.create(
