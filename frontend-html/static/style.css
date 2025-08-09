@@ -695,6 +695,10 @@ select.custom-dropdown:focus {
 }
 
 
+#feedback .mixdown-review {
+  color: #ec4899 !important; /* pink */
+}
+
 
 .quick-followup-button {
   white-space: normal;

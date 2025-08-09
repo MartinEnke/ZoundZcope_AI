@@ -183,20 +183,24 @@ async function loadSessionTracks(sessionId) {
 
         const subheading = document.createElement("p");
 
-if (track.type === "mixdown") {
+        const trackType = (track.type || "").trim().toLowerCase();
+        console.log("Track Type (Normalized):", trackType);
+
+if (trackType === "mixdown") {
   subheading.className = "text-pink-400 text-lg font-semibold";
-  subheading.textContent = "Mixdown Suggestions:";
-} else if (track.type === "master") {
+  subheading.textContent = "Mixdown Review:";
+} else if (trackType === "mastering") {
   subheading.className = "text-blue-400 text-lg font-semibold";
-  subheading.textContent = "Mastering Advice:";
-} else if (track.type === "master review") {
+  subheading.textContent = "Mastering Guidance:";
+} else if (trackType === "master") {
   subheading.className = "text-blue-400 text-lg font-semibold";
   subheading.textContent = "Master Review:";
 } else {
   subheading.className = "text-white/70 text-lg font-semibold";
   subheading.textContent = "AI Feedback:";
 }
-        feedbackBox.appendChild(subheading);
+
+feedbackBox.appendChild(subheading);
 
         const ul = document.createElement("ul");
         ul.className = "list-disc list-inside mt-2 text-white/90 space-y-1";

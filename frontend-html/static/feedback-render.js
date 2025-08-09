@@ -73,16 +73,17 @@ export function renderFeedbackAnalysis(result, refTrackAnalysisData = null) {
   feedbackBox.innerHTML = "";
   feedbackBox.classList.add("pulsing-feedback");
 
-  const type = result.type?.toLowerCase();
+  const type = (result.type || "").trim().toLowerCase();
   const subheading = document.createElement("p");
   subheading.className = "text-lg font-semibold";
 
   if (type === "mixdown") {
     subheading.classList.add("text-pink-400");
-    subheading.textContent = "Mixdown Suggestions:";
+    subheading.classList.add("mixdown-review");
+    subheading.textContent = "Mixdown Review:";
   } else if (type === "mastering") {
     subheading.classList.add("text-blue-400");
-    subheading.textContent = "Mastering Suggestions:";
+    subheading.textContent = "Mastering Guidance:";
   } else if (type === "master") {
     subheading.classList.add("text-blue-400");
     subheading.textContent = "Master Review:";
