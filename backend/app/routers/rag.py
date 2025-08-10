@@ -1,3 +1,14 @@
+"""
+RAG endpoints for ZoundZcope.
+
+This module exposes two FastAPI endpoints that perform retrieval-augmented
+generation (RAG) over two corpora:
+- Documentation corpus (/rag_docs)
+- Tutorial/implementation corpus (/rag_tut)
+
+It builds prompts from retrieved chunks, optionally summarizes long chat
+history, calls the LLM, and tracks token usage.
+"""
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from backend.rag.rag_utils import load_faiss_index, load_metadata, embed_query, search_index
@@ -34,14 +45,55 @@ docs_metadata = load_metadata(RAG_DOCS_METADATA_PATH)
 tut_index = load_faiss_index(RAG_TUT_INDEX_PATH)
 tut_metadata = load_metadata(RAG_TUT_METADATA_PATH)
 
+
 class Question(BaseModel):
+    """
+        Request body model for RAG queries.
+
+        Attributes:
+            question (str): The user's natural-language question.
+            history (list[dict]): Optional list of previous Q&A items where each
+                item has 'question' and 'answer' keys. May also include a rolling
+                summary with 'question' == "__summary__".
+        """
     question: str
     history: list[dict] = []
 
+
 def extract_code_blocks(text: str):
+    """
+        Extract code blocks from a string.
+
+        Searches for code enclosed in triple backticks (```), optionally
+        followed by a language tag, and returns the inner code content.
+
+        Args:
+            text (str): The input text that may contain code blocks.
+
+        Returns:
+            list[str]: The extracted code block contents without backticks.
+        """
     return re.findall(r"```(?:\w+)?\n(.*?)```", text, re.DOTALL)
 
+
 def build_prompt_docs(query, retrieved_chunks, history):
+    """
+    Build an LLM prompt using documentation chunks.
+
+    Assembles a prompt that includes prior chat history, relevant code
+    snippets extracted from retrieved documentation chunks, and additional
+    contextual excerpts from the docs.
+
+    Args:
+        query (str): The user's question.
+        retrieved_chunks (list[dict]): Chunks retrieved from the docs corpus.
+            Each chunk dict should contain 'text', 'filename', and 'chunk_index'.
+        history (list[dict]): Previous Q&A pairs (and optional summary), each
+            with 'question' and 'answer' keys.
+
+    Returns:
+        str: The fully constructed prompt string for the LLM.
+    """
     prompt = (
         "You are an expert explaining the implementation of a music AI project.\n"
         "Use the previous questions and answers as context.\n\n"
@@ -68,7 +120,24 @@ def build_prompt_docs(query, retrieved_chunks, history):
     prompt += f"User question: {query}\n\nAnswer accordingly."
     return prompt
 
+
 def build_prompt_tut(query, retrieved_chunks, history):
+    """
+        Build an LLM prompt using tutorial/implementation chunks.
+
+        Assembles a prompt that includes prior chat history, relevant code
+        snippets extracted from retrieved tutorial chunks, and additional
+        contextual excerpts focused on ZoundZcope’s implementation details.
+
+        Args:
+            query (str): The user's question.
+            retrieved_chunks (list[dict]): Chunks from the tutorial corpus with
+                'text', 'filename', and 'chunk_index'.
+            history (list[dict]): Previous Q&A pairs (and optional summary).
+
+        Returns:
+            str: The fully constructed prompt string for the LLM.
+        """
     prompt = (
         "You are an expert audio engineer and developer specializing in AI-assisted mixing and mastering.\n"
         "Use the previous questions and answers as context.\n\n"
@@ -97,7 +166,21 @@ def build_prompt_tut(query, retrieved_chunks, history):
 
     return prompt
 
+
 def generate_answer(prompt: str):
+    """
+        Generate an answer from the LLM and track token usage.
+
+        Sends the prompt to the OpenAI Chat Completions API using a concise
+        system instruction, logs token counts (prompt/response/total), and
+        records usage via the token tracker.
+
+        Args:
+            prompt (str): The prompt string to send to the model.
+
+        Returns:
+            str: The generated answer text from the LLM.
+        """
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -107,8 +190,6 @@ def generate_answer(prompt: str):
         max_tokens=500,
         temperature=0.3,
     )
-
-
 
     # 🔢 Count tokens in the prompt
     prompt_tokens = count_tokens(prompt)
@@ -131,7 +212,27 @@ def generate_answer(prompt: str):
 
     return response.choices[0].message.content
 
+
 def search_and_answer(index, metadata, question, history, build_prompt_fn, context_note=""):
+    """
+        Retrieve relevant chunks, build a prompt, and generate an answer.
+
+        Applies rolling summarization when the history grows, embeds the
+        query, searches the FAISS index, constructs a prompt from the
+        retrieved chunks and history, and calls the LLM.
+
+        Args:
+            index: The FAISS index to search.
+            metadata (list[dict]): Metadata aligned with the index entries.
+            question (str): The user's question.
+            history (list[dict]): Conversation history and optional summary.
+            build_prompt_fn (Callable): Function that constructs the LLM prompt
+                (e.g., `build_prompt_docs` or `build_prompt_tut`).
+            context_note (str): Additional context passed to summarization.
+
+        Returns:
+            str: The generated answer text.
+        """
     # Auto-summarize if too many QA pairs
     if len(history) >= 4:
         history = summarize_history(history, context_note)
@@ -143,8 +244,25 @@ def search_and_answer(index, metadata, question, history, build_prompt_fn, conte
     answer = generate_answer(prompt)
     return answer
 
+
 @router.post("/rag_docs")
 async def rag_docs(question: Question):
+    """
+        RAG endpoint using the documentation corpus.
+
+        Validates the input, retrieves relevant documentation chunks, builds
+        a prompt from the docs and history, and returns the generated answer.
+
+        Args:
+            question (Question): Request body with 'question' text and optional
+                'history' of previous Q&A pairs.
+
+        Returns:
+            dict: A JSON object with the generated 'answer'.
+
+        Raises:
+            HTTPException: If 'question' is empty or whitespace.
+        """
     if not question.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
     answer = search_and_answer(
@@ -157,8 +275,26 @@ async def rag_docs(question: Question):
     )
     return {"answer": answer}
 
+
 @router.post("/rag_tut")
 async def rag_tut(question: Question):
+    """
+        RAG endpoint using the tutorial/implementation corpus.
+
+        Validates the input, retrieves tutorial/implementation chunks, builds
+        a prompt from the tutorial content and history, and returns the
+        generated answer.
+
+        Args:
+            question (Question): Request body with 'question' text and optional
+                'history' of previous Q&A pairs.
+
+        Returns:
+            dict: A JSON object with the generated 'answer'.
+
+        Raises:
+            HTTPException: If 'question' is empty or whitespace.
+        """
     if not question.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
     answer = search_and_answer(
@@ -173,10 +309,26 @@ async def rag_tut(question: Question):
 
 
 
-
 _last_summary_length = 0  # Tracks how many Q&A pairs existed at last summary
 
 def summarize_history(history, context_note=""):
+    """
+        Summarize recent conversation history to keep context compact.
+
+        Produces a rolling summary with the LLM if at least four new Q&A
+        pairs have been added since the last summary. The updated history
+        starts with a summary item (where 'question' == "__summary__")
+        followed by the remaining unsummarized Q&A items.
+
+        Args:
+            history (list[dict]): The full conversation history. Summary items
+                are marked with 'question' == "__summary__".
+            context_note (str): Optional note to guide the summarization style
+                or focus (e.g., docs vs. tutorial context).
+
+        Returns:
+            list[dict]: The updated history with a new summary when triggered.
+        """
     global _last_summary_length
 
     # Count how many Q&A pairs since the last summary
