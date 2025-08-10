@@ -1,3 +1,33 @@
+"""
+Chat and feedback endpoints for ZoundZcope.
+
+This module provides FastAPI endpoints for handling AI-powered feedback
+conversations, follow-up questions, and track/session comparison insights.
+It integrates audio analysis data with GPT-generated responses to create
+context-aware feedback loops for users.
+
+Workflow:
+    1) Accept user input (feedback requests, follow-up questions, or comparisons).
+    2) Normalize metadata fields (type, genre, profile) for consistent prompt building.
+    3) Retrieve relevant track and analysis data from the database.
+    4) Construct GPT prompts using feedback utilities and context.
+    5) Generate and store AI responses in the chat history.
+    6) Return results as JSON for frontend consumption.
+
+Endpoints:
+    POST /chat/feedback
+        Generate initial AI feedback for a specific track.
+    POST /chat/followup
+        Generate follow-up answers using conversation context.
+    POST /chat/comparison
+        Provide AI-driven comparative feedback across multiple tracks.
+
+Dependencies:
+    - SQLAlchemy for ORM-based database queries.
+    - Pydantic for request body validation.
+    - OpenAI GPT utilities for dynamic feedback generation.
+    - JSON handling for structured data exchange.
+"""
 from fastapi import APIRouter, Form, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session

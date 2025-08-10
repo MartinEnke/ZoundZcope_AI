@@ -1,3 +1,25 @@
+"""
+Export endpoints for ZoundZcope.
+
+This module provides FastAPI endpoints for exporting analysis results and AI
+feedback as PDF documents. It formats track/session data into structured,
+readable PDF layouts using ReportLab.
+
+Workflow:
+    1) Retrieve relevant track and feedback data from the database.
+    2) Generate AI feedback when required using the feedback generation utils.
+    3) Format data into sections with styled headings, paragraphs, and lists.
+    4) Render the content into a PDF and stream it to the client.
+
+Endpoints:
+    GET /export/{...}
+        Export session or track feedback as a downloadable PDF.
+
+Dependencies:
+    - SQLAlchemy for database access
+    - ReportLab for PDF creation and text layout
+    - ZoundZcope's AI feedback utilities for dynamic content generation
+"""
 from fastapi import APIRouter, Query, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from app.database import SessionLocal

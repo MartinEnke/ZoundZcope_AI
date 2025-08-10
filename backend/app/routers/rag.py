@@ -8,6 +8,22 @@ generation (RAG) over two corpora:
 
 It builds prompts from retrieved chunks, optionally summarizes long chat
 history, calls the LLM, and tracks token usage.
+
+Endpoints:
+    POST /rag_docs
+        Uses the documentation corpus to explain implementation details, quote
+        relevant code, and optionally return full functions on request.
+
+    POST /rag_tut
+        Uses the tutorial/implementation corpus to explain ZoundZcope’s
+        concepts, usage, and code paths, with the same behavior for code
+        extraction and full-function returns.
+
+Dependencies:
+    - FAISS utils: load_faiss_index, load_metadata, embed_query, search_index
+    - Token counting/tracking: count_tokens, add_token_usage
+    - OpenAI Chat Completions API (model: gpt-4o-mini)
+    - FastAPI for routing and request models
 """
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
