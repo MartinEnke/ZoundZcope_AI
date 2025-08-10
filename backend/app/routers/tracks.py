@@ -1,3 +1,19 @@
+"""
+Track management endpoints for ZoundZcope.
+
+This module exposes endpoints to retrieve, update, and delete individual tracks.
+Deletions cascade to related records (analysis results and chat messages) and
+optionally remove the associated audio file from disk.
+
+Endpoints:
+    GET    /tracks/{track_id}  - Retrieve a single track by ID.
+    PUT    /tracks/{id}        - Update a track's name and/or session assignment.
+    DELETE /tracks/{id}        - Delete a track, its analysis, chats, and file.
+
+Dependencies:
+    - SQLAlchemy SessionLocal for database access.
+    - Models: Track, AnalysisResult, ChatMessage.
+"""
 from fastapi import APIRouter, HTTPException, Depends, Form
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
@@ -7,6 +23,12 @@ import os
 router = APIRouter()
 
 def get_db():
+    """
+        Provide a SQLAlchemy database session via dependency injection.
+
+        Yields:
+            Session: An active SQLAlchemy session.
+        """
     db = SessionLocal()
     try:
         yield db
@@ -16,6 +38,19 @@ def get_db():
 
 @router.get("/{track_id}")
 def get_single_track(track_id: str, db: Session = Depends(get_db)):
+    """
+        Retrieve a single track by its ID.
+
+        Args:
+            track_id (str): UUID of the track to fetch.
+            db (Session): Database session (injected dependency).
+
+        Raises:
+            HTTPException: If the track does not exist (404).
+
+        Returns:
+            dict: Basic track info (id, name, type, session_id, file_path).
+        """
     track = db.query(Track).filter(Track.id == track_id).first()
     if not track:
         raise HTTPException(status_code=404, detail="Track not found")
@@ -28,6 +63,7 @@ def get_single_track(track_id: str, db: Session = Depends(get_db)):
         "file_path": track.file_path
     }
 
+
 @router.put("/{id}")
 def update_track(
     id: str,
@@ -35,6 +71,21 @@ def update_track(
     session_id: str = Form(None),
     db: Session = Depends(get_db)
 ):
+    """
+        Update basic fields of a track.
+
+        Args:
+            id (str): UUID of the track to update.
+            track_name (str, optional): New track name.
+            session_id (str, optional): New session ID to reassign the track.
+            db (Session): Database session (injected dependency).
+
+        Raises:
+            HTTPException: If the track does not exist (404).
+
+        Returns:
+            dict: Confirmation message and the (DB) track object.
+        """
     track = db.query(Track).filter(Track.id == id).first()
     if not track:
         raise HTTPException(status_code=404, detail="Track not found")
@@ -48,9 +99,27 @@ def update_track(
     return {"message": "Track updated", "track": track}
 
 
-
 @router.delete("/{id}")
 def delete_track(id: str, db: Session = Depends(get_db)):
+    """
+        Delete a track and all related data.
+
+        This will:
+          - Remove the track's AnalysisResult (if present).
+          - Delete ChatMessage records linked to the track.
+          - Delete the underlying audio file from disk (if path exists).
+          - Remove the Track record itself.
+
+        Args:
+            id (str): UUID of the track to delete.
+            db (Session): Database session (injected dependency).
+
+        Raises:
+            HTTPException: If the track does not exist (404).
+
+        Returns:
+            dict: Confirmation message summarizing deletions.
+        """
     print("Deleting track:", id)
     track = db.query(Track).filter(Track.id == id).first()
     if not track:

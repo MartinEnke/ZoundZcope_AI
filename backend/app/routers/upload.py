@@ -1,3 +1,37 @@
+"""
+Audio upload and initial feedback generation endpoints for ZoundZcope.
+
+This module handles uploading new tracks (and optional reference tracks),
+performing audio analysis, saving results to the database, and generating
+AI-based feedback. It also stores RMS chunk data for visual display in the
+frontend.
+
+Workflow:
+    1) Accept and validate uploaded files and form metadata.
+    2) Normalize session and track data (name, type, genre, profile).
+    3) Save uploaded files to disk.
+    4) Compute RMS chunks for visualization.
+    5) Run audio analysis on the uploaded files.
+    6) Store analysis results, track records, and related chat messages in the DB.
+    7) Optionally handle and analyze a reference track in the same upload group.
+    8) Generate GPT feedback incorporating analysis results (and reference track
+       comparison if provided).
+    9) Return structured JSON containing paths and analysis/feedback data.
+
+Endpoint:
+    POST /upload/
+        Upload a main track (and optional reference track) with metadata,
+        perform analysis, and return analysis results and AI feedback.
+
+Dependencies:
+    - Models: Track, AnalysisResult, ChatMessage, Session
+    - Audio analysis: analyze_audio()
+    - Feedback: generate_feedback_prompt(), generate_feedback_response()
+    - RMS computation: compute_rms_chunks()
+    - Normalization utils: normalize_session_name(), normalize_profile(),
+      normalize_genre(), normalize_subgenre(), safe_track_name()
+    - Filesystem: os, shutil, Pathlib for saving/deleting files
+"""
 from fastapi import APIRouter, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from app.database import SessionLocal
@@ -17,6 +51,7 @@ router = APIRouter()
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+
 @router.post("/")
 def upload_audio(
     file: UploadFile = File(...),
@@ -29,6 +64,35 @@ def upload_audio(
     subgenre: Optional[str] = Form(default=None),
     feedback_profile: str = Form(...),
 ):
+    """
+        Upload a main track and optional reference track, analyze them, and generate feedback.
+
+        This endpoint:
+          - Saves uploaded audio files to disk.
+          - Optionally analyzes a reference track for comparison.
+          - Computes RMS chunk data for waveform visualization.
+          - Performs audio analysis on the uploaded track(s).
+          - Stores analysis results and track records in the database.
+          - Generates GPT feedback using the provided profile and analysis results.
+          - Saves the feedback as a ChatMessage linked to the track.
+
+        Args:
+            file (UploadFile): The primary track file to upload.
+            ref_file (Optional[UploadFile]): An optional reference track for comparison.
+            session_id (str): The ID of the session this track belongs to.
+            session_name (Optional[str]): The name of the session (created if missing).
+            track_name (Optional[str]): A display name for the track; defaults to safe file name.
+            type (str): The type of track (e.g., 'mixdown', 'master').
+            genre (str): The genre of the track.
+            subgenre (Optional[str]): The subgenre of the track.
+            feedback_profile (str): The AI feedback profile to use.
+
+        Returns:
+            dict: Metadata about the track(s), analysis results, feedback, and file paths.
+
+        Raises:
+            JSONResponse: With status 500 if an unexpected error occurs during processing.
+        """
     # Normalize inputs
     session_id = normalize_session_name(session_id)
     session_name = normalize_session_name(session_name)
