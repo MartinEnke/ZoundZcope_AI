@@ -3,7 +3,7 @@
 export function setupTrackSelectHandler() {
   const trackSelect = document.getElementById("track-select");
   if (!trackSelect) {
-    console.warn("⚠️ track-select element not found");
+    // console.warn("track-select element not found (expected on this page)");
     return;
   }
 
