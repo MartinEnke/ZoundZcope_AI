@@ -156,6 +156,7 @@ if (refFileInput && refFileInput.files.length > 0) {
 
         window.lastSessionId = sessionId;
         window.lastTrackId = tracks[0]?.id || "";
+        resetExportButton();
 
         localStorage.setItem("zoundzcope_last_track_id", window.lastTrackId);
 

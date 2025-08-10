@@ -1,4 +1,5 @@
 // ui-reset.js
+import { isExportDone } from "./export-feedback.js";
 
 export function hideSummarizeButton() {
   const summarizeBtn = document.getElementById("manualSummarizeBtn");
@@ -21,11 +22,23 @@ export function clearQuickFollowupButtons() {
   container.classList.add("hidden");
 }
 
+
+
 export function resetExportButton() {
   const exportBtn = document.getElementById("exportFeedbackBtn");
-  if (exportBtn) {
+  if (!exportBtn) return;
+
+  const sessionId = window.lastSessionId || "";
+  const trackId = window.lastTrackId || "";
+
+  if (sessionId && trackId && isExportDone(sessionId, trackId)) {
+    exportBtn.disabled = true;
+    exportBtn.textContent = "Feedback + Presets Exported";
+    exportBtn.classList.add("opacity-60", "cursor-not-allowed");
+  } else {
     exportBtn.disabled = false;
     exportBtn.textContent = "Export Feedback & Presets";
+    exportBtn.classList.remove("opacity-60", "cursor-not-allowed");
   }
 }
 

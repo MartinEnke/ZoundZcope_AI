@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, Depends, HTTPException
+from fastapi import APIRouter, Query, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import Track, ChatMessage
@@ -279,6 +279,81 @@ def create_pdf(full_report_text: str, track_name: str = "") -> BytesIO:
 
 
 
+@router.get("/export-feedback-presets")
+def export_feedback_presets(
+    request: Request,
+    session_id: str = Query(...),
+    track_id: str = Query(...),
+    db: Session = Depends(get_db)
+):
+    print("URL:", str(request.url))
+    print(f"Export request for session {session_id}, track {track_id}")
+
+    # Fetch the track object
+    track = db.query(Track).filter(Track.id == track_id).first()
+    if not track:
+        raise HTTPException(status_code=404, detail="Track not found")
+
+    # Handle reference tracks
+    if "(Reference)" in (track.track_name or ""):
+        main_track = (
+            db.query(Track)
+            .filter(
+                Track.session_id == session_id,
+                ~Track.track_name.contains("(Reference)"),
+            )
+            .order_by(Track.uploaded_at.desc())
+            .first()
+        )
+
+        if not main_track:
+            raise HTTPException(
+                status_code=404,
+                detail="No main track found for this session to export feedback",
+            )
+        print(f"Reference track detected, switching export to main track {main_track.id}")
+        track = main_track  # update track object reference
+        track_id = main_track.id
+
+    # Fetch feedback
+    messages = (
+        db.query(ChatMessage)
+        .filter_by(session_id=session_id, track_id=track_id, sender='assistant')
+        .order_by(ChatMessage.timestamp)
+        .all()
+    )
+
+    if not messages:
+        raise HTTPException(status_code=404, detail="No feedback found for this session and track")
+
+    feedback_text = "\n\n".join(msg.message for msg in messages)
+
+    # Generate full report text
+    full_report = generate_preset_text_from_feedback(feedback_text)
+
+    # 🔧 Inject track name into the section title
+    if "AI Feedback:" in full_report:
+        full_report = full_report.replace(
+            "AI Feedback:",
+            f"AI Feedback – {track.track_name.strip()}:"
+        )
+
+    # Generate PDF
+    pdf_buffer = create_pdf(full_report, track_name=track.track_name)
+    print("Track name used for filename:", track.track_name)
+    clean_name = re.sub(r'[^\w\s-]', '', track.track_name or '').strip()
+    clean_name = re.sub(r'[\s]+', ' ', clean_name)
+    safe_track_name = clean_name.replace(" ", "_")
+
+    filename = f"Zoundzcope_AI-Report-{safe_track_name}.pdf"
+
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"'
+        }
+    )
 
 
 def render_line_with_bold(line: str, style: ParagraphStyle) -> Paragraph:
@@ -405,83 +480,6 @@ def create_comparison_pdf(feedback_text: str, preset_text: str) -> BytesIO:
     doc.build(elements)
     buffer.seek(0)
     return buffer
-
-
-
-@router.get("/export-feedback-presets")
-def export_feedback_presets(
-    session_id: str = Query(...),
-    track_id: str = Query(...),
-    db: Session = Depends(get_db)
-):
-    print(f"Export request for session {session_id}, track {track_id}")
-
-    # Fetch the track object
-    track = db.query(Track).filter(Track.id == track_id).first()
-    if not track:
-        raise HTTPException(status_code=404, detail="Track not found")
-
-    # Handle reference tracks
-    if "(Reference)" in (track.track_name or ""):
-        main_track = (
-            db.query(Track)
-            .filter(
-                Track.session_id == session_id,
-                ~Track.track_name.contains("(Reference)"),
-            )
-            .order_by(Track.uploaded_at.desc())
-            .first()
-        )
-
-        if not main_track:
-            raise HTTPException(
-                status_code=404,
-                detail="No main track found for this session to export feedback",
-            )
-        print(f"Reference track detected, switching export to main track {main_track.id}")
-        track = main_track  # update track object reference
-        track_id = main_track.id
-
-    # Fetch feedback
-    messages = (
-        db.query(ChatMessage)
-        .filter_by(session_id=session_id, track_id=track_id, sender='assistant')
-        .order_by(ChatMessage.timestamp)
-        .all()
-    )
-
-    if not messages:
-        raise HTTPException(status_code=404, detail="No feedback found for this session and track")
-
-    feedback_text = "\n\n".join(msg.message for msg in messages)
-
-    # Generate full report text
-    full_report = generate_preset_text_from_feedback(feedback_text)
-
-    # 🔧 Inject track name into the section title
-    if "AI Feedback:" in full_report:
-        full_report = full_report.replace(
-            "AI Feedback:",
-            f"AI Feedback – {track.track_name.strip()}:"
-        )
-
-    # Generate PDF
-    pdf_buffer = create_pdf(full_report, track_name=track.track_name)
-    print("Track name used for filename:", track.track_name)
-    clean_name = re.sub(r'[^\w\s-]', '', track.track_name or '').strip()
-    clean_name = re.sub(r'[\s]+', ' ', clean_name)
-    safe_track_name = clean_name.replace(" ", "_")
-
-    filename = f"Zoundzcope_AI-Report-{safe_track_name}.pdf"
-
-    return StreamingResponse(
-        pdf_buffer,
-        media_type="application/pdf",
-        headers={
-            "Content-Disposition": f'attachment; filename="{filename}"'
-        }
-    )
-
 
 
 def generate_presets_from_comparison_feedback(feedback_text: str) -> str:
