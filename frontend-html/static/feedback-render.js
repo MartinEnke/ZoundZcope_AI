@@ -95,34 +95,46 @@ export function renderFeedbackAnalysis(result, refTrackAnalysisData = null) {
   feedbackBox.appendChild(subheading);
 
   const ul = document.createElement("ul");
-  ul.className = "list-disc list-inside mt-2 text-white/90 space-y-1";
-  feedbackBox.appendChild(ul);
+ul.className = "list-disc list-inside mt-2 text-white/90 space-y-1";
+feedbackBox.appendChild(ul);
 
-  const lines = result.feedback
-    .split("\n")
-    .map(line => line.replace(/^[-•\s]+/, "").trim())
-    .filter(Boolean);
+const lines = result.feedback
+  .split("\n")
+  .map(line => line.replace(/^[-•\s]+/, "").trim())
+  .filter(Boolean);
 
-  for (const [index, line] of lines.entries()) {
-    const li = document.createElement("li");
-    li.style.display = "list-item";
-    if (index > 0) li.style.marginTop = "0.75rem";
+for (const [index, line] of lines.entries()) {
+  const li = document.createElement("li");
+  li.style.display = "list-item";
+  if (index > 0) li.style.marginTop = "0.75rem";
 
-    const issueMatch = line.match(/ISSUE:\s*([\s\S]*?)(?:IMPROVEMENT:\s*([\s\S]*))?$/i);
-    if (issueMatch) {
-      const issueText = issueMatch[1].trim();
-      const improvementText = issueMatch[2] ? issueMatch[2].replace(/^IMPROVEMENT:\s*/i, '').trim() : "";
-      li.innerHTML = `
-        <strong class="issue-label">ISSUE:</strong>
-        <span class="issue-text">${issueText}</span>
-        ${improvementText ? `<br><strong class="improvement-label">IMPROVEMENT:</strong> <span class="improvement-text">${improvementText}</span>` : ''}
-      `;
-    } else {
-      li.textContent = line;
-    }
+  // Match "INSIGHT:" followed by optional "SUGGESTION:"
+  const insightMatch = line.match(/INSIGHT:\s*([\s\S]*?)(?:SUGGESTION:\s*([\s\S]*))?$/i);
 
-    ul.appendChild(li);
+  if (insightMatch) {
+    const insightText = insightMatch[1].trim();
+    const suggestionText = insightMatch[2]
+      ? insightMatch[2].replace(/^SUGGESTION:\s*/i, "").trim()
+      : "";
+
+    const metallicViolet = "#D8B4FE"; // silver-violet tone
+
+    li.innerHTML = `
+      <strong class="insight-label" style="color:${metallicViolet};">INSIGHT:</strong>
+      <span class="insight-text">${insightText}</span>
+      ${
+        suggestionText
+          ? `<br><strong class="suggestion-label" style="color:${metallicViolet};">SUGGESTION:</strong> <span class="suggestion-text">${suggestionText}</span>`
+          : ""
+      }
+    `;
+  } else {
+    li.textContent = line;
   }
+
+  ul.appendChild(li);
+}
+
 
   const exportBtn = document.getElementById("exportFeedbackBtn");
 if (exportBtn) {
