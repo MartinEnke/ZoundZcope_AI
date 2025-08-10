@@ -16,6 +16,14 @@ import uuid
 router = APIRouter()
 
 def get_db():
+    """
+        Dependency function that provides a SQLAlchemy database session.
+
+        Yields:
+            Session: SQLAlchemy session object.
+        Ensures:
+            The session is properly closed after use.
+        """
     db = SessionLocal()
     try:
         yield db

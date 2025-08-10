@@ -17,6 +17,14 @@ import re
 router = APIRouter()
 
 def get_db():
+    """
+        Dependency function that provides a SQLAlchemy database session.
+
+        Yields:
+            Session: SQLAlchemy session object.
+        Ensures:
+            The session is properly closed after use.
+        """
     db = SessionLocal()
     try:
         yield db
@@ -24,6 +32,19 @@ def get_db():
         db.close()
 
 def get_feedback_text(session_id: str, track_id: str, db: Session) -> str:
+    def get_feedback_text(session_id: str, track_id: str, db: Session) -> str:
+        """
+        Retrieve concatenated assistant feedback messages for a given session and track.
+
+        Args:
+            session_id (str): The ID of the session.
+            track_id (str): The ID of the track.
+            db (Session): Active SQLAlchemy session.
+
+        Returns:
+            str: All assistant feedback messages joined with double line breaks.
+        """
+
     messages = (
         db.query(ChatMessage)
         .filter_by(session_id=session_id, track_id=track_id, sender='assistant')
@@ -34,6 +55,15 @@ def get_feedback_text(session_id: str, track_id: str, db: Session) -> str:
 
 
 def generate_preset_text_from_feedback(feedback_text: str) -> str:
+    """
+        Generate a structured presets report text based on existing AI feedback.
+
+        Args:
+            feedback_text (str): Original AI feedback text for a track.
+
+        Returns:
+            str: Formatted report text including insights, suggestions, and preset parameters.
+        """
     prompt = f"""
 
 Here is the AI feedback you generated previously:
@@ -114,9 +144,21 @@ Generate the content now:
     return generate_feedback_response(prompt)
 
 
-
-
 def draw_wrapped_text(p, text, x, y, max_width, line_height=14):
+    """
+        Draw wrapped text onto a ReportLab canvas, starting at given coordinates.
+
+        Args:
+            p (canvas.Canvas): ReportLab canvas object.
+            text (str): The text to draw.
+            x (float): X-coordinate.
+            y (float): Y-coordinate.
+            max_width (float): Maximum text width before wrapping.
+            line_height (int, optional): Height between lines. Defaults to 14.
+
+        Returns:
+            float: Updated y-coordinate after drawing the text.
+        """
     lines = simpleSplit(text, "Helvetica", 10, max_width)
     for line in lines:
         if y < 50:
@@ -129,6 +171,16 @@ def draw_wrapped_text(p, text, x, y, max_width, line_height=14):
 
 
 def create_pdf(full_report_text: str, track_name: str = "") -> BytesIO:
+    """
+        Create a PDF report from structured AI feedback and preset parameters.
+
+        Args:
+            full_report_text (str): The complete formatted report text.
+            track_name (str, optional): The name of the track for display. Defaults to "".
+
+        Returns:
+            BytesIO: In-memory PDF file buffer.
+        """
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter,
                             rightMargin=40, leftMargin=40,
@@ -278,7 +330,6 @@ def create_pdf(full_report_text: str, track_name: str = "") -> BytesIO:
     return buffer
 
 
-
 @router.get("/export-feedback-presets")
 def export_feedback_presets(
     request: Request,
@@ -286,6 +337,18 @@ def export_feedback_presets(
     track_id: str = Query(...),
     db: Session = Depends(get_db)
 ):
+    """
+        Export AI feedback and preset recommendations for a track as a PDF.
+
+        Query Parameters:
+            session_id (str): The ID of the session.
+            track_id (str): The ID of the track.
+
+        Returns:
+            StreamingResponse: PDF download containing the report.
+        Raises:
+            HTTPException: If track or feedback is not found.
+        """
     print("URL:", str(request.url))
     print(f"Export request for session {session_id}, track {track_id}")
 
@@ -357,13 +420,32 @@ def export_feedback_presets(
 
 
 def render_line_with_bold(line: str, style: ParagraphStyle) -> Paragraph:
-    # Convert **text** into bold using <b> tags
+    """
+        Convert Markdown-style bold markers (**text**) to HTML bold tags for ReportLab rendering.
+
+        Args:
+            line (str): Input text line.
+            style (ParagraphStyle): ReportLab paragraph style.
+
+        Returns:
+            Paragraph: Styled paragraph with bold formatting applied.
+        """
     line = escape(line)
     line = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", line)
     return Paragraph(line, style)
 
 
 def create_comparison_pdf(feedback_text: str, preset_text: str) -> BytesIO:
+    """
+        Create a PDF report comparing AI feedback for multiple tracks and showing preset recommendations.
+
+        Args:
+            feedback_text (str): AI comparison feedback text.
+            preset_text (str): Recommended preset parameters.
+
+        Returns:
+            BytesIO: In-memory PDF file buffer.
+        """
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter,
                             rightMargin=40, leftMargin=40,
@@ -483,6 +565,15 @@ def create_comparison_pdf(feedback_text: str, preset_text: str) -> BytesIO:
 
 
 def generate_presets_from_comparison_feedback(feedback_text: str) -> str:
+    """
+        Generate preset parameter recommendations from multi-track comparison feedback.
+
+        Args:
+            feedback_text (str): AI-generated feedback comparing multiple tracks.
+
+        Returns:
+            str: Preset parameter section formatted for inclusion in a PDF report.
+        """
     prompt = f"""
 You are an expert audio engineer assisting with a comparison of multiple tracks.
 
@@ -531,9 +622,19 @@ Rules:
     return generate_feedback_response(prompt)
 
 
-
 @router.get("/export-comparison")
 def export_comparison_feedback(group_id: str = Query(...), db: Session = Depends(get_db)):
+    """
+        Export multi-track comparison AI feedback and generated preset recommendations as a PDF.
+
+        Query Parameters:
+            group_id (str): The ID of the comparison group.
+
+        Returns:
+            StreamingResponse: PDF download containing comparison feedback and presets.
+        Raises:
+            HTTPException: If no comparison feedback is found.
+        """
     messages = (
         db.query(ChatMessage)
         .filter(ChatMessage.comparison_group_id == group_id)
