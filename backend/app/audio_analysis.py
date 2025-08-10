@@ -1,5 +1,27 @@
-import numpy as np
+"""
+Audio analysis module for ZoundZcope.
 
+This module extracts and interprets a range of technical and musical
+features from uploaded audio tracks. It is used by the backend to
+generate detailed analysis data for AI feedback, reporting, and
+comparisons.
+
+Main capabilities:
+- **True Peak Detection** (with optional oversampling to catch intersample peaks)
+- **Loudness Measurement** (LUFS, RMS, and crest factor)
+- **Transient Analysis** (average/max strength with descriptive categorization)
+- **Tempo & Key Detection** (via beat tracking and chroma correlation)
+- **Stereo Width Measurement** (mid/side ratio and qualitative label)
+- **Frequency Band Energy Analysis** (sub to air, normalized ratios)
+- **Low-End Profile & Spectral Balance** descriptions (genre-aware)
+- **Peak Issue Detection** (clipping risk, low level warnings)
+- **Dynamic Range Calculation** (based on top-loudness segments)
+
+Returned analysis is structured as a dictionary, with each key providing
+either a numeric value or a descriptive string that can be used for
+display in the UI, storage in the database, or inclusion in AI prompts.
+"""
+import numpy as np
 
 # Fix deprecated alias for compatibility with newer numpy
 if not hasattr(np, 'complex'):
@@ -12,6 +34,26 @@ import math
 
 
 def detect_key(y, sr):
+    """
+        Detect the musical key of an audio signal.
+
+        Parameters
+        ----------
+        y : np.ndarray
+            Audio time series (mono or stereo), normalized or raw.
+        sr : int
+            Sampling rate of the audio signal.
+
+        Returns
+        -------
+        str
+            Estimated musical key in the format '<Note> Major' or '<Note> minor'.
+
+        Notes
+        -----
+        Uses chroma features and correlation against
+        the Krumhansl–Kessler key profiles.
+        """
     chroma = librosa.feature.chroma_cqt(y=y, sr=sr)
     chroma_mean = np.mean(chroma, axis=1)
 
@@ -39,6 +81,22 @@ def detect_key(y, sr):
 
 
 def compute_band_energies(S, freqs):
+    """
+        Compute normalized energy distribution across predefined frequency bands.
+
+        Parameters
+        ----------
+        S : np.ndarray
+            Spectrogram magnitude (power) values.
+        freqs : np.ndarray
+            Corresponding frequency bins for `S`.
+
+        Returns
+        -------
+        dict
+            Mapping of band names ('sub', 'low', 'low-mid', etc.) to
+            normalized energy ratios (0.0–1.0).
+        """
     bands = {
         "sub": (20, 60),
         "low": (60, 250),
@@ -61,6 +119,21 @@ def compute_band_energies(S, freqs):
 
 
 def describe_low_end_profile(ratio: float, genre: str = None) -> str:
+    """
+        Provide a genre-aware interpretation of low-end energy ratio.
+
+        Parameters
+        ----------
+        ratio : float
+            Fraction of total energy in the low-end region (≤150 Hz).
+        genre : str, optional
+            Musical genre to adjust thresholds and phrasing.
+
+        Returns
+        -------
+        str
+            Human-readable description of low-end presence and possible mix issues.
+        """
     genre = (genre or "").lower()
 
     bass_driven = {"electronic", "hiphop", "rnb"}
@@ -111,8 +184,38 @@ def describe_low_end_profile(ratio: float, genre: str = None) -> str:
             return "Low-end is very dominant — could overwhelm mids or cause translation issues."
 
 
-
 def describe_spectral_balance(band_energies: dict, genre: str = "electronic") -> str:
+    """
+        Generate a qualitative description of the track's spectral balance.
+
+        Parameters
+        ----------
+        band_energies : dict
+            Mapping of frequency band names to normalized energy ratios
+            (0.0–1.0). Expected keys include:
+            - 'sub'
+            - 'low'
+            - 'low-mid'
+            - 'mid'
+            - 'high-mid'
+            - 'high'
+
+        Returns
+        -------
+        str
+            Human-readable description summarizing the relative balance
+            between low, mid, and high frequency regions.
+
+        Notes
+        -----
+        The function groups bands into three regions:
+        - Lows: 'sub', 'low'
+        - Mids: 'low-mid', 'mid'
+        - Highs: 'high-mid', 'high'
+
+        It then compares their average energy to determine if the spectrum
+        is balanced, low-heavy, mid-heavy, or high-heavy.
+        """
     # Collapse to simple groups
     sub = band_energies.get("sub", 0)
     low = band_energies.get("low", 0)
@@ -166,6 +269,36 @@ def describe_spectral_balance(band_energies: dict, genre: str = "electronic") ->
 
 
 def compute_dynamic_range_and_rms(y, sr, window_duration=0.4, top_percent=0.1):
+    """
+        Compute the dynamic range (crest factor) and RMS level of the loudest
+        sections in an audio signal.
+
+        Parameters
+        ----------
+        y : np.ndarray
+            Audio time series (mono or stereo). If stereo, should already be
+            mixed down to mono before calling this function.
+        sr : int
+            Sampling rate of the audio in Hz.
+        window_duration : float, optional
+            Length of analysis window in seconds (default is 0.4s).
+        top_percent : float, optional
+            Fraction of the loudest windows (by RMS) to include in the calculation.
+            Must be between 0.0 and 1.0. Default is 0.1 (top 10%).
+
+        Returns
+        -------
+        rms_db : float
+            Average RMS level of the selected loudest sections, in decibels (dBFS).
+        crest_factor : float
+            Difference between peak and RMS levels (crest factor) in dB.
+
+        Notes
+        -----
+        - The crest factor is a common measure of dynamic range, with higher
+          values indicating more transient-rich material.
+        - The function uses overlapping windows with 50% hop size.
+        """
     window_size = int(sr * window_duration)
     hop_size = int(window_size // 2)
 
@@ -201,6 +334,37 @@ def compute_dynamic_range_and_rms(y, sr, window_duration=0.4, top_percent=0.1):
 
 
 def compute_loudest_section_lufs(y, sr, meter=None, window_duration=1.0, top_percent=0.1):
+    """
+        Compute the integrated LUFS (Loudness Units Full Scale) of the loudest
+        sections in an audio signal.
+
+        Parameters
+        ----------
+        y : np.ndarray
+            Audio time series (mono or stereo). If stereo, should be mixed down
+            to mono before calling for consistent results.
+        sr : int
+            Sampling rate of the audio in Hz.
+        window_duration : float, optional
+            Length of each loudness analysis window in seconds.
+            Default is 3.0s.
+        top_percent : float, optional
+            Fraction of the loudest windows (by LUFS) to include in the calculation.
+            Must be between 0.0 and 1.0. Default is 0.1 (top 10%).
+
+        Returns
+        -------
+        float
+            Integrated LUFS of the selected loudest sections, in LUFS (negative dB).
+
+        Notes
+        -----
+        - LUFS is measured using the ITU-R BS.1770 algorithm via the
+          `pyloudnorm` library.
+        - This function focuses on the loudest moments of the track,
+          making it useful for mastering-level loudness checks.
+        - More negative LUFS values indicate quieter audio.
+        """
     if meter is None:
         meter = pyln.Meter(sr)
 
@@ -224,6 +388,34 @@ def compute_loudest_section_lufs(y, sr, meter=None, window_duration=1.0, top_per
 
 
 def compute_true_peak(y, sr, target_sr=192000):
+    """
+        Compute the true peak level of an audio signal.
+
+        Parameters
+        ----------
+        y : np.ndarray
+            Audio time series (mono or stereo).
+        sr : int
+            Sampling rate of the audio in Hz.
+        oversample_factor : int, optional
+            Factor by which to oversample the audio before peak detection.
+            Higher values improve accuracy but increase computation time.
+            Default is 4.
+
+        Returns
+        -------
+        float
+            True peak level in decibels full scale (dBFS).
+
+        Notes
+        -----
+        - True peak measures the maximum instantaneous signal level
+          after reconstruction, accounting for inter-sample peaks.
+        - Oversampling helps detect peaks that may exceed 0 dBFS even if
+          the discrete samples are below 0.
+        - A true peak close to 0 dBFS can indicate risk of clipping during
+          playback or conversion.
+        """
     if sr >= target_sr:
         upsampled = y
     else:
@@ -235,11 +427,34 @@ def compute_true_peak(y, sr, target_sr=192000):
     return round(true_peak_db, 2)
 
 
-
-
-
-
 def detect_transient_strength(y, sr):
+    """
+        Measure the transient strength of an audio signal.
+
+        Parameters
+        ----------
+        y : np.ndarray
+            Audio time series (mono or stereo).
+        sr : int
+            Sampling rate of the audio in Hz.
+
+        Returns
+        -------
+        avg_transient_strength : float
+            Average onset strength across the entire track.
+        max_transient_strength : float
+            Maximum onset strength observed in the track.
+
+        Notes
+        -----
+        - Transients represent sudden increases in amplitude, typically from
+          percussive sounds like drum hits or plucked strings.
+        - Onset strength is calculated using `librosa.onset.onset_strength`.
+        - Average strength gives an overall measure of track punchiness,
+          while the maximum indicates the most prominent transient.
+        - These values are useful for detecting whether a mix is punchy,
+          balanced, or lacking attack.
+        """
     onset_env = librosa.onset.onset_strength(y=y, sr=sr)
     avg_transient_strength = float(np.mean(onset_env))
     max_transient_strength = float(np.max(onset_env))
@@ -247,6 +462,34 @@ def detect_transient_strength(y, sr):
 
 
 def describe_transients(avg, max):
+    """
+        Generate a qualitative description of a track's transients based on
+        average and maximum transient strength.
+
+        Parameters
+        ----------
+        avg : float
+            Average transient strength value, typically from `detect_transient_strength`.
+        max : float
+            Maximum transient strength value, typically from `detect_transient_strength`.
+
+        Returns
+        -------
+        description : str
+            A descriptive sentence summarizing the transient quality, including
+            both overall punchiness and peak transient characteristics.
+
+        Notes
+        -----
+        - The function uses threshold-based classification to label transients
+          as "soft", "balanced", "punchy", or "sharp".
+        - It also provides an additional note based on the maximum transient
+          strength to indicate whether transients are excessively spiky or
+          unusually soft.
+        - This qualitative feedback can help identify potential mixing issues
+          such as over-compression, excessive transient shaping, or insufficient
+          attack on percussion.
+        """
     if avg < 1.5:
         quality = "very soft or buried"
     elif avg < 3.5:
@@ -269,6 +512,36 @@ def describe_transients(avg, max):
 
 
 def generate_peak_issues_description(peak_db: float):
+    """
+        Analyze the peak level of an audio track and return a list of
+        potential issues along with explanatory text.
+
+        Parameters
+        ----------
+        peak_db : float
+            Peak amplitude of the track in decibels relative to full scale (dBFS).
+            Positive values indicate peaks above 0 dBFS, while negative values
+            indicate headroom below full scale.
+
+        Returns
+        -------
+        issues : list of str
+            Short labels describing potential problems, e.g.
+            ["Clipping risk", "Low peak level"].
+        explanation : str
+            A longer descriptive explanation providing context for the issues
+            and suggesting corrective actions.
+
+        Notes
+        -----
+        - If `peak_db` > 0.0, the track is considered at risk of digital clipping.
+        - If -0.3 < `peak_db` <= 0.0, it is considered near-clipping and may
+          cause intersample peaks.
+        - If `peak_db` < -5.0, the track's peak level is unusually low, which
+          could indicate poor gain staging.
+        - The returned explanation is intended for display in analysis reports
+          or user-facing feedback.
+        """
     issues = []
     explanation_parts = []
 
@@ -298,6 +571,27 @@ def generate_peak_issues_description(peak_db: float):
 
 
 def analyze_audio(file_path, genre=None):
+    """
+        Perform a full technical analysis of an audio file.
+
+        Parameters
+        ----------
+        file_path : str
+            Path to the audio file to analyze.
+        genre : str, optional
+            Musical genre for context-aware analysis.
+
+        Returns
+        -------
+        dict
+            Dictionary containing extracted audio features and descriptive labels:
+            - peak_db, rms_db_peak, lufs, dynamic_range
+            - tempo, key, stereo_width_ratio, stereo_width
+            - low_end_energy_ratio, low_end_description
+            - band_energies (JSON string), spectral_balance_description
+            - peak_issue, peak_issue_explanation
+            - avg_transient_strength, max_transient_strength, transient_description
+        """
     y, sr = librosa.load(file_path, mono=True)
 
     # ----- TRUE PEAK (oversampled) -----
