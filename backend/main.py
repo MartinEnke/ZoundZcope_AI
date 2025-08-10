@@ -1,3 +1,31 @@
+"""
+Main entry point for the ZoundZcope FastAPI application.
+
+This module:
+    - Configures the FastAPI app, CORS, static file serving, and templates.
+    - Registers API routers for file upload, chat, RAG features, token tracking,
+      sessions, tracks, and export functionality.
+    - Initializes the database schema.
+    - Serves HTML frontend pages.
+    - Runs a background cleanup task to remove old uploads.
+
+Routes:
+    GET /                    - Render the main index page.
+    GET /info.html           - Render the info page.
+    GET /feedback_history.html - Render the feedback history page.
+
+Static Mounts:
+    /static  → Frontend static assets.
+    /uploads → Uploaded audio files.
+
+Background Tasks:
+    periodic_cleanup_task(): Removes old uploaded files twice daily.
+
+Dependencies:
+    - FastAPI, Jinja2, SQLAlchemy, CORSMiddleware.
+    - Routers: upload, chat, rag, tokens, sessions, tracks, export.
+    - Cleanup utility for old uploads.
+"""
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,18 +42,17 @@ from app.routers import rag
 from app.routers import tokens
 
 
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # print("Registered routes:")
-    # for route in app.routes:
-    #     if isinstance(route, APIRoute):
-    #         print(route.path, route.methods)
-    #     else:
-    #         print(route.path, "(mount or other)")
+    """
+        Application lifespan context manager.
 
-    # Start your periodic cleanup task here:
+        Starts a periodic cleanup task on application startup
+        and ensures it is cancelled on shutdown.
+
+        Args:
+            app (FastAPI): The running FastAPI application instance.
+        """
     task = asyncio.create_task(periodic_cleanup_task())
     try:
         yield
@@ -36,19 +63,16 @@ async def lifespan(app: FastAPI):
         except asyncio.CancelledError:
             pass
 
+
 app = FastAPI(title="ZoundZcope API", lifespan=lifespan)
 
 logger = logging.getLogger("uvicorn.error")
 
-
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_DIR = os.path.join(BASE_DIR, "frontend-html", "static")
 
-
 UPLOAD_DIR = os.path.join(BASE_DIR, "backend", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-
 
 
 #/================/#
@@ -60,7 +84,6 @@ from fastapi.responses import HTMLResponse
 
 
 Base.metadata.create_all(bind=engine)
-
 
 #/=====config for frontend-html======/#
 # Serve static files like your logo
@@ -81,7 +104,6 @@ app.include_router(upload.router, prefix="/upload", tags=["Upload"])
 app.include_router(chat.router, prefix="/chat", tags=["Chat"])
 app.include_router(rag.router, prefix="/chat", tags=["RAG"])
 app.include_router(tokens.router)
-# print("Chat router included")
 app.include_router(sessions.router)
 app.include_router(tracks.router, prefix="/tracks", tags=["Tracks"])
 app.include_router(export.router, prefix="/export", tags=["Export"])
@@ -89,12 +111,21 @@ app.include_router(export.router, prefix="/export", tags=["Export"])
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
-# print("Connected to DB at:", engine.url)
-
-
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_frontend(request: Request):
+    """
+        Render the main index page.
+
+        - Lists uploaded audio files in the uploads directory.
+        - Passes the latest uploaded track (if any) to the template.
+
+        Args:
+            request (Request): FastAPI request object.
+
+        Returns:
+            TemplateResponse: Rendered `index.html` with track context.
+        """
     # Look for files in the upload directory
     try:
         files = sorted(
@@ -117,16 +148,38 @@ async def serve_frontend(request: Request):
 
 @app.get("/info.html", response_class=HTMLResponse)
 async def serve_info(request: Request):
+    """
+        Render the info page.
+
+        Args:
+            request (Request): FastAPI request object.
+
+        Returns:
+            TemplateResponse: Rendered `info.html`.
+        """
     return templates.TemplateResponse("info.html", {"request": request})
 
 
 @app.get("/feedback_history.html", response_class=HTMLResponse)
 async def serve_feedback_history(request: Request):
+    """
+        Render the feedback history page.
+
+        Args:
+            request (Request): FastAPI request object.
+
+        Returns:
+            TemplateResponse: Rendered `feedback_history.html`.
+        """
     return templates.TemplateResponse("feedback_history.html", {"request": request})
 
 
-
 async def periodic_cleanup_task():
+    """
+        Background task to periodically clean up old uploaded files.
+
+        Runs every 12 hours and logs actions or errors.
+        """
     while True:
         try:
             logger.info("Running periodic cleanup task...")
@@ -135,8 +188,14 @@ async def periodic_cleanup_task():
             logger.error(f"Periodic cleanup error: {e}")
         await asyncio.sleep(12 * 60 * 60)  # Run twice daily
 
+
 @app.on_event("startup")
 async def startup_event():
+    """
+        FastAPI startup event handler.
+
+        Starts the periodic cleanup task in the background.
+        """
     asyncio.create_task(periodic_cleanup_task())
 
 
