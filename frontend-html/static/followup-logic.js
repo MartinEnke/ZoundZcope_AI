@@ -268,3 +268,4 @@ if (lastGroup) {
 
 window.ZoundZcope = window.ZoundZcope || {};
 window.ZoundZcope.showSummarizeButton = showSummarizeButton;
+// window.ZoundZcope.summarizeFollowupThread = summarizeFollowupThread; //

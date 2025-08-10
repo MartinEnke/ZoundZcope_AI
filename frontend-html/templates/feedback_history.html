@@ -1,155 +1,313 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Feedback History – ZoundZcope AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css" />
-  <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
-  <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
-  <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png" />
-  <meta name="apple-mobile-web-app-title" content="ZZ AI" />
-  <link rel="manifest" href="/static/favicon/site.webmanifest" />
-</head>
+  <head>
+    <!--
+      Document: Feedback History – ZoundZcope AI
+      Purpose: Displays single-track feedback, multi-track comparison feedback,
+               and session/track management UI for ZoundZcope.
+      Notes:   Structure preserved exactly; comments added for clarity.
+               Tailwind v2 CDN is used for styling alongside a local stylesheet.
+    -->
 
-<body class="bg-black text-white px-4 py-8">
-  <div class="fixed inset-0 z-0 opacity-10 bg-no-repeat bg-center pointer-events-none"
-       style="background-image: url('/static/logo old.png'); background-size: 1800px; background-position: center -450px;"></div>
+    <meta charset="UTF-8" />
+    <title>Feedback History – ZoundZcope AI</title>
 
-  <header class="fixed inset-x-0 top-0 z-50 bg-black bg-opacity-75 backdrop-filter backdrop-blur-sm border-b-2 border-white border-opacity-80 shadow-md flex items-center justify-between p-4">
-  <!-- Left: Logo -->
-  <a href="/" class="flex items-center hover:opacity-80 transition">
-    <img src="/static/Logo.png" alt="Logo" class="h-10 w-10 mr-3">
-    <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
-  </a>
+    <!-- Mobile viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Desktop: Info only -->
-  <nav class="hidden md:flex items-center gap-6">
-  <a href="info.html" class="text-white hover:text-blue-400 text-base transition font-medium">Info</a>
-</nav>
+    <!-- Tailwind CSS (CDN) -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
 
-  <!-- Mobile: ⋮ Dropdown Menu -->
-  <div class="relative md:hidden">
-    <button id="mobile-menu-button" class="text-white text-2xl px-2 py-1 rounded hover:bg-white/10">
-      ⋮
-    </button>
-    <div id="mobile-menu-dropdown"
-         class="milky-dropdown absolute right-0 mt-2 w-48 text-sm text-white z-50 hidden space-y-1 bg-black/70 backdrop-blur-md rounded-md shadow-lg">
-      <a href="info.html" class="text-white hover:text-blue-400 text-base transition font-medium">
+    <!-- Project styles -->
+    <link rel="stylesheet" href="/static/style.css" />
 
-      <a href="/" class="block px-4 py-2 hover:bg-white/10 rounded">Home</a>
-    </div>
-  </div>
-</header>
+    <!-- Favicons / PWA Meta -->
+    <link
+      rel="icon"
+      type="image/png"
+      href="/static/favicon/favicon-96x96.png"
+      sizes="96x96"
+    />
+    <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
+    <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/static/favicon/apple-touch-icon.png"
+    />
+    <meta name="apple-mobile-web-app-title" content="ZZ AI" />
+    <link rel="manifest" href="/static/favicon/site.webmanifest" />
+  </head>
 
+  <body class="bg-black text-white px-4 py-8">
+    <!--
+      Subtle background watermark/logo layer.
+      pointer-events-none ensures it doesn't intercept clicks.
+    -->
+    <div
+      class="fixed inset-0 z-0 opacity-10 bg-no-repeat bg-center pointer-events-none"
+      style="
+        background-image: url('/static/logo old.png');
+        background-size: 1800px;
+        background-position: center -450px;
+      "
+    ></div>
 
+    <!-- ======================================================== -->
+    <!-- Header / Navbar                                         -->
+    <!-- ======================================================== -->
+    <header
+      class="fixed inset-x-0 top-0 z-50 bg-black bg-opacity-75 backdrop-filter backdrop-blur-sm border-b-2 border-white border-opacity-80 shadow-md flex items-center justify-between p-4"
+    >
+      <!-- Left: Logo / Brand -->
+      <a href="/" class="flex items-center hover:opacity-80 transition">
+        <img src="/static/Logo.png" alt="Logo" class="h-10 w-10 mr-3" />
+        <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
+      </a>
 
-  <main class="relative z-10 pt-28 max-w-4xl mx-auto px-3 space-y-8">
-    <h1 class="text-2xl font-bold mb-6">Feedback History</h1>
+      <!-- Desktop: Primary Nav (Info only) -->
+      <nav class="hidden md:flex items-center gap-6">
+        <a
+          href="info.html"
+          class="text-white hover:text-blue-400 text-base transition font-medium"
+          >Info</a
+        >
+      </nav>
 
-    <!-- SESSION CONTROLS -->
-    <div class="flex items-center gap-2">
-      <div class="relative w-full">
-        <input type="hidden" id="session-input" />
-        <button type="button" id="session-button" class="milky-input flex justify-between items-center w-full px-4 py-2 text-left">
-          <span id="session-selected" class="text-white/80">Choose Session</span>
-          <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-          </svg>
+      <!-- Mobile: ⋮ Dropdown Menu (toggled via JS below) -->
+      <div class="relative md:hidden">
+        <button
+          id="mobile-menu-button"
+          class="text-white text-2xl px-2 py-1 rounded hover:bg-white/10"
+        >
+          ⋮
         </button>
-        <ul id="session-options" class="absolute z-50 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden"
-            style="background-color: rgba(255,255,255,0.03); backdrop-filter: blur(9px);"></ul>
-      </div>
-    </div>
-    <input type="text" id="rename-session-input" class="milky-input w-full mt-1 hidden" placeholder="New session name" />
+        <div
+          id="mobile-menu-dropdown"
+          class="milky-dropdown absolute right-0 mt-2 w-48 text-sm text-white z-50 hidden space-y-1 bg-black/70 backdrop-blur-md rounded-md shadow-lg"
+        >
+          <!-- NOTE: Intentional retention of original anchor structure -->
+          <a
+            href="info.html"
+            class="text-white hover:text-blue-400 text-base transition font-medium"
+          ></a>
 
-    <!-- TRACK CONTROLS -->
-    <div class="flex items-center gap-2 mt-4">
-      <div class="relative w-full">
-        <input type="hidden" id="track-input" />
-        <button type="button" id="track-button" class="milky-input flex justify-between items-center w-full px-4 py-2 text-left">
-          <span id="track-selected" class="text-white/80">Choose Track</span>
-          <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-          </svg>
+          <a href="/" class="block px-4 py-2 hover:bg-white/10 rounded"
+            >Home</a
+          >
+        </div>
+      </div>
+    </header>
+
+    <!-- ======================================================== -->
+    <!-- Main Content                                             -->
+    <!-- ======================================================== -->
+    <main class="relative z-10 pt-28 max-w-4xl mx-auto px-3 space-y-8">
+      <h1 class="text-2xl font-bold mb-6">Feedback History</h1>
+
+      <!-- =============================== -->
+      <!-- SESSION CONTROLS                -->
+      <!-- =============================== -->
+      <div class="flex items-center gap-2">
+        <div class="relative w-full">
+          <!-- Hidden value holder for selected session -->
+          <input type="hidden" id="session-input" />
+
+          <!-- Custom-styled dropdown trigger -->
+          <button
+            type="button"
+            id="session-button"
+            class="milky-input flex justify-between items-center w-full px-4 py-2 text-left"
+          >
+            <span id="session-selected" class="text-white/80">Choose Session</span>
+            <svg
+              class="w-4 h-4 text-white opacity-60"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+
+          <!-- Session options list (populated by JS) -->
+          <ul
+            id="session-options"
+            class="absolute z-50 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden"
+            style="background-color: rgba(255,255,255,0.03); backdrop-filter: blur(9px);"
+          ></ul>
+        </div>
+      </div>
+
+      <!-- Inline rename field for selected session -->
+      <input
+        type="text"
+        id="rename-session-input"
+        class="milky-input w-full mt-1 hidden"
+        placeholder="New session name"
+      />
+
+      <!-- =============================== -->
+      <!-- TRACK CONTROLS                  -->
+      <!-- =============================== -->
+      <div class="flex items-center gap-2 mt-4">
+        <div class="relative w-full">
+          <!-- Hidden value holder for selected track -->
+          <input type="hidden" id="track-input" />
+
+          <!-- Custom-styled dropdown trigger -->
+          <button
+            type="button"
+            id="track-button"
+            class="milky-input flex justify-between items-center w-full px-4 py-2 text-left"
+          >
+            <span id="track-selected" class="text-white/80">Choose Track</span>
+            <svg
+              class="w-4 h-4 text-white opacity-60"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+
+          <!-- Track options list (checkbox items populated by JS) -->
+          <ul
+            id="track-options"
+            class="absolute z-50 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden overflow-y-auto max-h-72"
+            style="background-color: rgba(0,0,0,0.03); backdrop-filter: blur(9px);"
+          >
+            <!-- JS will populate checkboxes for each track -->
+          </ul>
+        </div>
+      </div>
+
+      <!-- Inline rename field for selected track -->
+      <input
+        type="text"
+        id="rename-track-input"
+        class="milky-input w-full mt-1 hidden"
+        placeholder="New track name"
+      />
+
+      <!-- ======================================================== -->
+      <!-- FEEDBACK DISPLAY (Single Track)                          -->
+      <!-- ======================================================== -->
+      <section
+        id="history-feedback"
+        class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4 hidden relative"
+      >
+        <!-- Close control for the single-track feedback panel -->
+        <button
+          id="close-feedback-btn"
+          class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full border border-white text-white text-lg font-semibold hover:text-black transition"
+        >
+          ×
         </button>
-        <ul id="track-options" class="absolute z-50 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden overflow-y-auto max-h-72"
-            style="background-color: rgba(0,0,0,0.03); backdrop-filter: blur(9px);">
-          <!-- JS will populate checkboxes for each track -->
-        </ul>
-      </div>
-    </div>
-    <input type="text" id="rename-track-input" class="milky-input w-full mt-1 hidden" placeholder="New track name" />
 
+        <h2 class="text-xl font-semibold">AI Feedback</h2>
+        <div
+          id="history-feedback-output"
+          class="text-white/90 text-sm whitespace-pre-wrap"
+        ></div>
+      </section>
 
+      <br /><br />
 
-    <!-- FEEDBACK DISPLAY (Single Track) -->
-    <section id="history-feedback" class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4 hidden relative">
-  <button id="close-feedback-btn"
-  class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full border border-white text-white text-lg font-semibold hover:text-black transition">
-  ×
-</button>
-  <h2 class="text-xl font-semibold">AI Feedback</h2>
-  <div id="history-feedback-output" class="text-white/90 text-sm whitespace-pre-wrap"></div>
-</section>
-    <br><br>
-    <!-- 🔹 Manage Sessions and Tracks -->
-    <section class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4">
-      <div class="flex justify-between items-center mb-4">
-  <h2 class="text-2xl font-semibold text-white">Manage Sessions & Tracks</h2>
-  <button id="add-session-btn"
-    class="flex items-center justify-center w-8 h-8 text-xl rounded-full text-white border border-white/30 bg-white/5 hover:bg-green-500 hover:text-white hover:border-green-400 transition">
-    +
-  </button>
-</div>
-      <div id="manage-section" class="space-y-6">
-        <br>
-        <!-- JS will populate:
-             - session names with edit/delete
-             - track lists per session
+      <!-- ======================================================== -->
+      <!-- Manage Sessions & Tracks                                 -->
+      <!-- ======================================================== -->
+      <section class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-semibold text-white">Manage Sessions & Tracks</h2>
+          <!-- Add new empty session button -->
+          <button
+            id="add-session-btn"
+            class="flex items-center justify-center w-8 h-8 text-xl rounded-full text-white border border-white/30 bg-white/5 hover:bg-green-500 hover:text-white hover:border-green-400 transition"
+          >
+            +
+          </button>
+        </div>
+
+        <!--
+          JS will populate the following container with:
+          - Session names with edit/delete controls
+          - Track lists per session
         -->
-      </div>
+        <div id="manage-section" class="space-y-6">
+          <br />
+        </div>
 
-      <!-- 🔘 Compare Button -->
-  <button id="compare-button" class="milky-input px-4 py-2 mt-4 w-full">
-    Compare Selected Tracks
-  </button>
-</section>
-    <br><br>
-<!-- ✅ Comparison Result Section (Below Manage Panel) -->
-    <div id="feedback-anchor" style="position: relative; top: -100px; height: 0;"></div>
-<section id="comparison-feedback" class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4 hidden">
-  <h2 class="text-xl font-semibold">Multi-Track AI Feedback</h2>
-  <div id="comparison-feedback-output" class="text-white/90 text-sm whitespace-pre-wrap"></div>
+        <!-- Trigger to compare selected tracks across sessions -->
+        <button id="compare-button" class="milky-input px-4 py-2 mt-4 w-full">
+          Compare Selected Tracks
+        </button>
+      </section>
 
-  <div id="comparison-meta" class="mt-4 text-white/80 text-sm space-x-4 hidden">
-    <span id="comparison-session-message"></span>
+      <br /><br />
 
-  </div>
-</section>
-<section id="comparison-history" class="mt-8">
-  <h2 class="text-2xl font-semibold text-white mb-2">Past Comparisons & Presets Export</h2>
-  <div id="comparison-history-list" class="space-y-2"></div>
-</section>
+      <!-- Anchor to scroll comparison results near top of viewport -->
+      <div id="feedback-anchor" style="position: relative; top: -100px; height: 0"></div>
 
-  </main>
-  <footer class="text-center text-white/60 text-sm py-12 px-4 max-w-4xl mx-auto leading-relaxed border-t border-white/10 mt-20">
-  <p>&copy; 2025 <strong class="text-white">ZoundZcope</strong></p>
-</footer>
-  <script>
-  const menuBtn = document.getElementById('mobile-menu-button');
-  const dropdown = document.getElementById('mobile-menu-dropdown');
+      <!-- ======================================================== -->
+      <!-- Comparison Results (Multi-Track)                          -->
+      <!-- ======================================================== -->
+      <section id="comparison-feedback" class="bg-white/5 p-6 rounded-lg shadow-inner space-y-4 hidden">
+        <h2 class="text-xl font-semibold">Multi-Track AI Feedback</h2>
+        <div id="comparison-feedback-output" class="text-white/90 text-sm whitespace-pre-wrap"></div>
 
-  if (menuBtn && dropdown) {
-    menuBtn.addEventListener('click', () => {
-      dropdown.classList.toggle('hidden');
-    });
-  }
-</script>
+        <!-- Additional comparison metadata (e.g., session name) -->
+        <div id="comparison-meta" class="mt-4 text-white/80 text-sm space-x-4 hidden">
+          <span id="comparison-session-message"></span>
+        </div>
+      </section>
 
+      <!-- Past comparisons and preset export history -->
+      <section id="comparison-history" class="mt-8">
+        <h2 class="text-2xl font-semibold text-white mb-2">Past Comparisons & Presets Export</h2>
+        <div id="comparison-history-list" class="space-y-2"></div>
+      </section>
+    </main>
 
-  <script src="/static/feedback_history.js"></script>
-</body>
+    <!-- ======================================================== -->
+    <!-- Footer                                                    -->
+    <!-- ======================================================== -->
+    <footer
+      class="text-center text-white/60 text-sm py-12 px-4 max-w-4xl mx-auto leading-relaxed border-t border-white/10 mt-20"
+    >
+      <p>&copy; 2025 <strong class="text-white">ZoundZcope</strong></p>
+    </footer>
+
+    <!-- ======================================================== -->
+    <!-- Inline Scripts                                            -->
+    <!-- ======================================================== -->
+    <script>
+      // Mobile menu toggle: show/hide the dropdown on button click.
+      const menuBtn = document.getElementById('mobile-menu-button');
+      const dropdown = document.getElementById('mobile-menu-dropdown');
+
+      if (menuBtn && dropdown) {
+        menuBtn.addEventListener('click', () => {
+          dropdown.classList.toggle('hidden');
+        });
+      }
+    </script>
+
+    <!-- Page-specific logic (populates session/track controls, renders feedback, etc.) -->
+    <script src="/static/feedback_history.js"></script>
+  </body>
 </html>

@@ -1,101 +1,117 @@
 <!--
+  ============================================================
   ZoundZcope AI — Main Interface
   Author: Your Name
-  Description: Upload tracks, select session/genre/type, and receive AI feedback.
+  Description: Upload tracks, select session/genre/type,
+               and receive AI feedback.
+  ============================================================
 -->
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- ================= META & PAGE INFO ================= -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ZoundZcope AI</title>
+
+  <!-- ================= STYLES ================= -->
+  <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- Custom Styles -->
   <link rel="stylesheet" href="static/style.css">
+
+  <!-- ================= FAVICONS ================= -->
   <link rel="icon" type="image/png" href="/static/favicon/favicon-96x96.png" sizes="96x96" />
-<link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
-<link rel="shortcut icon" href="/static/favicon/favicon.ico" />
-<link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png" />
-<meta name="apple-mobile-web-app-title" content="ZZ AI" />
-<link rel="manifest" href="/static/favicon/site.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="/static/favicon/favicon.svg" />
+  <link rel="shortcut icon" href="/static/favicon/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-title" content="ZZ AI" />
+  <link rel="manifest" href="/static/favicon/site.webmanifest" />
+
+  <!-- ================= LIBRARIES ================= -->
+  <!-- Markdown Parser -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body class="text-white">
+
+  <!-- ================= BACKGROUND LOGO (Faded) ================= -->
   <div class="fixed inset-0 z-0 opacity-10 bg-no-repeat bg-center pointer-events-none"
-       style="background-image: url('/static/logo old.png'); background-size: 1800px; background-position: center -450px;"></div>
-
-  <header class="fixed inset-x-0 top-0 z-50 bg-black bg-opacity-75 backdrop-filter backdrop-blur-sm border-b-2 border-white border-opacity-80 shadow-md flex items-center justify-between p-4">
-  <!-- Left: Logo -->
-  <a href="/" class="flex items-center hover:opacity-80 transition">
-    <img src="/static/Logo.png" alt="Logo" class="h-10 w-10 mr-3">
-    <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
-  </a>
-
-  <!-- Desktop: Info + Feedback History Links -->
-  <nav class="hidden md:flex items-center gap-6">
-  <a href="info.html" class="text-white hover:text-blue-400 text-base transition font-medium">Info</a>
-  <a href="/feedback_history.html" class="text-white hover:text-blue-400 text-base transition font-medium">Feedback History</a>
-</nav>
-
-  <!-- Mobile: ⋮ Menu -->
-  <div class="relative md:hidden">
-    <button id="mobile-menu-button" class="text-white text-2xl px-2 py-1 rounded hover:bg-white/10">
-      ⋮
-    </button>
-   <div id="mobile-menu-dropdown"
-     class="milky-dropdown absolute right-0 mt-2 w-48 text-sm text-white z-50 hidden space-y-1 bg-black/70 backdrop-blur-md rounded-md shadow-lg">
-
-      <a href="/info.html" class="block px-4 py-2 hover:bg-white/10 rounded">Info</a>
-      <a href="/feedback_history.html" class="block px-4 py-2 hover:bg-white/10 rounded">Feedback History</a>
-    </div>
+       style="background-image: url('/static/logo old.png'); background-size: 1800px; background-position: center -450px;">
   </div>
-</header>
 
+  <!-- ================= HEADER ================= -->
+  <header class="fixed inset-x-0 top-0 z-50 bg-black bg-opacity-75 backdrop-filter backdrop-blur-sm border-b-2 border-white border-opacity-80 shadow-md flex items-center justify-between p-4">
 
+    <!-- Logo + Title -->
+    <a href="/" class="flex items-center hover:opacity-80 transition">
+      <img src="/static/Logo.png" alt="Logo" class="h-10 w-10 mr-3">
+      <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
+    </a>
+
+    <!-- Desktop Navigation -->
+    <nav class="hidden md:flex items-center gap-6">
+      <a href="info.html" class="text-white hover:text-blue-400 text-base transition font-medium">Info</a>
+      <a href="/feedback_history.html" class="text-white hover:text-blue-400 text-base transition font-medium">Feedback History</a>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="relative md:hidden">
+      <button id="mobile-menu-button" class="text-white text-2xl px-2 py-1 rounded hover:bg-white/10">
+        ⋮
+      </button>
+      <div id="mobile-menu-dropdown"
+           class="milky-dropdown absolute right-0 mt-2 w-48 text-sm text-white z-50 hidden space-y-1 bg-black/70 backdrop-blur-md rounded-md shadow-lg">
+        <a href="/info.html" class="block px-4 py-2 hover:bg-white/10 rounded">Info</a>
+        <a href="/feedback_history.html" class="block px-4 py-2 hover:bg-white/10 rounded">Feedback History</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT ================= -->
   <main class="relative z-10 pt-28 max-w-6xl mx-auto px-3">
     <div class="flex flex-col lg:flex-row lg:items-start lg:space-x-20">
 
-      <!-- LEFT COLUMN: Upload + Results -->
+      <!-- ******** LEFT COLUMN: Upload + Results ******** -->
       <div class="lg:w-1/3 flex-shrink-0 flex flex-col space-y-6">
+
+        <!-- ===== Upload Section ===== -->
         <section class="bg-black/10 p-6 rounded-lg shadow-inner">
           <h2 class="text-lg font-semibold mb-6">Upload Your Track</h2>
 
           <form id="uploadForm" class="flex flex-col space-y-3" enctype="multipart/form-data">
+
+            <!-- File Upload -->
             <label for="file-upload" class="milky-input flex items-center justify-between cursor-pointer transition hover:bg-white/20 hover:backdrop-blur-lg py-2">
               <span id="file-name" class="text-white/90 text-base">Choose a file</span>
               <input id="file-upload" name="file" type="file" accept="audio/*" class="hidden" required />
             </label>
 
             <!-- Reference Track Upload -->
-<div class="mt-4">
-  <label for="ref-file-upload" class="milky-input flex items-center justify-between cursor-pointer transition hover:bg-white/20 hover:backdrop-blur-lg py-2">
-    <span id="ref-file-name" class="text-white/90 text-base">Choose Reference Track</span>
-    <input id="ref-file-upload" name="ref_file" type="file" accept="audio/*" class="hidden" />
-  </label>
-</div>
+            <div class="mt-4">
+              <label for="ref-file-upload" class="milky-input flex items-center justify-between cursor-pointer transition hover:bg-white/20 hover:backdrop-blur-lg py-2">
+                <span id="ref-file-name" class="text-white/90 text-base">Choose Reference Track</span>
+                <input id="ref-file-upload" name="ref_file" type="file" accept="audio/*" class="hidden" />
+              </label>
+            </div>
 
-
+            <!-- Session Dropdown -->
             <div id="session-dropdown-wrapper" class="relative">
-  <input type="hidden" name="session_id" id="session_id">
-
-  <button type="button" id="session-dropdown-button" class="milky-input flex justify-between items-center w-full px-4 py-2 text-left">
-    <span id="session-dropdown-label" class="text-white/80">Select Session</span>
-    <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-    </svg>
-  </button>
-
-  <ul id="session-dropdown-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden"
-      style="background-color: rgba(255,255,255,0.05); backdrop-filter: blur(6px);">
-    <!-- Dynamically populated -->
-  </ul>
-
-  <!-- Hidden input that shows only when "New Session" is selected -->
-  <input type="text" id="new-session-input" name="session_name" placeholder="New session name"
-         class="milky-input mt-2 hidden" />
-</div>
-
+              <input type="hidden" name="session_id" id="session_id">
+              <button type="button" id="session-dropdown-button" class="milky-input flex justify-between items-center w-full px-4 py-2 text-left">
+                <span id="session-dropdown-label" class="text-white/80">Select Session</span>
+                <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </button>
+              <ul id="session-dropdown-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden"
+                  style="background-color: rgba(255,255,255,0.05); backdrop-filter: blur(6px);">
+                <!-- Dynamically populated -->
+              </ul>
+              <!-- Input shown only when "New Session" is selected -->
+              <input type="text" id="new-session-input" name="session_name" placeholder="New session name" class="milky-input mt-2 hidden" />
+            </div>
 
             <!-- Type Dropdown -->
             <div class="relative">
@@ -109,62 +125,51 @@
               <ul id="type-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden"
                   style="background-color: rgba(255, 255, 255, 0.02); backdrop-filter: blur(6px);">
                 <li data-value="mixdown" class="dropdown-option px-4 py-2 cursor-pointer transition"
-                    onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'"
-                    onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Mixdown Review</li>
+                    onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)';"
+                    onmouseout="this.style.backgroundColor='transparent';">Mixdown Review</li>
                 <li data-value="mastering" class="dropdown-option px-4 py-2 cursor-pointer transition"
-                    onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'"
-                    onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Mastering Guidance</li>
+                    onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)';"
+                    onmouseout="this.style.backgroundColor='transparent';">Mastering Guidance</li>
                 <li data-value="master" class="dropdown-option px-4 py-2 cursor-pointer transition"
-                    onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'"
-                    onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Master Review</li>
+                    onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)';"
+                    onmouseout="this.style.backgroundColor='transparent';">Master Review</li>
               </ul>
             </div>
 
+            <!-- Genre & Subgenre Dropdowns -->
+            <div class="flex gap-4 items-start w-full max-w-xl">
+              <!-- Genre -->
+              <div class="relative w-1/2">
+                <input type="hidden" name="genre" id="genre-input" />
+                <button type="button" id="genre-button" class="milky-input w-full flex justify-between items-center px-4 py-2 text-left">
+                  <span id="genre-selected" class="text-white/80">Select Genre</span>
+                  <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2"
+                       viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </button>
+                <ul id="genre-options" class="absolute top-full mt-1 w-full rounded-md shadow-lg text-sm text-white hidden z-50"
+                    style="background-color: rgba(255,255,255,0.05); backdrop-filter: blur(6px);"></ul>
+              </div>
 
+              <!-- Subgenre -->
+              <div class="relative w-1/2" id="subgenre-wrapper">
+                <input type="hidden" name="subgenre" id="subgenre-input" />
+                <button type="button" id="subgenre-button" class="milky-input w-full flex justify-between items-center px-4 py-2 text-left">
+                  <span id="subgenre-selected" class="text-white/80">Select Subgenre</span>
+                  <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2"
+                       viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </button>
+                <ul id="subgenre-options" class="absolute top-full mt-1 w-full rounded-md shadow-lg text-sm text-white hidden z-50"
+                    style="background-color: rgba(255,255,255,0.05); backdrop-filter: blur(6px);"></ul>
+              </div>
+            </div>
 
-<!-- ✅ Genre + Subgenre Dropdown HTML -->
-<div class="flex gap-4 items-start w-full max-w-xl">
-  <!-- Genre -->
-  <div class="relative w-1/2">
-    <input type="hidden" name="genre" id="genre-input" />
-    <button type="button" id="genre-button"
-      class="milky-input w-full flex justify-between items-center px-4 py-2 text-left">
-      <span id="genre-selected" class="text-white/80">Select Genre</span>
-      <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2"
-           viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-      </svg>
-    </button>
-    <ul id="genre-options"
-        class="absolute top-full mt-1 w-full rounded-md shadow-lg text-sm text-white hidden z-50"
-        style="background-color: rgba(255,255,255,0.05); backdrop-filter: blur(6px);">
-    </ul>
-  </div>
-
-  <!-- Subgenre -->
-  <div class="relative w-1/2" id="subgenre-wrapper">
-    <input type="hidden" name="subgenre" id="subgenre-input" />
-    <button type="button" id="subgenre-button"
-      class="milky-input w-full flex justify-between items-center px-4 py-2 text-left">
-      <span id="subgenre-selected" class="text-white/80">Select Subgenre</span>
-      <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2"
-           viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-      </svg>
-    </button>
-    <ul id="subgenre-options"
-        class="absolute top-full mt-1 w-full rounded-md shadow-lg text-sm text-white hidden z-50"
-        style="background-color: rgba(255,255,255,0.05); backdrop-filter: blur(6px);">
-    </ul>
-  </div>
-</div>
-
-<!-- Custom Subgenre Input -->
-<input type="text" id="custom-subgenre-input" name="custom_subgenre" placeholder="Enter custom subgenre"
-       class="milky-input mt-2 hidden" />
-
-
-
+            <!-- Custom Subgenre Input -->
+            <input type="text" id="custom-subgenre-input" name="custom_subgenre" placeholder="Enter custom subgenre"
+                   class="milky-input mt-2 hidden" />
 
             <!-- Profile Dropdown -->
             <div class="relative">
@@ -177,211 +182,193 @@
               </button>
               <ul id="profile-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden"
                   style="background-color: rgba(255, 255, 255, 0.02); backdrop-filter: blur(6px);">
-                <li data-value="simple" class="dropdown-option px-4 py-2 cursor-pointer transition"
-                    onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'"
-                    onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Simple Tips Only</li>
-                <li data-value="detailed" class="dropdown-option px-4 py-2 cursor-pointer transition"
-                    onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'"
-                    onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Detailed with Explanations</li>
-                <li data-value="pro" class="dropdown-option px-4 py-2 cursor-pointer transition"
-                    onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.backdropFilter='blur(4px)'"
-                    onmouseout="this.style.backgroundColor='transparent'; this.style.backdropFilter='none'">Pro_Level</li>
-
-
+                <li data-value="simple" class="dropdown-option px-4 py-2 cursor-pointer">Simple Tips Only</li>
+                <li data-value="detailed" class="dropdown-option px-4 py-2 cursor-pointer">Detailed with Explanations</li>
+                <li data-value="pro" class="dropdown-option px-4 py-2 cursor-pointer">Pro_Level</li>
               </ul>
             </div>
 
-            <button
-  type="submit"
-  id="analyze-button"
-  class="analyze-btn py-2 px-6 rounded transition duration-300"
->
-  Analyze
-</button>
-
+            <!-- Analyze Button -->
+            <button type="submit" id="analyze-button" class="analyze-btn py-2 px-6 rounded transition duration-300">
+              Analyze
+            </button>
 
           </form>
         </section>
 
+        <!-- ===== Analysis Results ===== -->
         <section id="results" class="hidden bg-black/10 p-6 rounded-lg shadow-inner">
           <h2 class="text-lg font-semibold mb-4">Analysis Results</h2>
           <div id="analysisOutput" class="space-y-2 text-sm"></div>
         </section>
       </div>
 
-      <!-- RIGHT COLUMN: Feedback -->
+
+      <!-- ******** RIGHT COLUMN: Feedback ******** -->
       <section id="feedback" class="hidden lg:w-[65%] min-w-0 mt-6 lg:mt-0 bg-black/10 p-6 rounded-lg shadow-inner space-y-4">
-  <div class="flex justify-between items-start mb-4">
-  <h2 class="text-2xl font-bold text-white">AI Feedback</h2>
-  <button
-    id="resetStateBtn"
-    type="button"
-    class="reset-btn text-sm"
-    title="Reset all selections and uploaded files"
-  >
-    Reset
-  </button>
-</div>
 
+        <!-- Header: Feedback title + Reset button -->
+        <div class="flex justify-between items-start mb-4">
+          <h2 class="text-2xl font-bold text-white">AI Feedback</h2>
+          <button id="resetStateBtn" type="button" class="reset-btn text-sm" title="Reset all selections and uploaded files">
+            Reset
+          </button>
+        </div>
 
-  <div id="gptResponse" class="text-base leading-relaxed text-white/90 space-y-3"></div>
+        <!-- AI Feedback Response Container -->
+        <div id="gptResponse" class="text-base leading-relaxed text-white/90 space-y-3"></div>
 
-  <!-- ⬇️ Moved inside the feedback section -->
+        <!-- ================= FOLLOW-UP INPUT SECTION ================= -->
+        <div id="custom-ai-section" class="mt-10 hidden">
 
+          <!-- Export Feedback Button -->
+          <div class="flex justify-end mb-4">
+            <button id="exportFeedbackBtn" type="button"
+              class="text-sm text-purple-400 font-medium hover:text-purple-600 focus:outline-none transition"
+              title="Export AI feedback and Ableton preset recommendations as PDF"
+              style="background: none; padding: 0;">
+              Export Feedback & Presets
+            </button>
+          </div>
 
-<!-- FOLLOW-UP INPUT SECTION -->
-<div id="custom-ai-section" class="mt-10 hidden">
+          <!-- AI Follow-Up Response -->
+          <div id="aiFollowupResponse" class="mb-4 text-white/90 text-sm space-y-2 hidden"></div>
 
-  <!-- New Export Button -->
-<div class="flex justify-end mb-4">
-  <button
-    id="exportFeedbackBtn"
-    type="button"
-    class="text-sm text-purple-400 font-medium hover:text-purple-600 focus:outline-none transition"
-    title="Export AI feedback and Ableton preset recommendations as PDF"
-    style="background: none; padding: 0;"
-  >
-    Export Feedback & Presets
-  </button>
-</div>
+          <!-- AI Summary Response -->
+          <div id="aiSummaryResponse" class="mb-4 text-white/90 text-sm space-y-2 hidden"></div>
 
-  <!-- Existing Follow-Up Response and Input -->
-<div id="aiFollowupResponse" class="mb-4 text-white/90 text-sm space-y-2 hidden"></div>
+          <!-- Manual Summarize Button -->
+          <button id="manualSummarizeBtn" class="summarize-thread-btn" style="display:none;">
+            Summarize Thread
+          </button>
 
-<!-- New container for summaries -->
-<div id="aiSummaryResponse" class="mb-4 text-white/90 text-sm space-y-2 hidden"></div>
+          <!-- Custom Question Input -->
+          <div class="relative">
+            <input type="text" id="customQuestion" placeholder="Want to know more?"
+              class="w-full px-5 py-2.5 rounded-xl text-white placeholder-white/40 text-sm transition focus:outline-none"
+              style="
+                background-color: rgba(0, 0, 0, 0.15);
+                border: 1px solid rgba(255, 255, 255, 0.10);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                box-shadow: 0 0 4px rgba(236, 72, 153, 0.25),
+                            0 0 4px rgba(59, 130, 246, 0.25);
+              "
+              onfocus="this.style.boxShadow='0 0 6px rgba(236,72,153,0.4), 0 0 6px rgba(59,130,246,0.4)'"
+              onblur="this.style.boxShadow='0 0 4px rgba(236,72,153,0.25), 0 0 4px rgba(59,130,246,0.25)'"
+            />
+            <button id="askAIButton"
+              class="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 text-sm bg-gradient-to-r from-pink-500 to-blue-500 text-white font-medium rounded-lg hover:opacity-90 transition">
+              Ask AI
+            </button>
+          </div>
+        </div>
 
-<button id="manualSummarizeBtn" class="summarize-thread-btn" style="display:none;">
-  Summarize Thread
-</button>
-
-
-  <div class="relative">
-    <input
-      type="text"
-      id="customQuestion"
-      placeholder="Want to know more?"
-      class="w-full px-5 py-2.5 rounded-xl text-white placeholder-white/40 text-sm transition focus:outline-none"
-      style="
-        background-color: rgba(0, 0, 0, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.10);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        box-shadow:
-          0 0 4px rgba(236, 72, 153, 0.25),
-          0 0 4px rgba(59, 130, 246, 0.25);
-      "
-      onfocus="this.style.boxShadow='0 0 6px rgba(236,72,153,0.4), 0 0 6px rgba(59,130,246,0.4)'"
-      onblur="this.style.boxShadow='0 0 4px rgba(236,72,153,0.25), 0 0 4px rgba(59,130,246,0.25)'"
-    />
-    <button
-      id="askAIButton"
-      class="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 text-sm bg-gradient-to-r from-pink-500 to-blue-500 text-white font-medium rounded-lg hover:opacity-90 transition"
-    >
-      Ask AI
-    </button>
-  </div>
-</div>
+        <!-- ================= WAVEFORM SECTION ================= -->
         <div id="waveform-wrapper" class="space-y-2">
 
           <!-- Reference Track Waveform -->
-<!-- Reference Track Waveform -->
-<div id="ref-waveform-wrapper" style="position: relative; display: none; width: 100%; height: 100px;">
-  <div id="ref-waveform"></div>
-  <div id="ref-label">REFERENCE</div>
-</div>
+          <div id="ref-waveform-wrapper" style="position: relative; display: none; width: 100%; height: 100px;">
+            <div id="ref-waveform"></div>
+            <div id="ref-label">REFERENCE</div>
+          </div>
 
-<!-- Original track waveform -->
-<div id="waveform" style="margin-top: 20px;"></div>
-
-<p id="rms-display" class="hidden text-sm text-white/80"></p>
+          <!-- Main Track Waveform -->
+          <div id="waveform" style="margin-top: 20px;"></div>
+          <p id="rms-display" class="hidden text-sm text-white/80"></p>
           <br>
 
+          <!-- Quick Follow-Up Section -->
+          <div id="quick-followup" class="mt-6 space-y-2 hidden">
+            <p class="text-white/70 text-sm">Quick Follow-Up Questions:</p>
+            <div class="grid grid-cols-2 gap-3"></div>
+          </div>
+        </div>
+      </section>
+    </div> <!-- END Row -->
 
-        <!-- ⬇️ Quick Follow-Up Section (auto-generated buttons) -->
-<div id="quick-followup" class="mt-6 space-y-2 hidden">
-  <p class="text-white/70 text-sm">Quick Follow-Up Questions:</p>
-  <div class="grid grid-cols-2 gap-3"></div>
-</div>
+    <!-- ================= RECENT FEEDBACK PANEL ================= -->
+    <section id="recentFeedbackPanel" class="hidden mt-10 space-y-6 px-3 max-w-6xl mx-auto">
+      <h2 class="text-xl font-bold text-white/90 mb-4">Recent Feedback</h2>
+      <div id="recent-feedback-container" class="space-y-4">
+        <!-- Panels will be dynamically inserted here -->
+      </div>
+    </section>
 
-</section>
-</div> <!-- CLOSE row div -->
-<!-- 🔁 Recent Feedback Panel (below main content) -->
-<section id="recentFeedbackPanel" class="hidden mt-10 space-y-6 px-3 max-w-6xl mx-auto">
-  <h2 class="text-xl font-bold text-white/90 mb-4">Recent Feedback</h2>
-  <div id="recent-feedback-container" class="space-y-4">
-    <!-- Panels will be inserted here -->
-  </div>
-</section>
+    <!-- ================= AI DOCS & TUTORIALS BUTTON ================= -->
+    <div class="max-w-6xl mx-auto px-3">
+      <button id="toggle-rag-btn" class="docs-tut-btn block ml-auto text-center">
+        AI-powered<br>Docs & Tutorials
+      </button>
+    </div>
 
+    <!-- ================= RAG ASSISTANTS ================= -->
+    <div id="rag-container" class="hidden">
+      <section id="rag-assistants" class="bg-black/10 p-6 rounded-lg shadow-inner mt-0">
 
+        <!-- Tabs -->
+        <div class="flex space-x-4 mb-4">
+          <button id="tab-docs" class="tab active px-4 py-2 border-b-2 border-pink-500 font-semibold">
+            Docs Assistant
+          </button>
+          <button id="tab-tut" class="tab px-4 py-2 border-b-2 border-transparent hover:border-pink-500">
+            Tutorial Assistant
+          </button>
+        </div>
 
-    <!-- The Ask button that toggles visibility -->
-<div class="max-w-6xl mx-auto px-3">
-  <button id="toggle-rag-btn" class="docs-tut-btn block ml-auto text-center">
-    AI-powered<br>Docs & Tutorials
-  </button>
-</div>
-    <!-- RAG Assistants Tabs -->
-    <!-- Container that holds your RAG assistants, hidden by default -->
-<div id="rag-container" class="hidden">
-<section id="rag-assistants" class="bg-black/10 p-6 rounded-lg shadow-inner mt-0">
-  <div class="flex space-x-4 mb-4">
-    <button id="tab-docs" class="tab active px-4 py-2 border-b-2 border-pink-500 font-semibold">
-      Docs Assistant
-    </button>
-    <button id="tab-tut" class="tab px-4 py-2 border-b-2 border-transparent hover:border-pink-500">
-      Tutorial Assistant
-    </button>
-  </div>
+        <!-- Docs Assistant Chat -->
+        <div id="docs-chat-container" class="rag-chat-container">
+          <div id="docs-chat" class="overflow-y-auto p-3 bg-gray-900 rounded text-white text-sm mb-2"></div>
+          <form id="docs-chat-form" class="flex space-x-2">
+            <input type="text" id="docs-chat-input" placeholder="Ask your docs question..."
+              class="flex-grow rounded bg-gray-800 px-3 py-2 text-white focus:outline-none" autocomplete="off" required />
+            <button type="submit" class="ask-rag-btn px-5 rounded transition">Ask</button>
+          </form>
+        </div>
 
-  <div id="docs-chat-container" class="rag-chat-container">
-    <div id="docs-chat" class="overflow-y-auto p-3 bg-gray-900 rounded text-white text-sm mb-2"></div>
-    <form id="docs-chat-form" class="flex space-x-2">
-      <input type="text" id="docs-chat-input" placeholder="Ask your docs question..."
-             class="flex-grow rounded bg-gray-800 px-3 py-2 text-white focus:outline-none" autocomplete="off" required />
-      <button type="submit" class="ask-rag-btn px-5 rounded transition">Ask</button>
-    </form>
-  </div>
+        <!-- Tutorial Assistant Chat -->
+        <div id="tut-chat-container" class="rag-chat-container hidden">
+          <div id="tut-chat" class="h-60 overflow-y-auto p-3 bg-gray-900 rounded text-white text-sm mb-2"></div>
+          <form id="tut-chat-form" class="flex space-x-2">
+            <input type="text" id="tut-chat-input" placeholder="Ask your tutorial question..."
+              class="flex-grow rounded bg-gray-800 px-3 py-2 text-white focus:outline-none" autocomplete="off" required />
+            <button type="submit" class="ask-rag-btn px-5 rounded transition">Ask</button>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
 
-  <div id="tut-chat-container" class="rag-chat-container hidden">
-    <div id="tut-chat" class="h-60 overflow-y-auto p-3 bg-gray-900 rounded text-white text-sm mb-2"></div>
-    <form id="tut-chat-form" class="flex space-x-2">
-      <input type="text" id="tut-chat-input" placeholder="Ask your tutorial question..."
-             class="flex-grow rounded bg-gray-800 px-3 py-2 text-white focus:outline-none" autocomplete="off" required />
-      <button type="submit" class="ask-rag-btn px-5 rounded transition">Ask</button>
-    </form>
-  </div>
-</section>
-</div>
-
-</main>
-
+  <!-- ================= FOOTER ================= -->
   <footer class="text-center text-white/60 text-sm py-12 px-4">
-  <p>&copy; 2025 <strong class="text-white">ZoundZcope</strong></p>
-</footer>
+    <p>&copy; 2025 <strong class="text-white">ZoundZcope</strong></p>
+  </footer>
 
+  <!-- ================= GLOBAL VARIABLES ================= -->
+  <script>
+    // Make sure this variable gets dynamically populated by the backend
+    window.trackPath = "{{ track_path }}";
+  </script>
 
-<script>
-  window.trackPath = "{{ track_path }}";  // Make sure this gets rendered dynamically
-</script>
+  <!-- ================= SCRIPTS ================= -->
+  <!-- WaveSurfer Library -->
+  <script src="https://unpkg.com/wavesurfer.js"></script>
 
-<!-- Load WaveSurfer FIRST -->
-<script src="https://unpkg.com/wavesurfer.js"></script>
-
-
+  <!-- Dropdown Logic -->
   <script src="/static/dropdown-logic.js" defer></script>
 
-<script src="/static/followup-logic.js"></script>
+  <!-- Follow-Up Logic -->
+  <script src="/static/followup-logic.js"></script>
 
-<script src="static/followup-suggestions.js"></script>
+  <!-- Follow-Up Suggestions -->
+  <script src="static/followup-suggestions.js"></script>
 
-<script src="/static/rag-assistant.js"></script>
+  <!-- RAG Assistant Logic -->
+  <script src="/static/rag-assistant.js"></script>
 
-<!-- Your main app logic (must be last) -->
-<script type="module" src="/static/app.js"></script>
-
-
+  <!-- Main App Logic (must be last) -->
+  <script type="module" src="/static/app.js"></script>
 </body>
 </html>
+
 
