@@ -1,4 +1,19 @@
-from app.utils import normalize_type, normalize_profile, normalize_genre, ALLOWED_GENRES, normalize_subgenre, count_tokens, count_tokens_gemini
+"""
+AI feedback prompt construction and generation utilities for ZoundZcope.
+
+This module provides helper functions to:
+    - Build detailed, role-specific prompts for AI-based track feedback.
+    - Generate responses for initial feedback, follow-up questions, and multi-track comparisons.
+    - Incorporate genre, subgenre, track type, and communication style into prompts.
+    - Optionally integrate reference track analysis data for comparative feedback.
+    - Track token usage for monitoring model performance and cost.
+
+Dependencies:
+    - OpenAI and optional Groq API clients for AI responses.
+    - Token counting and usage tracking utilities.
+    - Normalization helpers for genre, subgenre, type, and feedback profile.
+"""
+from app.utils import normalize_type, normalize_profile, normalize_genre, ALLOWED_GENRES, normalize_subgenre, count_tokens
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -253,21 +268,29 @@ FEW_SHOT_EXAMPLES_PRO = """
 
 def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data: dict, feedback_profile: str, ref_analysis_data: dict = None) -> str:
     """
-            Constructs a detailed AI prompt combining role context, communication style,
-            audio analysis data, reference track data (optional), and formatting instructions.
+    Construct a detailed AI prompt for track feedback.
 
-            Parameters:
-                genre (str): Music genre, normalized.
-                subgenre (str): Music subgenre, normalized.
-                type (str): Feedback type ('mixdown', 'mastering', 'master').
-                analysis_data (dict): Audio analysis metrics of the submitted track.
-                feedback_profile (str): Desired feedback complexity ('simple', 'detailed', 'pro').
-                ref_analysis_data (dict, optional): Reference track analysis for comparison.
+    Combines:
+      - Role context based on feedback type (mixdown, mastering, master).
+      - Communication style based on feedback profile (simple, detailed, pro).
+      - Track analysis metrics.
+      - Optional reference track analysis.
+      - Formatting rules and example outputs.
 
-            Returns:
-                str: Formatted prompt string ready to be sent to the AI model.
-            """
+    Args:
+        genre (str): Main music genre.
+        subgenre (str): Subgenre within the main genre.
+        type (str): Feedback type ('mixdown', 'mastering', 'master').
+        analysis_data (dict): Audio analysis metrics for the track.
+        feedback_profile (str): Desired feedback complexity.
+        ref_analysis_data (dict, optional): Analysis data for a reference track.
 
+    Raises:
+        ValueError: If `type`, `genre`, or `feedback_profile` is unknown.
+
+    Returns:
+        str: Fully assembled prompt ready to send to an AI model.
+    """
     type = normalize_type(type)
     if type not in ROLE_CONTEXTS:
         raise ValueError(f"Unknown type: {type}")
@@ -360,14 +383,19 @@ Now return 3-4 bullet points for adjustments in the most crucial areas.
 
 def generate_feedback_response(prompt: str, max_tokens: int = 500, use_groq: bool = False) -> str:
     """
-        Sends a prompt string to the AI model and returns the generated feedback text.
+    Send a feedback prompt to the AI model and return its response.
 
-        Parameters:
-            prompt (str): The fully constructed prompt containing context, instructions, and analysis data.
+    Uses OpenAI's `gpt-4o-mini` model (or alternative) to process the
+    provided prompt and produce detailed feedback.
 
-        Returns:
-            str: The AI-generated feedback text, stripped of leading/trailing whitespace.
-        """
+    Args:
+        prompt (str): The constructed feedback prompt.
+        max_tokens (int, optional): Maximum tokens for the AI response.
+        use_groq (bool, optional): Reserved for Groq API usage.
+
+    Returns:
+        str: AI-generated feedback text, stripped of whitespace.
+    """
     start_time = time.perf_counter()  # Start timer
 
     response = client.chat.completions.create(
@@ -421,18 +449,21 @@ def generate_feedback_response(prompt: str, max_tokens: int = 500, use_groq: boo
 
 def generate_followup_response(analysis_text: str, feedback_text: str, user_question: str, thread_summary: str = "") -> str:
     """
-        Builds a follow-up prompt incorporating prior analysis, feedback, user question,
-        and optionally a summary of the follow-up conversation thread, then sends it to the AI.
+    Generate an AI response to a follow-up question.
 
-        Parameters:
-            analysis_text (str): Text description of the audio analysis.
-            feedback_text (str): Previous AI feedback given to the user.
-            user_question (str): The user's follow-up question.
-            thread_summary (str, optional): Summary of previous follow-up messages for context.
+    Builds a follow-up prompt using prior analysis, previous feedback,
+    the user’s question, and optional conversation summary, then sends it
+    to the AI model.
 
-        Returns:
-            str: AI-generated answer to the follow-up question.
-        """
+    Args:
+        analysis_text (str): Technical analysis description of the track.
+        feedback_text (str): Prior AI feedback text.
+        user_question (str): User's follow-up question.
+        thread_summary (str, optional): Summary of earlier follow-up messages.
+
+    Returns:
+        str: AI-generated answer to the follow-up question.
+    """
     prompt = build_followup_prompt(analysis_text, feedback_text, user_question, thread_summary)
     return generate_feedback_response(prompt)
 
@@ -445,21 +476,25 @@ def build_followup_prompt(
     ref_analysis_data: dict = None,   # NEW parameter
 ) -> str:
     """
-        Constructs a detailed prompt for AI follow-up feedback based on prior analysis,
-        previous feedback, the user’s follow-up question, optional conversation summary,
-        and optionally reference track analysis data.
+    Construct a prompt for AI follow-up feedback.
 
-        Parameters:
-            analysis_text (str): Text description of the audio analysis.
-            feedback_text (str): Previous AI feedback text.
-            user_question (str): User’s follow-up question.
-            thread_summary (str, optional): Summary of prior follow-up conversation for context.
-            ref_analysis_data (dict, optional): Reference track analysis for comparison.
+    Incorporates:
+      - Prior analysis text.
+      - Previous AI feedback.
+      - User’s follow-up question (cleaned and escaped).
+      - Optional summary of conversation thread.
+      - Optional reference track analysis data.
 
-        Returns:
-            str: A formatted prompt string ready for submission to the AI model.
-        """
+    Args:
+        analysis_text (str): Track analysis description.
+        feedback_text (str): Previous AI feedback.
+        user_question (str): Follow-up question from the user.
+        thread_summary (str, optional): Summary of prior follow-up conversation.
+        ref_analysis_data (dict, optional): Reference track analysis.
 
+    Returns:
+        str: Formatted follow-up prompt string.
+    """
     # Clean and escape user question
     user_question = re.sub(r"[^\w\s.,!?@&$()\-+=:;\'\"/]", "", user_question.strip())[:400]
     user_question = html.escape(user_question)
@@ -509,18 +544,20 @@ Respond below:
 
 def generate_comparison_feedback(comparison_data: List[dict], max_tokens: int = 300) -> str:
     """
-    Builds a multi-track comparison prompt and returns AI feedback.
-    Each dict in `comparison_data` should contain:
-        - 'track_name'
-        - 'analysis_summary'
-        - 'chat_history'
+    Generate AI feedback comparing multiple tracks.
+
+    Builds a prompt summarizing:
+      - Sonic cohesion between tracks.
+      - Technical differences (LUFS, stereo width, spectral balance).
+      - Strengths, weaknesses, and stylistic consistency.
 
     Args:
-        comparison_data: List of track data for comparison.
-        max_tokens: Maximum number of tokens to generate in the response.
+        comparison_data (List[dict]): List of track info with:
+            'track_name', 'analysis_summary', 'chat_history'.
+        max_tokens (int, optional): Maximum tokens for AI output.
 
     Returns:
-        str: AI-generated comparison feedback.
+        str: AI-generated multi-track comparison feedback.
     """
     prompt = (
         "You are an expert audio mastering engineer.\n"

@@ -1,3 +1,21 @@
+"""
+Utility functions for ZoundZcope.
+
+This module provides common helper functions for:
+    - Sanitizing and normalizing user input.
+    - Validating allowed types, profiles, and genres.
+    - Safe naming for sessions and tracks.
+    - Token counting for AI prompt cost estimation.
+
+Dependencies:
+    - re, html, os for text cleaning and formatting.
+    - tiktoken for accurate OpenAI token counting.
+
+Constants:
+    ALLOWED_TYPES    : Permitted track types.
+    ALLOWED_PROFILES : Permitted feedback profiles.
+    ALLOWED_GENRES   : Permitted music genres.
+"""
 import re
 import html
 import os
@@ -12,14 +30,40 @@ ALLOWED_GENRES = {
     "rnb", "soul", "country", "folk", "classic"
 }
 
+
 def sanitize_input(input_str: str) -> str:
-    """Sanitize string: trim, normalize whitespace, limit length."""
+    """
+    Sanitize a generic string input.
+
+    - Strips leading/trailing whitespace.
+    - Replaces multiple spaces with a single space.
+    - Truncates to 100 characters.
+
+    Args:
+        input_str (str): Input to sanitize.
+
+    Returns:
+        str: Cleaned and truncated string, or empty string if invalid.
+    """
     if not isinstance(input_str, str):
         return ""
     return re.sub(r"\s+", " ", input_str.strip())[:100]
 
 
 def sanitize_user_question(text: str) -> str:
+    """
+        Clean and escape a user-provided question.
+
+        - Removes disallowed characters, keeping common punctuation.
+        - Limits length to 400 characters.
+        - Escapes HTML entities to prevent injection.
+
+        Args:
+            text (str): User question.
+
+        Returns:
+            str: Sanitized and HTML-escaped string.
+        """
     if not isinstance(text, str):
         return ""
     # Remove unwanted characters (allow common punctuation)
@@ -29,13 +73,21 @@ def sanitize_user_question(text: str) -> str:
     # Escape HTML entities to prevent injection
     return html.escape(cleaned)
 
+
 def normalize_session_name(name: str) -> str:
     """
-    Sanitize user-provided session name:
-    - Trim whitespace
-    - Allow only letters, numbers, spaces, dashes, and underscores
-    - Truncate to 60 characters
-    - Escape HTML for safety in prompts/UI
+    Sanitize and normalize a session name.
+
+    - Trims whitespace.
+    - Allows only letters, numbers, spaces, dashes, and underscores.
+    - Truncates to 60 characters.
+    - Escapes HTML for safe UI display.
+
+    Args:
+        name (str): User-provided session name.
+
+    Returns:
+        str: Sanitized and escaped session name.
     """
     if not isinstance(name, str):
         return ""
@@ -44,34 +96,86 @@ def normalize_session_name(name: str) -> str:
     name = name[:60]
     return html.escape(name)
 
+
 def safe_track_name(name, fallback_filename):
+    """
+        Ensure a valid track name, falling back to filename if needed.
+
+        Args:
+            name (str): User-provided track name.
+            fallback_filename (str): Filename to use if name is invalid.
+
+        Returns:
+            str: Safe track name.
+        """
     name = name.strip() if name else ""
     return name if name and name.lower() != "string" else os.path.splitext(fallback_filename)[0]
 
+
 def normalize_type(input_str: str) -> str:
+    """
+        Sanitize and validate track type.
+
+        Falls back to 'mixdown' if type is not allowed.
+
+        Args:
+            input_str (str): Track type to validate.
+
+        Returns:
+            str: Validated track type.
+        """
     """Sanitize and validate track type."""
     val = sanitize_input(input_str).lower()
     return val if val in ALLOWED_TYPES else "mixdown"
 
+
 def normalize_profile(input_str: str) -> str:
-    """Sanitize and validate feedback profile."""
+    """
+    Sanitize and validate feedback profile.
+
+    Falls back to 'simple' if profile is not allowed.
+
+    Args:
+        input_str (str): Profile name to validate.
+
+    Returns:
+        str: Validated profile name.
+    """
     val = sanitize_input(input_str).lower()
     return val if val in ALLOWED_PROFILES else "simple"
 
+
 def normalize_genre(input_str: str) -> str:
-    """Sanitize and validate genre."""
+    """
+    Sanitize and validate genre.
+
+    Falls back to 'electronic' if genre is not allowed.
+
+    Args:
+        input_str (str): Genre to validate.
+
+    Returns:
+        str: Validated genre.
+    """
     val = sanitize_input(input_str).lower()
     return val if val in ALLOWED_GENRES else "electronic"
 
+
 def normalize_subgenre(sub: str) -> str:
     """
-    Sanitize and normalize a user-provided subgenre string.
+    Sanitize and normalize a subgenre string.
 
-    - Strips leading/trailing whitespace
-    - Limits to ASCII letters, digits, spaces, dashes, ampersands, and apostrophes
-    - Truncates to 50 characters
-    - Escapes HTML for safe injection into prompts
-    - Converts to title case (e.g., 'neo-soul' → 'Neo-Soul')
+    - Strips whitespace.
+    - Allows only letters, digits, spaces, dashes, ampersands, and apostrophes.
+    - Truncates to 50 characters.
+    - Converts to title case.
+    - Escapes HTML for safety.
+
+    Args:
+        sub (str): User-provided subgenre.
+
+    Returns:
+        str: Sanitized, formatted, and escaped subgenre.
     """
     if not isinstance(sub, str):
         return ""
@@ -94,7 +198,14 @@ def normalize_subgenre(sub: str) -> str:
 
 def count_tokens(text, model="gpt-4o"):
     """
-    Count tokens for a given string using tiktoken.
+    Count tokens in a string using tiktoken for a given model.
+
+    Args:
+        text (str): Input text to measure.
+        model (str, optional): Model name for encoding rules.
+
+    Returns:
+        int: Number of tokens.
     """
     encoding = tiktoken.encoding_for_model(model)
     return len(encoding.encode(text))
@@ -102,7 +213,16 @@ def count_tokens(text, model="gpt-4o"):
 
 def count_tokens_gemini(text, model="gemini"):
     """
-    Approximate token count for a given string based on character count.
+    Approximate token count for Gemini models.
+
+    - Uses character count divided by 4 as an estimate.
+
+    Args:
+        text (str): Input text to measure.
+        model (str, optional): Model name (ignored for calculation).
+
+    Returns:
+        int: Approximate token count.
     """
     char_count = len(text)
     return int(char_count / 4)  # Approximate token count (1 token ≈ 4 characters)
