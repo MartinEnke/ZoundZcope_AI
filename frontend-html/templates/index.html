@@ -36,6 +36,11 @@
 
 <body class="text-white">
 
+  <!-- Welcome / Load Overlay -->
+  <div id="zz-loader" aria-hidden="true" onanimationend="this.style.display='none'">
+    <div class="zz-spinner"><div class="zz-core"></div></div>
+  </div>
+
   <!-- ================= BACKGROUND LOGO (Faded) ================= -->
   <div class="fixed inset-0 z-0 opacity-10 bg-no-repeat bg-center pointer-events-none"
        style="background-image: url('/static/logo old.png'); background-size: 1800px; background-position: center -450px;">
@@ -354,6 +359,22 @@
   </script>
 
   <!-- ================= SCRIPTS ================= -->
+  <script>
+  // Prevent scroll during intro (optional)
+  document.documentElement.style.overflow = 'hidden';
+  const loader = document.getElementById('zz-loader');
+
+  function cleanup() {
+    if (!loader) return;
+    loader.style.display = 'none';
+    document.documentElement.style.overflow = '';
+  }
+
+  // Attach ASAP; if the animation already ended, the inline onanimationend handled it.
+  loader?.addEventListener('animationend', cleanup, { once: true });
+  // Final fallback in case animations are disabled
+  setTimeout(cleanup, 2500);
+</script>
   <!-- WaveSurfer Library -->
   <script src="https://unpkg.com/wavesurfer.js"></script>
 
@@ -371,6 +392,7 @@
 
   <!-- Main App Logic (must be last) -->
   <script type="module" src="/static/app.js"></script>
+
 </body>
 </html>
 

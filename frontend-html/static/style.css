@@ -1002,3 +1002,69 @@ transition: max-height 0.3s ease;
 .hidden {
   display: none;
 }
+
+
+
+/* ===== ZoundZcope Welcome Loader (1s hold, 0.5s simultaneous fades) ===== */
+#zz-loader{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background: #000;              /* solid black during the 1s hold */
+  pointer-events: none;          /* never block clicks */
+  will-change: background;
+  /* start fade after 1s, finish in 0.5s */
+  animation: zzBgFadeUp 0.5s ease forwards;
+  animation-delay: 0.5s;
+}
+
+/* background: black -> transparent */
+@keyframes zzBgFadeUp {
+  from { background: #000; }
+  to   { background: transparent; visibility: hidden; }
+}
+
+/* Spinner (still spins; fades out in sync with background) */
+.zz-spinner{
+  width:100px; height:2px; border-radius:50%; position:relative; isolation:isolate;
+  will-change: opacity, transform;
+  animation: zzRingFade 0.5s ease forwards;
+  animation-delay: 0.5s;           /* hold visible for 1s, then fade in 0.5s */
+}
+
+/* ring opacity: 1 -> 0 */
+@keyframes zzRingFade {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* Glow + arc (unchanged) */
+.zz-spinner::before{
+  content:""; position:absolute; inset:-25px; border-radius:inherit;
+  background: conic-gradient(from 0deg, rgba(236,72,153,.95), rgba(59,130,246,.95), rgba(236,72,153,.95));
+  filter: blur(16px); opacity:.7; animation: zzSpin 1.2s linear infinite;
+}
+.zz-spinner::after{
+  content:""; position:absolute; inset:20; border-radius:inherit;
+  background: conic-gradient(from 0deg, transparent 0 30%, rgba(255,255,255,.95) 45% 55%, transparent 30% 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent 58%, #000 59%);
+          mask: radial-gradient(farthest-side, transparent 58%, #000 59%);
+  animation: zzSpin 1.2s linear infinite;
+}
+@keyframes zzSpin { to { transform: rotate(540deg); } }
+
+.zz-core{
+  position:absolute; inset:16px; border-radius:inherit; background: rgba(0,0,0,.55);
+  box-shadow: 0 0 24px rgba(236,72,153,.55), 0 0 28px rgba(59,130,246,.55) inset;
+}
+
+
+#zz-loader{
+pointer-events: none;
+}
+/* Ensure Tailwind's md:flex always overrides 'hidden' on wide screens */
+@media (min-width: 768px) {
+  .md\:flex { display: flex !important; }
+}
