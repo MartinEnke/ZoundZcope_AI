@@ -124,14 +124,19 @@ def upload_audio(
         ref_analysis = None
         ref_timestamped_name = None
 
-        if ref_file and ref_file.filename:
-            ref_ext = os.path.splitext(ref_file.filename)[1]
-            ref_timestamped_name = f"{int(time.time())}_ref_{ref_file.filename}"
-            ref_file_location = os.path.join(UPLOAD_FOLDER, ref_timestamped_name)
-            with open(ref_file_location, "wb") as buffer:
-                shutil.copyfileobj(ref_file.file, buffer)
-
-            ref_analysis = analyze_audio(ref_file_location, genre=genre)
+        try:
+            if ref_file and ref_file.filename:
+                ref_ext = os.path.splitext(ref_file.filename)[1]
+                ref_timestamped_name = f"{int(time.time())}_ref_{ref_file.filename}"
+                ref_file_location = os.path.join(UPLOAD_FOLDER, ref_timestamped_name)
+                with open(ref_file_location, "wb") as buffer:
+                    shutil.copyfileobj(ref_file.file, buffer)
+                ref_analysis = analyze_audio(ref_file_location, genre=genre)
+        except Exception:
+            return JSONResponse(
+                status_code=400,
+                content={"detail": "The reference file is wrong, corrupted, or too big."}
+            )
         else:
             ref_file_location = None
             ref_analysis = None
@@ -254,8 +259,19 @@ def upload_audio(
         }
 
 
+
     except Exception as e:
+
         import traceback
-        traceback.print_exc()  # prints full stack trace in console
+
+        traceback.print_exc()  # still log full error server-side
+
         print("UPLOAD ERROR:", e)
-        return JSONResponse(status_code=500, content={"detail": str(e)})
+
+        return JSONResponse(
+
+            status_code=400,  # use 400 instead of 500 for "bad upload"
+
+            content={"detail": "The file is wrong, corrupted, or too big."}
+
+        )

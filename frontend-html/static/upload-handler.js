@@ -18,6 +18,20 @@ let followupThread = [];
 let followupGroupIndex = 0;
 let lastManualSummaryGroup = -1;
 
+
+function showUploadError(message) {
+  const box = document.getElementById("uploadError");
+  box.textContent = message;
+  box.classList.remove("hidden");
+
+  // Optional: auto-hide after a few seconds
+  setTimeout(() => {
+    box.classList.add("hidden");
+    box.textContent = "";
+  }, 5000);
+}
+
+
 export function setupUploadHandler() {
   const form = document.getElementById("uploadForm");
   if (!form) return;
@@ -149,7 +163,13 @@ if (refFileInput && refFileInput.files.length > 0) {
 
       refTrackAnalysisData = result.ref_analysis || null;
 
-      if (response.ok) {
+
+
+      if (!response.ok) {
+          console.error("Upload failed response:", result);
+          showUploadError(result?.detail || "The file is wrong, corrupted, or too big.");
+          return;
+        }
         const tracks = await loadSessionTracks(sessionId);
         console.log("Tracks loaded after upload:", tracks);
         console.log("Setting window.lastTrackId to:", tracks[0]?.id);
@@ -184,10 +204,7 @@ if (refFileInput && refFileInput.files.length > 0) {
   sessionId: sessionId,
 });
 
-      } else {
-        console.error("Upload failed response:", result);
-        alert("Upload failed: " + JSON.stringify(result));
-      }
+
     } catch (err) {
       console.error("Fetch error:", err);
       alert("An error occurred during upload.");
