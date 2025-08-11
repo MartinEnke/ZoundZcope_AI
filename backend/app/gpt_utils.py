@@ -22,8 +22,17 @@ import re
 from typing import List
 from app.token_tracker import add_token_usage
 import time
-from groq import Groq
 from openai import OpenAI
+
+
+# from groq import Groq
+
+
+# from google import genai
+# import time
+# from google.genai import types
+# from app.token_tracker import add_token_usage
+# from app.utils import count_tokens_gemini, get_gemini_client  # ⬅️ import the helpers
 
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -32,11 +41,11 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 #     base_url="https://api.together.xyz/v1",  # You can still use Together
 # )
 
-
 # client = Groq(
 #     api_key=os.environ.get("GROQ_API_KEY"),
 # )
 
+# client = genai.Client()
 
 REFERENCE_TRACK_INSTRUCTION = (
     "If a reference track analysis is provided, use it as a benchmark to compare the submitted track's analysis with the reference track's data."
@@ -445,6 +454,47 @@ def generate_feedback_response(prompt: str, max_tokens: int = 500, use_groq: boo
     add_token_usage(total_tokens, model_name="gpt-4o-mini")
 
     return response.choices[0].message.content.strip()
+
+
+# Testing for Gemini
+# def generate_feedback_response(prompt: str, max_tokens: int = 500) -> str:
+#     client = get_gemini_client()  # ensures key is loaded and client is valid
+#
+#     start_time = time.perf_counter()
+#
+#     resp = client.models.generate_content(
+#         model="gemini-2.0-flash",
+#         contents=prompt,
+#         config=types.GenerateContentConfig(max_output_tokens=max_tokens),
+#     )
+#
+#     elapsed = time.perf_counter() - start_time
+#     print(f"⏱️ Feedback generation time: {elapsed:.2f} seconds")
+#
+#     text = resp.text or ""
+#
+#     # Prefer provider-reported usage when present
+#     um = getattr(resp, "usage_metadata", None)
+#     if um and (
+#         getattr(um, "prompt_token_count", None) is not None
+#         or getattr(um, "total_token_count", None) is not None
+#     ):
+#         prompt_tokens = getattr(um, "prompt_token_count", 0)
+#         completion_tokens = getattr(um, "candidates_token_count", 0)
+#         total_tokens = getattr(um, "total_token_count", prompt_tokens + completion_tokens)
+#     else:
+#         # Fallback: use your utils wrapper around Gemini's tokenizer endpoint
+#         prompt_tokens = count_tokens_gemini(prompt, model="gemini-2.0-flash")
+#         completion_tokens = count_tokens_gemini(text, model="gemini-2.0-flash")
+#         total_tokens = prompt_tokens + completion_tokens
+#
+#     print(f"🧮 Prompt tokens (Gemini): {prompt_tokens}")
+#     print(f"📦 Completion tokens (Gemini): {completion_tokens}")
+#     print(f"📊 Total tokens (Gemini): {total_tokens}")
+#
+#     add_token_usage(total_tokens, model_name="gemini-2.0-flash")
+#     return text.strip()
+
 
 
 def generate_followup_response(analysis_text: str, feedback_text: str, user_question: str, thread_summary: str = "") -> str:

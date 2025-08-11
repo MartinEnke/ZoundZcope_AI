@@ -292,6 +292,46 @@
       <p>&copy; 2025 <strong class="text-white">ZoundZcope</strong></p>
     </footer>
 
+    <!-- App Modal -->
+    <div id="app-modal" class="fixed inset-0 z-[100] hidden">
+      <!-- overlay -->
+      <div class="absolute inset-0 bg-black bg-opacity-60"></div>
+
+      <!-- dialog -->
+      <div
+        class="relative mx-auto mt-32 w-[92%] max-w-md rounded-xl border border-white/10 bg-black/70 backdrop-blur-md shadow-2xl"
+        role="dialog" aria-modal="true" aria-labelledby="app-modal-title"
+      >
+        <div class="px-5 py-4 border-b border-white/10">
+          <h3 id="app-modal-title" class="text-lg font-semibold text-white"></h3>
+        </div>
+
+        <div class="px-5 py-4 space-y-3">
+          <p id="app-modal-message" class="text-white/80 text-sm"></p>
+
+          <!-- input wrapper is hidden for confirm-only dialogs -->
+          <div id="app-modal-input-wrap" class="hidden">
+            <input
+              id="app-modal-input"
+              type="text"
+              class="w-full px-3 py-2 rounded-md bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/30"
+            />
+          </div>
+        </div>
+
+        <div class="px-5 py-4 flex justify-end gap-3 border-t border-white/10">
+          <button id="app-modal-cancel"
+            class="px-4 py-2 rounded-md border border-white/20 text-white hover:bg-white/10">
+            Cancel
+          </button>
+          <button id="app-modal-confirm"
+            class="px-4 py-2 rounded-md border border-white/20 text-black bg-white hover:bg-white/90">
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- ======================================================== -->
     <!-- Inline Scripts                                            -->
     <!-- ======================================================== -->
@@ -309,5 +349,7 @@
 
     <!-- Page-specific logic (populates session/track controls, renders feedback, etc.) -->
     <script src="/static/feedback_history.js"></script>
+
+
   </body>
 </html>

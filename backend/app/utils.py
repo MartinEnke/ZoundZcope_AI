@@ -21,6 +21,28 @@ import html
 import os
 import tiktoken
 
+# from openai import OpenAI
+
+# import os
+# from dotenv import load_dotenv
+# from google import genai
+#
+# load_dotenv()
+
+# def get_gemini_client() -> genai.Client:
+#     key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+#     if not key:
+#         raise RuntimeError("Set GEMINI_API_KEY (or GOOGLE_API_KEY) first.")
+#     return genai.Client(api_key=key)
+#
+# def count_tokens_gemini(text: str, model: str = "gemini-2.0-flash") -> int:
+#     client = get_gemini_client()
+#     r = client.models.count_tokens(model=model, contents=text)
+#     return int(getattr(r, "total_tokens", 0))
+
+
+
+
 
 # Allowed values (adjust as needed)
 ALLOWED_TYPES = {"mixdown", "mastering", "master"}
@@ -210,20 +232,4 @@ def count_tokens(text, model="gpt-4o"):
     encoding = tiktoken.encoding_for_model(model)
     return len(encoding.encode(text))
 
-
-def count_tokens_gemini(text, model="gemini"):
-    """
-    Approximate token count for Gemini models.
-
-    - Uses character count divided by 4 as an estimate.
-
-    Args:
-        text (str): Input text to measure.
-        model (str, optional): Model name (ignored for calculation).
-
-    Returns:
-        int: Approximate token count.
-    """
-    char_count = len(text)
-    return int(char_count / 4)  # Approximate token count (1 token ≈ 4 characters)
 

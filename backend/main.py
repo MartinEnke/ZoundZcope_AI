@@ -41,6 +41,9 @@ from contextlib import asynccontextmanager
 from app.routers import rag
 from app.routers import tokens
 
+from dotenv import load_dotenv
+load_dotenv()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
