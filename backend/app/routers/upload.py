@@ -137,9 +137,7 @@ def upload_audio(
                 status_code=400,
                 content={"detail": "The reference file is wrong, corrupted, or too big."}
             )
-        else:
-            ref_file_location = None
-            ref_analysis = None
+
 
         print("Passing ref_analysis to prompt:", ref_analysis is not None)
 
@@ -258,20 +256,11 @@ def upload_audio(
             "rms_path": f"/static/analysis/{rms_filename}"
         }
 
-
-
     except Exception as e:
-
         import traceback
-
         traceback.print_exc()  # still log full error server-side
-
         print("UPLOAD ERROR:", e)
-
         return JSONResponse(
-
             status_code=400,  # use 400 instead of 500 for "bad upload"
-
             content={"detail": "The file is wrong, corrupted, or too big."}
-
         )
