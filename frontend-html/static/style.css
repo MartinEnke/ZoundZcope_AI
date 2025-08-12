@@ -1056,7 +1056,7 @@ transition: max-height 0.3s ease;
 @keyframes zzSpin { to { transform: rotate(540deg); } }
 
 .zz-core{
-  position:absolute; inset:16px; border-radius:inherit; background: rgba(0,0,0,.55);
+  position:absolute; inset:16px; border-radius:inherit; background: rgba(0,0,0,.100);
   box-shadow: 0 0 24px rgba(236,72,153,.55), 0 0 28px rgba(59,130,246,.55) inset;
 }
 

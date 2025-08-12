@@ -177,6 +177,11 @@ async def serve_feedback_history(request: Request):
     return templates.TemplateResponse("feedback_history.html", {"request": request})
 
 
+@app.get("/background.html", response_class=HTMLResponse)
+async def background(request: Request):
+    return templates.TemplateResponse("background.html", {"request": request})
+
+
 async def periodic_cleanup_task():
     """
         Background task to periodically clean up old uploaded files.

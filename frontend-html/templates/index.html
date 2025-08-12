@@ -41,6 +41,8 @@
     <div class="zz-spinner"><div class="zz-core"></div></div>
   </div>
 
+
+
   <!-- ================= BACKGROUND LOGO (Faded) ================= -->
   <div class="fixed inset-0 z-0 opacity-10 bg-no-repeat bg-center pointer-events-none"
        style="background-image: url('/static/logo old.png'); background-size: 1800px; background-position: center -450px;">
@@ -55,8 +57,10 @@
       <h1 class="text-xl font-semibold text-white">ZoundZcope AI</h1>
     </a>
 
+
     <!-- Desktop Navigation -->
     <nav class="hidden md:flex items-center gap-6">
+      <a href="background.html" class="text-white hover:text-blue-400 text-base transition font-medium">BG</a>
       <a href="info.html" class="text-white hover:text-blue-400 text-base transition font-medium">Info</a>
       <a href="/feedback_history.html" class="text-white hover:text-blue-400 text-base transition font-medium">Feedback History</a>
     </nav>
@@ -208,6 +212,12 @@
         <section id="results" class="hidden bg-black/10 p-6 rounded-lg shadow-inner">
           <h2 class="text-lg font-semibold mb-4">Analysis Results</h2>
           <div id="analysisOutput" class="space-y-2 text-sm"></div>
+        </section>
+
+        <!-- ===== Reference Track Analysis ===== -->
+        <section id="ref-results" class="hidden bg-black/10 p-6 rounded-lg shadow-inner mt-6">
+          <h2 class="text-lg font-semibold mb-4">Reference Track Analysis</h2>
+          <div id="refAnalysisOutput" class="space-y-2 text-sm"></div>
         </section>
       </div>
 
