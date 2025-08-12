@@ -73,33 +73,33 @@
             </label>
 
             <!-- Reference Track Upload -->
-<div class="mt-4">
-  <label for="ref-file-upload" class="milky-input flex items-center justify-between cursor-pointer transition hover:bg-white/20 hover:backdrop-blur-lg py-2">
-    <span id="ref-file-name" class="text-white/90 text-base">Choose Reference Track</span>
-    <input id="ref-file-upload" name="ref_file" type="file" accept="audio/*" class="hidden" />
-  </label>
-</div>
+            <div class="mt-4">
+              <label for="ref-file-upload" class="milky-input flex items-center justify-between cursor-pointer transition hover:bg-white/20 hover:backdrop-blur-lg py-2">
+                <span id="ref-file-name" class="text-white/90 text-base">Choose Reference Track</span>
+                <input id="ref-file-upload" name="ref_file" type="file" accept="audio/*" class="hidden" />
+              </label>
+            </div>
 
 
             <div id="session-dropdown-wrapper" class="relative">
-  <input type="hidden" name="session_id" id="session_id">
+              <input type="hidden" name="session_id" id="session_id">
 
-  <button type="button" id="session-dropdown-button" class="milky-input flex justify-between items-center w-full px-4 py-2 text-left">
-    <span id="session-dropdown-label" class="text-white/80">Select Session</span>
-    <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-    </svg>
-  </button>
+              <button type="button" id="session-dropdown-button" class="milky-input flex justify-between items-center w-full px-4 py-2 text-left">
+                <span id="session-dropdown-label" class="text-white/80">Select Session</span>
+                <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </button>
 
-  <ul id="session-dropdown-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden"
-      style="background-color: rgba(255,255,255,0.05); backdrop-filter: blur(6px);">
-    <!-- Dynamically populated -->
-  </ul>
+              <ul id="session-dropdown-options" class="absolute z-10 mt-1 w-full rounded-md shadow-lg text-sm text-white hidden"
+                  style="background-color: rgba(255,255,255,0.05); backdrop-filter: blur(6px);">
+                <!-- Dynamically populated -->
+              </ul>
 
-  <!-- Hidden input that shows only when "New Session" is selected -->
-  <input type="text" id="new-session-input" name="session_name" placeholder="New session name"
-         class="milky-input mt-2 hidden" />
-</div>
+              <!-- Hidden input that shows only when "New Session" is selected -->
+              <input type="text" id="new-session-input" name="session_name" placeholder="New session name"
+                     class="milky-input mt-2 hidden" />
+            </div>
 
 
             <!-- Type Dropdown -->
@@ -126,47 +126,46 @@
             </div>
 
 
+            <!-- ✅ Genre + Subgenre Dropdown HTML -->
+            <div class="flex gap-4 items-start w-full max-w-xl">
+              <!-- Genre -->
+              <div class="relative w-1/2">
+                <input type="hidden" name="genre" id="genre-input" />
+                <button type="button" id="genre-button"
+                  class="milky-input w-full flex justify-between items-center px-4 py-2 text-left">
+                  <span id="genre-selected" class="text-white/80">Select Genre</span>
+                  <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2"
+                       viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </button>
+                <ul id="genre-options"
+                    class="absolute top-full mt-1 w-full rounded-md shadow-lg text-sm text-white hidden z-50"
+                    style="background-color: rgba(255,255,255,0.05); backdrop-filter: blur(6px);">
+                </ul>
+              </div>
 
-<!-- ✅ Genre + Subgenre Dropdown HTML -->
-<div class="flex gap-4 items-start w-full max-w-xl">
-  <!-- Genre -->
-  <div class="relative w-1/2">
-    <input type="hidden" name="genre" id="genre-input" />
-    <button type="button" id="genre-button"
-      class="milky-input w-full flex justify-between items-center px-4 py-2 text-left">
-      <span id="genre-selected" class="text-white/80">Select Genre</span>
-      <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2"
-           viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-      </svg>
-    </button>
-    <ul id="genre-options"
-        class="absolute top-full mt-1 w-full rounded-md shadow-lg text-sm text-white hidden z-50"
-        style="background-color: rgba(255,255,255,0.05); backdrop-filter: blur(6px);">
-    </ul>
-  </div>
+              <!-- Subgenre -->
+              <div class="relative w-1/2" id="subgenre-wrapper">
+                <input type="hidden" name="subgenre" id="subgenre-input" />
+                <button type="button" id="subgenre-button"
+                  class="milky-input w-full flex justify-between items-center px-4 py-2 text-left">
+                  <span id="subgenre-selected" class="text-white/80">Select Subgenre</span>
+                  <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2"
+                       viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </button>
+                <ul id="subgenre-options"
+                    class="absolute top-full mt-1 w-full rounded-md shadow-lg text-sm text-white hidden z-50"
+                    style="background-color: rgba(255,255,255,0.05); backdrop-filter: blur(6px);">
+                </ul>
+              </div>
+            </div>
 
-  <!-- Subgenre -->
-  <div class="relative w-1/2" id="subgenre-wrapper">
-    <input type="hidden" name="subgenre" id="subgenre-input" />
-    <button type="button" id="subgenre-button"
-      class="milky-input w-full flex justify-between items-center px-4 py-2 text-left">
-      <span id="subgenre-selected" class="text-white/80">Select Subgenre</span>
-      <svg class="w-4 h-4 text-white opacity-60" fill="none" stroke="currentColor" stroke-width="2"
-           viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-      </svg>
-    </button>
-    <ul id="subgenre-options"
-        class="absolute top-full mt-1 w-full rounded-md shadow-lg text-sm text-white hidden z-50"
-        style="background-color: rgba(255,255,255,0.05); backdrop-filter: blur(6px);">
-    </ul>
-  </div>
-</div>
-
-<!-- Custom Subgenre Input -->
-<input type="text" id="custom-subgenre-input" name="custom_subgenre" placeholder="Enter custom subgenre"
-       class="milky-input mt-2 hidden" />
+            <!-- Custom Subgenre Input -->
+            <input type="text" id="custom-subgenre-input" name="custom_subgenre" placeholder="Enter custom subgenre"
+                   class="milky-input mt-2 hidden" />
 
 
 
@@ -199,12 +198,12 @@
             <div id="uploadError" class="hidden upload-error" role="alert" aria-live="polite"></div>
 
             <button
-  type="submit"
-  id="analyze-button"
-  class="analyze-btn py-2 px-6 rounded transition duration-300"
->
-  Analyze
-</button>
+              type="submit"
+              id="analyze-button"
+              class="analyze-btn py-2 px-6 rounded transition duration-300"
+            >
+              Analyze
+            </button>
 
 
           </form>
@@ -218,155 +217,152 @@
 
       <!-- RIGHT COLUMN: Feedback -->
       <section id="feedback" class="hidden lg:w-[65%] min-w-0 mt-6 lg:mt-0 bg-black/10 p-6 rounded-lg shadow-inner space-y-4">
-  <div class="flex justify-between items-start mb-4">
-  <h2 class="text-2xl font-bold text-white">AI Feedback</h2>
-  <button
-    id="resetStateBtn"
-    type="button"
-    class="reset-btn text-sm"
-    title="Reset all selections and uploaded files"
-  >
-    Reset
-  </button>
-</div>
+        <div class="flex justify-between items-start mb-4">
+          <h2 class="text-2xl font-bold text-white">AI Feedback</h2>
+          <button
+            id="resetStateBtn"
+            type="button"
+            class="reset-btn text-sm"
+            title="Reset all selections and uploaded files"
+          >
+            Reset
+          </button>
+        </div>
 
 
-  <div id="gptResponse" class="text-base leading-relaxed text-white/90 space-y-3"></div>
+          <div id="gptResponse" class="text-base leading-relaxed text-white/90 space-y-3"></div>
 
-  <!-- ⬇️ Moved inside the feedback section -->
+          <!-- ⬇️ Moved inside the feedback section -->
+
+          <!-- FOLLOW-UP INPUT SECTION -->
+          <div id="custom-ai-section" class="mt-10 hidden">
+
+            <!-- New Export Button -->
+          <div class="flex justify-end mb-4">
+            <button
+              id="exportFeedbackBtn"
+              type="button"
+              class="text-sm text-purple-400 font-medium hover:text-purple-600 focus:outline-none transition"
+              title="Export AI feedback and Ableton preset recommendations as PDF"
+              style="background: none; padding: 0;"
+            >
+              Export Feedback & Presets
+            </button>
+          </div>
+
+            <!-- Existing Follow-Up Response and Input -->
+          <div id="aiFollowupResponse" class="mb-4 text-white/90 text-sm space-y-2 hidden"></div>
+
+          <!-- New container for summaries -->
+          <div id="aiSummaryResponse" class="mb-4 text-white/90 text-sm space-y-2 hidden"></div>
+
+          <button id="manualSummarizeBtn" class="summarize-thread-btn" style="display:none;">
+            Summarize Thread
+          </button>
 
 
-<!-- FOLLOW-UP INPUT SECTION -->
-<div id="custom-ai-section" class="mt-10 hidden">
-
-  <!-- New Export Button -->
-<div class="flex justify-end mb-4">
-  <button
-    id="exportFeedbackBtn"
-    type="button"
-    class="text-sm text-purple-400 font-medium hover:text-purple-600 focus:outline-none transition"
-    title="Export AI feedback and Ableton preset recommendations as PDF"
-    style="background: none; padding: 0;"
-  >
-    Export Feedback & Presets
-  </button>
-</div>
-
-  <!-- Existing Follow-Up Response and Input -->
-<div id="aiFollowupResponse" class="mb-4 text-white/90 text-sm space-y-2 hidden"></div>
-
-<!-- New container for summaries -->
-<div id="aiSummaryResponse" class="mb-4 text-white/90 text-sm space-y-2 hidden"></div>
-
-<button id="manualSummarizeBtn" class="summarize-thread-btn" style="display:none;">
-  Summarize Thread
-</button>
-
-
-  <div class="relative">
-    <input
-      type="text"
-      id="customQuestion"
-      placeholder="Want to know more?"
-      class="w-full px-5 py-2.5 rounded-xl text-white placeholder-white/40 text-sm transition focus:outline-none"
-      style="
-        background-color: rgba(0, 0, 0, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.10);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        box-shadow:
-          0 0 4px rgba(236, 72, 153, 0.25),
-          0 0 4px rgba(59, 130, 246, 0.25);
-      "
-      onfocus="this.style.boxShadow='0 0 6px rgba(236,72,153,0.4), 0 0 6px rgba(59,130,246,0.4)'"
-      onblur="this.style.boxShadow='0 0 4px rgba(236,72,153,0.25), 0 0 4px rgba(59,130,246,0.25)'"
-    />
-    <button
-      id="askAIButton"
-      class="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 text-sm bg-gradient-to-r from-pink-500 to-blue-500 text-white font-medium rounded-lg hover:opacity-90 transition"
-    >
-      Ask AI
-    </button>
-  </div>
-</div>
-        <div id="waveform-wrapper" class="space-y-2">
+            <div class="relative">
+              <input
+                type="text"
+                id="customQuestion"
+                placeholder="Want to know more?"
+                class="w-full px-5 py-2.5 rounded-xl text-white placeholder-white/40 text-sm transition focus:outline-none"
+                style="
+                  background-color: rgba(0, 0, 0, 0.15);
+                  border: 1px solid rgba(255, 255, 255, 0.10);
+                  backdrop-filter: blur(16px);
+                  -webkit-backdrop-filter: blur(16px);
+                  box-shadow:
+                    0 0 4px rgba(236, 72, 153, 0.25),
+                    0 0 4px rgba(59, 130, 246, 0.25);
+                "
+                onfocus="this.style.boxShadow='0 0 6px rgba(236,72,153,0.4), 0 0 6px rgba(59,130,246,0.4)'"
+                onblur="this.style.boxShadow='0 0 4px rgba(236,72,153,0.25), 0 0 4px rgba(59,130,246,0.25)'"
+              />
+              <button
+                id="askAIButton"
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 text-sm bg-gradient-to-r from-pink-500 to-blue-500 text-white font-medium rounded-lg hover:opacity-90 transition"
+              >
+                Ask AI
+              </button>
+            </div>
+          </div>
+          <div id="waveform-wrapper" class="space-y-2">
 
           <!-- Reference Track Waveform -->
-<!-- Reference Track Waveform -->
-<div id="ref-waveform-wrapper" style="position: relative; display: none; width: 100%; height: 100px;">
-  <div id="ref-waveform"></div>
-  <div id="ref-label">REFERENCE</div>
-</div>
+          <div id="ref-waveform-wrapper" style="position: relative; display: none; width: 100%; height: 100px;">
+            <div id="ref-waveform"></div>
+            <div id="ref-label">REFERENCE</div>
+          </div>
 
-<!-- Original track waveform -->
-<div id="waveform" style="margin-top: 20px;"></div>
+          <!-- Original track waveform -->
+          <div id="waveform" style="margin-top: 20px;"></div>
 
-<p id="rms-display" class="hidden text-sm text-white/80"></p>
-          <br>
-
-
-        <!-- ⬇️ Quick Follow-Up Section (auto-generated buttons) -->
-<div id="quick-followup" class="mt-6 space-y-2 hidden">
-  <p class="text-white/70 text-sm">Quick Follow-Up Questions:</p>
-  <div class="grid grid-cols-2 gap-3"></div>
-</div>
-
-</section>
-</div> <!-- CLOSE row div -->
-<!-- 🔁 Recent Feedback Panel (below main content) -->
-<section id="recentFeedbackPanel" class="hidden mt-10 space-y-6 px-3 max-w-6xl mx-auto">
-  <h2 class="text-xl font-bold text-white/90 mb-4">Recent Feedback</h2>
-  <div id="recent-feedback-container" class="space-y-4">
-    <!-- Panels will be inserted here -->
-  </div>
-</section>
+          <p id="rms-display" class="hidden text-sm text-white/80"></p>
+                    <br>
 
 
+                  <!-- ⬇️ Quick Follow-Up Section (auto-generated buttons) -->
+          <div id="quick-followup" class="mt-6 space-y-2 hidden">
+            <p class="text-white/70 text-sm">Quick Follow-Up Questions:</p>
+            <div class="grid grid-cols-2 gap-3"></div>
+          </div>
 
-    <!-- The Ask button that toggles visibility -->
-<div class="max-w-6xl mx-auto px-3">
-  <button id="toggle-rag-btn" class="docs-tut-btn block ml-auto text-center">
-    AI-powered<br>Docs & Tutorials
-  </button>
-</div>
-    <!-- RAG Assistants Tabs -->
-    <!-- Container that holds your RAG assistants, hidden by default -->
-<div id="rag-container" class="hidden">
-<section id="rag-assistants" class="bg-black/10 p-6 rounded-lg shadow-inner mt-0">
-  <div class="flex space-x-4 mb-4">
-    <button id="tab-docs" class="tab active px-4 py-2 border-b-2 border-pink-500 font-semibold">
-      Docs Assistant
-    </button>
-    <button id="tab-tut" class="tab px-4 py-2 border-b-2 border-transparent hover:border-pink-500">
-      Tutorial Assistant
-    </button>
-  </div>
+      </section>
+          </div> <!-- CLOSE row div -->
+          <!-- 🔁 Recent Feedback Panel (below main content) -->
+          <section id="recentFeedbackPanel" class="hidden mt-10 space-y-6 px-3 max-w-6xl mx-auto">
+            <h2 class="text-xl font-bold text-white/90 mb-4">Recent Feedback</h2>
+            <div id="recent-feedback-container" class="space-y-4">
+              <!-- Panels will be inserted here -->
+            </div>
+          </section>
 
-  <div id="docs-chat-container" class="rag-chat-container">
-    <div id="docs-chat" class="overflow-y-auto p-3 bg-gray-900 rounded text-white text-sm mb-2"></div>
-    <form id="docs-chat-form" class="flex space-x-2">
-      <input type="text" id="docs-chat-input" placeholder="Ask your docs question..."
-             class="flex-grow rounded bg-gray-800 px-3 py-2 text-white focus:outline-none" autocomplete="off" required />
-      <button type="submit" class="ask-rag-btn px-5 rounded transition">Ask</button>
-    </form>
-  </div>
 
-  <div id="tut-chat-container" class="rag-chat-container hidden">
-    <div id="tut-chat" class="h-60 overflow-y-auto p-3 bg-gray-900 rounded text-white text-sm mb-2"></div>
-    <form id="tut-chat-form" class="flex space-x-2">
-      <input type="text" id="tut-chat-input" placeholder="Ask your tutorial question..."
-             class="flex-grow rounded bg-gray-800 px-3 py-2 text-white focus:outline-none" autocomplete="off" required />
-      <button type="submit" class="ask-rag-btn px-5 rounded transition">Ask</button>
-    </form>
-  </div>
-</section>
-</div>
+              <!-- The Ask button that toggles visibility -->
+          <div class="max-w-6xl mx-auto px-3">
+            <button id="toggle-rag-btn" class="docs-tut-btn block ml-auto text-center">
+              AI-powered<br>Docs & Tutorials
+            </button>
+          </div>
+              <!-- RAG Assistants Tabs -->
+              <!-- Container that holds your RAG assistants, hidden by default -->
+          <div id="rag-container" class="hidden">
+          <section id="rag-assistants" class="bg-black/10 p-6 rounded-lg shadow-inner mt-0">
+            <div class="flex space-x-4 mb-4">
+              <button id="tab-docs" class="tab active px-4 py-2 border-b-2 border-pink-500 font-semibold">
+                Docs Assistant
+              </button>
+              <button id="tab-tut" class="tab px-4 py-2 border-b-2 border-transparent hover:border-pink-500">
+                Tutorial Assistant
+              </button>
+            </div>
 
-</main>
+            <div id="docs-chat-container" class="rag-chat-container">
+              <div id="docs-chat" class="overflow-y-auto p-3 bg-gray-900 rounded text-white text-sm mb-2"></div>
+              <form id="docs-chat-form" class="flex space-x-2">
+                <input type="text" id="docs-chat-input" placeholder="Ask your docs question..."
+                       class="flex-grow rounded bg-gray-800 px-3 py-2 text-white focus:outline-none" autocomplete="off" required />
+                <button type="submit" class="ask-rag-btn px-5 rounded transition">Ask</button>
+              </form>
+            </div>
+
+            <div id="tut-chat-container" class="rag-chat-container hidden">
+              <div id="tut-chat" class="h-60 overflow-y-auto p-3 bg-gray-900 rounded text-white text-sm mb-2"></div>
+              <form id="tut-chat-form" class="flex space-x-2">
+                <input type="text" id="tut-chat-input" placeholder="Ask your tutorial question..."
+                       class="flex-grow rounded bg-gray-800 px-3 py-2 text-white focus:outline-none" autocomplete="off" required />
+                <button type="submit" class="ask-rag-btn px-5 rounded transition">Ask</button>
+              </form>
+            </div>
+          </section>
+          </div>
+
+  </main>
 
   <footer class="text-center text-white/60 text-sm py-12 px-4">
-  <p>&copy; 2025 <strong class="text-white">ZoundZcope</strong></p>
-</footer>
+    <p>&copy; 2025 <strong class="text-white">ZoundZcope</strong></p>
+  </footer>
 
 
 <script>
@@ -395,7 +391,7 @@
 <!-- Waveform logic must load first so app.js can use it -->
 <script src="/static/waveform-logic.js"></script>
 
-  <script src="/static/dropdown-logic.js" defer></script>
+<script src="/static/dropdown-logic.js" defer></script>
 
 <script src="/static/followup-logic.js"></script>
 
