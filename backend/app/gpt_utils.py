@@ -592,7 +592,7 @@ Respond below:
 """
 
 
-def generate_comparison_feedback(comparison_data: List[dict], max_tokens: int = 300) -> str:
+def generate_comparison_feedback(comparison_data: List[dict], max_tokens: int = 600) -> str:
     """
     Generate AI feedback comparing multiple tracks.
 
@@ -627,8 +627,10 @@ def generate_comparison_feedback(comparison_data: List[dict], max_tokens: int = 
 
     prompt += (
         "### Comparison Summary\n"
+        "Plan your full response before writing so you always include the 'Conclusions' section. "
         "Write a cohesive summary of how the tracks compare. Highlight what works well, what needs attention, and whether they sound like they belong together in an album or playlist.\n"
         "Use bullet points or clear section headings like 'Sonic Cohesion Across Tracks', 'Strengths', 'Weaknesses', 'Suggestions', and 'Conclusions'."
+        "Respect the word caps strictly. Do NOT end any section mid-sentence."
     )
 
     response = client.chat.completions.create(
@@ -637,7 +639,8 @@ def generate_comparison_feedback(comparison_data: List[dict], max_tokens: int = 
             {"role": "system", "content": "You are an experienced audio mastering engineer evaluating track cohesion and quality."},
             {"role": "user", "content": prompt}
         ],
-        max_tokens=max_tokens
+        max_tokens=max_tokens,
+        temperature=0.4
     )
 
     # 🔢 Count tokens in the prompt
