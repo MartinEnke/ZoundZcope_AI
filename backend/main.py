@@ -194,7 +194,7 @@ async def periodic_cleanup_task():
             cleanup_old_uploads()
         except Exception as e:
             logger.error(f"Periodic cleanup error: {e}")
-        await asyncio.sleep(12 * 60 * 60)  # Run twice daily
+        await asyncio.sleep(30)  # Run twice daily
 
 
 @app.on_event("startup")

@@ -28,12 +28,7 @@
   <div class="zz-modal-backdrop"></div>
 
   <!-- Dialog -->
-  <div class="zz-modal-card fade-in-up" tabindex="-1">
-    <!-- Close (X) -->
-    <button id="zz-disclaimer-close" class="zz-modal-close" aria-label="Close">
-      ×
-    </button>
-
+  <div class="zz-modal-card fade-in-up" tabindex="-1" style="max-height:90vh; display:flex; flex-direction:column;">
     <!-- Header -->
     <div class="zz-modal-header">
       <img src="/static/Logo.png" alt="" class="h-10 w-10 opacity-90" />
@@ -42,40 +37,42 @@
       </h2>
     </div>
 
-    <!-- Body -->
-    <div class="zz-modal-body">
-      <p class="zz-lead">
-        Upload a track, get analysis & tailored audio-engineer feedback — right in your browser.
+    <!-- Body (scrollable) -->
+    <div class="zz-modal-body" style="flex:1 1 auto; overflow-y:auto; padding-right:.25rem;">
+      <p class="zz-lead zz-lead-gradient">
+  Receive audio analysis and tailored audio-engineer style feedback.
+</p>
+
+<ul class="zz-feature-list zz-feature-fancy">
+  <li>Upload <em>or use provided demo tracks</em></li>
+  <li>Technical analysis: True Peak, LUFS, DR, Transients, Tempo/Key, Spectral balance</li>
+  <li>AI feedback modes: Mixdown Review, Mastering, Master Review</li>
+  <li>Reference comparisons &amp; multi-track comparisons</li>
+  <li>Sessions, history, and PDF exports (feedback + presets)</li>
+  <li>Docs &amp; Tutorials assistant (RAG)</li>
+</ul>
+
+
+      <p class="text-xs sm:text-sm italic opacity-80 mt-2">
+        The upload controls are pre-filled with demos. Use them or click to select your own files.
       </p>
 
-      <ul class="zz-feature-list">
-        <li>Upload mix/master (+ optional reference)</li>
-        <li>Technical analysis: True Peak, LUFS, DR, Transients, Tempo/Key, Spectral balance</li>
-        <li>AI feedback modes: Mixdown Review, Mastering, Master Review</li>
-        <li>Reference comparisons & multi-track comparisons</li>
-        <li>Sessions, history, and PDF exports (feedback + presets)</li>
-        <li>Docs & Tutorials assistant (RAG)</li>
-      </ul>
+      <div class="zz-disclaimer-block text-xs sm:text-sm leading-relaxed mt-4">
+        <h3 class="zz-disclaimer-heading">Disclaimer &amp; Use Policy</h3>
 
-      <div class="zz-disclaimer-block">
-        <h3 class="zz-disclaimer-heading">Disclaimer</h3>
-        <p>
-          ZoundZcope AI is an experimental / educational project. No warranties of any kind.
-          Results may be incomplete or incorrect.
-        </p>
-        <p>
-          By continuing, you acknowledge that you are responsible for how you use the output.
-          Do not upload content you do not have rights to share. Uploads may be stored temporarily and can be removed by periodic cleanup.
-        </p>
+        <p><strong>Demo Only.</strong> ZoundZcope AI is a <em>demonstration</em> and <em>educational</em> prototype intended to show how such a tool could work. It is not a production service.</p>
+
+        <p class="mt-2"><strong>Accuracy.</strong> Analyses and recommendations are generated automatically and may be inaccurate, incomplete, or unsuitable for your specific use case. No warranties of any kind are provided.</p>
+
+        <p class="mt-2"><strong>Rights.</strong> You may upload your own audio, but only if you own it or have permission to use it. By continuing, you confirm you have the necessary rights to any content you submit. If you do not, please use the built-in demo tracks instead.</p>
+
+        <p class="mt-2"><strong>Storage &amp; Sharing.</strong> Uploaded audio is used solely to perform the analysis and is <em>not shared</em> or made public. We do <em>not</em> retain your audio; any short-lived working copies created during processing are automatically purged by our cleanup routine. Demo tracks are local assets provided for evaluation and are licensed by the author.</p>
       </div>
-
-
     </div>
 
-    <!-- Footer -->
-    <div class="zz-modal-footer">
-      <a href="/info.html" class="zz-secondary-btn link-sweep-pinkblue"><span>Learn more</span></a>
-      <button id="zz-disclaimer-accept" class="zz-primary-btn">Accept & Continue</button>
+    <!-- Footer (only Accept) -->
+    <div class="zz-modal-footer" style="flex:0 0 auto;">
+      <button id="zz-disclaimer-accept" class="zz-primary-btn">Accept &amp; Continue</button>
     </div>
   </div>
 </div>
@@ -449,6 +446,8 @@
 </script>
 
 <script src="/static/disclaimer.js" defer></script>
+
+<script src="/static/demo-autoload.js"></script>
 
 <script src="https://unpkg.com/wavesurfer.js"></script>
 

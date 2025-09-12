@@ -10,7 +10,7 @@ logger = logging.getLogger("cleanup")
 BASE_DIR = Path(os.getcwd()).parent
 UPLOAD_FOLDER = BASE_DIR / "backend" / "uploads"
 RMS_ANALYSIS_FOLDER = BASE_DIR / "frontend-html" / "static" / "analysis"
-MAX_FILE_AGE_SECONDS =  24 * 60 * 60 # run daily
+MAX_FILE_AGE_SECONDS =  60 # run daily
 
 def cleanup_old_uploads():
     logger.info("Starting cleanup of old uploads...")
