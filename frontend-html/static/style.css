@@ -1068,3 +1068,159 @@ pointer-events: none;
 @media (min-width: 768px) {
   .md\:flex { display: flex !important; }
 }
+
+
+
+/* ===== Intro / Disclaimer Modal (ZoundZcope) ===== */
+.zz-modal.hidden { display: none; }
+.zz-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9998; /* under loader (9999), above everything else */
+  display: grid;
+  place-items: center;
+}
+
+.zz-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.zz-modal-card {
+  position: relative;
+  z-index: 1;
+  width: min(720px, 92vw);
+  background: rgba(255,255,255,0.05);
+  border-radius: 16px;
+  padding: 18px 18px 16px;
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow:
+    0 10px 40px rgba(0,0,0,0.45),
+    0 0 12px rgba(59,130,246,0.25),
+    0 0 12px rgba(236,72,153,0.25);
+  overflow: hidden;
+}
+
+.zz-modal-card::before {
+  /* subtle gradient border sheen */
+  content: "";
+  position: absolute; inset: 0; border-radius: 16px; padding: 1px;
+  background: linear-gradient(135deg, rgba(236,72,153,.35), rgba(59,130,246,.35));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  pointer-events: none;
+}
+
+.zz-modal-close {
+  position: absolute; top: 10px; right: 12px;
+  width: 36px; height: 36px; line-height: 32px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff; background: rgba(255,255,255,0.06);
+  font-size: 20px; font-weight: 600;
+  transition: all .2s ease; z-index: 2;
+}
+.zz-modal-close:hover { background: rgba(255,255,255,0.14); }
+
+.zz-modal-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 6px 6px 10px 6px;
+}
+.zz-modal-title {
+  font-size: 1.25rem; font-weight: 800; color: #fff; letter-spacing: .3px;
+}
+.zz-beta-pill {
+  margin-left: 8px;
+  font-size: .75rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 9999px;
+  background: rgba(59,130,246,0.15);
+  border: 1px solid rgba(59,130,246,0.35);
+  color: #cfe3ff;
+}
+
+.zz-modal-body {
+  color: #ebebeb;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  border-radius: 12px;
+  padding: 12px 12px 4px 12px;
+}
+
+.zz-lead {
+  font-size: 1rem; color: #f2f2f2;
+  margin-bottom: 8px;
+}
+
+.zz-feature-list {
+  margin: 10px 0 14px 0; padding-left: 1rem;
+  display: grid; gap: 6px;
+}
+.zz-feature-list li {
+  list-style: none;
+  color: #e5e7eb;
+}
+
+.zz-disclaimer-block {
+  margin-top: 8px; padding: 12px 12px;
+  border-left: 3px solid #a855f7;
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+}
+.zz-disclaimer-heading {
+  margin-bottom: 6px; font-weight: 700; color: #c084fc;
+}
+
+.zz-checkbox {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 10px; color: #d1d5db; user-select: none;
+}
+.zz-checkbox input[type="checkbox"] {
+  width: 16px; height: 16px; accent-color: #a855f7;
+}
+
+.zz-modal-footer {
+  display: flex; justify-content: flex-end; align-items: center; gap: 10px;
+  margin-top: 14px;
+}
+
+.zz-primary-btn {
+  padding: 0.55rem 1rem;
+  border-radius: 0.5rem;
+  border: 2px solid rgba(236,72,153,0.45);
+  background: rgba(255,255,255,0.08);
+  color: transparent;
+  background-image: linear-gradient(90deg,#ec4899,#3b82f6);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  text-fill-color: transparent;
+  font-weight: 700; letter-spacing: .3px;
+  box-shadow:
+    0 0 6px rgba(236, 72, 153, 0.6),
+    0 0 8px rgba(59, 130, 246, 0.6);
+  transition: box-shadow .25s ease, border-color .25s ease, background-color .25s ease, transform .1s ease;
+}
+.zz-primary-btn:hover {
+  border-color: rgba(59,130,246,0.9);
+  background-color: rgba(255,255,255,0.14);
+  box-shadow:
+    0 0 10px rgba(236,72,153,0.9),
+    0 0 14px rgba(59,130,246,0.9);
+}
+.zz-primary-btn:active { transform: translateY(1px); }
+
+.zz-secondary-btn {
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.06);
+  color: #e5e7eb;
+  transition: background .2s ease, border-color .2s ease;
+}
+.zz-secondary-btn:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.35);
+}
+
+/* Respect your existing animation utilities */
+.zz-modal-card.fade-in-up { animation: fadeInUp .45s ease-out; }

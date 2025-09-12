@@ -21,6 +21,67 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
+
+<!-- Intro / Disclaimer Modal -->
+<div id="zz-disclaimer" class="zz-modal hidden" role="dialog" aria-modal="true" aria-labelledby="zz-disclaimer-title">
+  <!-- Backdrop -->
+  <div class="zz-modal-backdrop"></div>
+
+  <!-- Dialog -->
+  <div class="zz-modal-card fade-in-up" tabindex="-1">
+    <!-- Close (X) -->
+    <button id="zz-disclaimer-close" class="zz-modal-close" aria-label="Close">
+      ×
+    </button>
+
+    <!-- Header -->
+    <div class="zz-modal-header">
+      <img src="/static/Logo.png" alt="" class="h-10 w-10 opacity-90" />
+      <h2 id="zz-disclaimer-title" class="zz-modal-title">
+        ZoundZcope AI <span class="zz-beta-pill">Preview</span>
+      </h2>
+    </div>
+
+    <!-- Body -->
+    <div class="zz-modal-body">
+      <p class="zz-lead">
+        Upload a track, get analysis & tailored audio-engineer feedback — right in your browser.
+      </p>
+
+      <ul class="zz-feature-list">
+        <li>Upload mix/master (+ optional reference)</li>
+        <li>Technical analysis: True Peak, LUFS, DR, Transients, Tempo/Key, Spectral balance</li>
+        <li>AI feedback modes: Mixdown Review, Mastering, Master Review</li>
+        <li>Reference comparisons & multi-track comparisons</li>
+        <li>Sessions, history, and PDF exports (feedback + presets)</li>
+        <li>Docs & Tutorials assistant (RAG)</li>
+      </ul>
+
+      <div class="zz-disclaimer-block">
+        <h3 class="zz-disclaimer-heading">Disclaimer</h3>
+        <p>
+          ZoundZcope AI is an experimental / educational project. No warranties of any kind.
+          Results may be incomplete or incorrect.
+        </p>
+        <p>
+          By continuing, you acknowledge that you are responsible for how you use the output.
+          Do not upload content you do not have rights to share. Uploads may be stored temporarily and can be removed by periodic cleanup.
+        </p>
+      </div>
+
+
+    </div>
+
+    <!-- Footer -->
+    <div class="zz-modal-footer">
+      <a href="/info.html" class="zz-secondary-btn link-sweep-pinkblue"><span>Learn more</span></a>
+      <button id="zz-disclaimer-accept" class="zz-primary-btn">Accept & Continue</button>
+    </div>
+  </div>
+</div>
+
+
+
 <body class="text-white">
 <!-- Welcome / Load Overlay -->
   <div id="zz-loader" aria-hidden="true" onanimationend="this.style.display='none'">
@@ -386,6 +447,9 @@
   // Final fallback in case animations are disabled
   setTimeout(cleanup, 2500);
 </script>
+
+<script src="/static/disclaimer.js" defer></script>
+
 <script src="https://unpkg.com/wavesurfer.js"></script>
 
 <!-- Waveform logic must load first so app.js can use it -->
