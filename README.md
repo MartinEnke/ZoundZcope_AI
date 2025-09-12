@@ -1,6 +1,6 @@
 # ZoundZcope AI
 
-Audio analysis + AI feedback for music producers. Upload a track, get precise technical analysis (LUFS, peaks, DR, transients, spectral balance), and receive genre‑aware mixdown/mastering guidance. Includes RAG docs assistants, multi‑track comparison, token usage tracking, and export to PDF.
+Audio analysis + AI feedback for music producers. Upload a track, get precise technical analysis (LUFS, peaks, DR, transients, spectral balance), and receive genre‑aware feedback for your pre-master or master. Includes RAG docs & tutorial assistants, multi‑track comparison, token usage tracking, and export to PDF.
 
 ![License: Contact Author](https://img.shields.io/badge/license-contact--author-orange)
 
