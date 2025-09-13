@@ -1,26 +1,46 @@
-__pycache__/
-*.pyc
-*.log
-
-.venv/
-venv/
-
-node_modules/
-frontend-html/node_modules/
-
+# ----- VCS / IDE -----
 .git/
+.gitignore
 .vscode/
 .idea/
+.DS_Store
 
+# ----- Python -----
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.venv/
+venv/
+env/
+ENV/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.pytype/
+.dmypy.json
+.pyre/
+
+# ----- Secrets / Env -----
+.env
+*.env
+.env.*
+
+# ----- App data you don't want in the image -----
 backend/zoundzcope.db
 backend/uploads/
 alembic_backup/
 
+# ----- Frontend build / deps -----
+node_modules/
+frontend-html/node_modules/
+dist/
+build/
 
-*.pyo
+# ----- Generated frontend analysis files -----
+frontend-html/static/analysis/
+
+# ----- Logs & misc -----
+*.log
 *.db
-
-.gitignore
-README.md
-docs
-frontend-html/static/analysis
