@@ -16,6 +16,13 @@ ENV PYTHONUNBUFFERED=1 \
     LANG=C.UTF-8 \
     TZ=UTC
 
+
+ENV OMP_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    NUMEXPR_NUM_THREADS=1 \
+    UVICORN_WORKERS=1
+
 # app user & dirs
 WORKDIR /app
 RUN useradd -ms /bin/bash appuser

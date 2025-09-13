@@ -51,6 +51,7 @@ print("Current working directory:", os.getcwd())
 
 router = APIRouter()
 
+
 # ----- OpenAI client (with timeouts + optional base_url/model from env) -----
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")  # optional (e.g. school proxy)
@@ -66,6 +67,8 @@ client = OpenAI(
 )
 
 
+
+
 # 3x dirname, weil rag.py liegt in backend/app/routers/
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -76,15 +79,22 @@ RAG_TUT_INDEX_PATH = os.path.join(BASE_DIR, "rag", "rag_tut", "rag_tut_faiss.ind
 RAG_TUT_METADATA_PATH = os.path.join(BASE_DIR, "rag", "rag_tut", "rag_tut_metadata.json")
 
 
-for p in (RAG_DOCS_INDEX_PATH, RAG_DOCS_METADATA_PATH, RAG_TUT_INDEX_PATH, RAG_TUT_METADATA_PATH):
-    if not os.path.exists(p):
-        logger.error("RAG asset missing: %s", p)
+RAG_ENABLED = os.getenv("RAG_ENABLED", "true").lower() == "true"
 
-docs_index = load_faiss_index(RAG_DOCS_INDEX_PATH)
-docs_metadata = load_metadata(RAG_DOCS_METADATA_PATH)
+docs_index = docs_metadata = tut_index = tut_metadata = None
+_indices_loaded = False
 
-tut_index = load_faiss_index(RAG_TUT_INDEX_PATH)
-tut_metadata = load_metadata(RAG_TUT_METADATA_PATH)
+def _ensure_indices():
+    global _indices_loaded, docs_index, docs_metadata, tut_index, tut_metadata
+    if _indices_loaded:
+        return
+    # (existing paths here)
+    # Load lazily so we don’t allocate RAM at import time
+    docs_index = load_faiss_index(RAG_DOCS_INDEX_PATH)
+    docs_metadata = load_metadata(RAG_DOCS_METADATA_PATH)
+    tut_index = load_faiss_index(RAG_TUT_INDEX_PATH)
+    tut_metadata = load_metadata(RAG_TUT_METADATA_PATH)
+    _indices_loaded = True
 
 print(f"Loading FAISS docs index from: {RAG_DOCS_INDEX_PATH}")
 
@@ -362,6 +372,10 @@ async def rag_docs(question: Question):
         Raises:
             HTTPException: If 'question' is empty or whitespace.
         """
+
+    if not RAG_ENABLED:
+        raise HTTPException(status_code=503, detail="RAG temporarily disabled")
+
     if not question.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
     answer = search_and_answer(
@@ -394,6 +408,10 @@ async def rag_tut(question: Question):
         Raises:
             HTTPException: If 'question' is empty or whitespace.
         """
+
+    if not RAG_ENABLED:
+        raise HTTPException(status_code=503, detail="RAG temporarily disabled")
+
     if not question.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
     answer = search_and_answer(

@@ -379,9 +379,13 @@
 
               <!-- The Ask button that toggles visibility -->
           <div class="max-w-6xl mx-auto px-3">
-            <button id="toggle-rag-btn" class="docs-tut-btn block ml-auto text-center">
-              AI-powered<br>Docs & Tutorials
-            </button>
+            <button id="toggle-rag-btn"
+        class="docs-tut-btn block ml-auto text-center"
+        disabled
+        aria-disabled="true"
+        title="Temporarily disabled">
+  AI-powered<br>Docs & Tutorials
+</button>
           </div>
               <!-- RAG Assistants Tabs -->
               <!-- Container that holds your RAG assistants, hidden by default -->
@@ -422,6 +426,10 @@
     <p>&copy; 2025 <strong class="text-white">ZoundZcope</strong></p>
   </footer>
 
+
+<script>
+  window.RAG_ENABLED = {{ 'true' if rag_enabled else 'false' }};
+</script>
 
 <script>
   window.trackPath = "{{ track_path }}";  // Make sure this gets rendered dynamically

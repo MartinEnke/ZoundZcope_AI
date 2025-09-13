@@ -28,7 +28,7 @@ Dependencies:
 """
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import upload, chat, sessions, tracks, export, rag, tokens
+from app.routers import upload, chat, sessions, tracks, export, tokens
 from app.database import Base, engine
 from app.cleanup import cleanup_old_uploads
 
@@ -45,7 +45,7 @@ load_dotenv()
 logger = logging.getLogger("uvicorn.error")
 
 
-
+RAG_ENABLED = os.getenv("RAG_ENABLED", "false").lower() == "true"
 
 
 @asynccontextmanager
@@ -107,10 +107,15 @@ Base.metadata.create_all(bind=engine)
 templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
 
 
+# later, after `app = FastAPI(...)` and other routers:
+if RAG_ENABLED:
+    from app.routers import rag  # import only if enabled
+    app.include_router(rag.router, prefix="/chat", tags=["RAG"])
+
 
 app.include_router(upload.router, prefix="/upload", tags=["Upload"])
 app.include_router(chat.router, prefix="/chat", tags=["Chat"])
-app.include_router(rag.router,  prefix="/chat", tags=["RAG"])
+# app.include_router(rag.router,  prefix="/chat", tags=["RAG"])
 app.include_router(tokens.router)
 app.include_router(sessions.router)
 app.include_router(tracks.router, prefix="/tracks", tags=["Tracks"])
@@ -148,10 +153,10 @@ async def serve_frontend(request: Request):
 
     track_path = f"/uploads/{latest_file}" if latest_file else None
 
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "track_path": track_path
-    })
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "track_path": track_path, "rag_enabled": RAG_ENABLED}
+    )
 
 
 @app.get("/info.html", response_class=HTMLResponse)
