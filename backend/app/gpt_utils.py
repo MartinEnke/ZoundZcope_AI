@@ -390,6 +390,86 @@ Now return 3-4 bullet points for adjustments in the most crucial areas.
 """.strip()
 
 
+
+def generate_feedback_response(prompt: str, max_tokens: int = 500, use_groq: bool = False) -> str:
+    """
+    Send a feedback prompt to the AI model and return its response (or a clear error string).
+
+    - Uses OPENAI_MODEL env var when set, else defaults to gpt-4o-mini
+    - Fails fast with readable error messages if the key/model is missing or the API call fails
+    - Adds a request timeout so the UI won’t hang forever
+    - Logs token usage when available but won’t crash if it’s not
+    """
+    import os, time, traceback
+
+    if not prompt or not prompt.strip():
+        return "Error: Empty prompt."
+
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        return "Error: OPENAI_API_KEY is not set on the server."
+
+    model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
+    # Optional: short-circuit if someone tries to route to Groq without configuring it
+    if use_groq:
+        return "Error: Groq provider not configured on this server."
+
+    try:
+        # Give the request a sensible timeout so the UI doesn’t spin forever
+        local_client = client
+        try:
+            # OpenAI SDK v1 supports per-client options
+            local_client = client.with_options(timeout=30)
+        except Exception:
+            pass  # Fallback to global client if with_options is unavailable
+
+        start_time = time.perf_counter()
+        resp = local_client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=max_tokens,
+            temperature=0.3,
+        )
+        elapsed = time.perf_counter() - start_time
+        print(f"⏱️ Feedback generation time: {elapsed:.2f}s  (model={model}, id={getattr(resp, 'id', 'n/a')})")
+
+        text = (resp.choices[0].message.content or "").strip()
+
+        # --- Token accounting (best-effort; never break on errors) ---
+        try:
+            # Provider-reported usage
+            usage = getattr(resp, "usage", None)
+            if usage and getattr(usage, "prompt_tokens", None) is not None and getattr(usage, "completion_tokens", None) is not None:
+                total_provider_tokens = usage.prompt_tokens + usage.completion_tokens
+                try:
+                    add_token_usage(total_provider_tokens, model_name=model)
+                except Exception:
+                    pass
+
+            # Your local token counters (optional)
+            try:
+                prompt_tokens = count_tokens(prompt)
+                response_tokens = count_tokens(text)
+                print(f"🧮 Prompt tokens: {prompt_tokens} | 📦 Completion tokens: {response_tokens} | 📊 Total: {prompt_tokens + response_tokens}")
+            except Exception:
+                pass
+        except Exception:
+            pass
+        # -------------------------------------------------------------
+
+        return text if text else "Error: Model returned an empty response."
+
+    except Exception as e:
+        # Produce a concise, UI-friendly error
+        err_type = e.__class__.__name__
+        err_msg = str(e).strip() or repr(e)
+        print("❌ OpenAI call failed:", err_type, err_msg)
+        traceback.print_exc()
+        return f"Error: AI request failed ({err_type}). {err_msg}"
+
+
+'''
 def generate_feedback_response(prompt: str, max_tokens: int = 500, use_groq: bool = False) -> str:
     """
     Send a feedback prompt to the AI model and return its response.
@@ -412,6 +492,8 @@ def generate_feedback_response(prompt: str, max_tokens: int = 500, use_groq: boo
         messages=[{"role": "user", "content": prompt}],
         max_tokens=max_tokens
     )
+
+
 
     # Send to Groq API
     # response = client.chat.completions.create(
@@ -494,7 +576,7 @@ def generate_feedback_response(prompt: str, max_tokens: int = 500, use_groq: boo
 #
 #     add_token_usage(total_tokens, model_name="gemini-2.0-flash")
 #     return text.strip()
-
+'''
 
 
 def generate_followup_response(analysis_text: str, feedback_text: str, user_question: str, thread_summary: str = "") -> str:

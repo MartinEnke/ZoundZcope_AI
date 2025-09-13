@@ -44,6 +44,9 @@ load_dotenv()
 logger = logging.getLogger("uvicorn.error")
 
 
+
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -208,3 +211,25 @@ async def startup_event():
     asyncio.create_task(periodic_cleanup_task())
 
 
+@app.get("/health/env")
+def env_health():
+    key = os.getenv("OPENAI_API_KEY", "")
+    return {
+        "openai_key_present": bool(key),
+        "openai_key_len": len(key) if key else 0,
+    }
+
+@app.get("/health/openai")
+def openai_health():
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"), timeout=15.0)
+        # very cheap sanity ping
+        r = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role":"user","content":"ping"}],
+            max_tokens=1,
+        )
+        return {"ok": True, "model": r.model, "usage": getattr(r, "usage", None)}
+    except Exception as e:
+        return {"ok": False, "type": e.__class__.__name__, "error": str(e)}
