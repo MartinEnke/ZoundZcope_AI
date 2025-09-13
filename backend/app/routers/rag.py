@@ -39,15 +39,31 @@ from pydantic import BaseModel
 from app.utils import count_tokens
 from app.token_tracker import add_token_usage
 
+import os, re, logging
+from httpx import Timeout
 from openai import OpenAI
-import os, re
+
+# Logging
+logger = logging.getLogger(__name__)
 
 print("Current working directory:", os.getcwd())
 
 
 router = APIRouter()
 
-client = OpenAI()
+# ----- OpenAI client (with timeouts + optional base_url/model from env) -----
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")  # optional (e.g. school proxy)
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
+if not OPENAI_API_KEY:
+    logger.error("OPENAI_API_KEY is not set! RAG endpoints will return an error.")
+
+client = OpenAI(
+    api_key=OPENAI_API_KEY,
+    base_url=OPENAI_BASE_URL if OPENAI_BASE_URL else None,
+    timeout=Timeout(20.0, connect=5.0)  # 5s connect, 20s total
+)
 
 
 # 3x dirname, weil rag.py liegt in backend/app/routers/
@@ -59,15 +75,22 @@ RAG_DOCS_METADATA_PATH = os.path.join(BASE_DIR, "rag", "rag_docs", "combined_met
 RAG_TUT_INDEX_PATH = os.path.join(BASE_DIR, "rag", "rag_tut", "rag_tut_faiss.index")
 RAG_TUT_METADATA_PATH = os.path.join(BASE_DIR, "rag", "rag_tut", "rag_tut_metadata.json")
 
-print(f"Loading FAISS docs index from: {RAG_DOCS_INDEX_PATH}")
 
+for p in (RAG_DOCS_INDEX_PATH, RAG_DOCS_METADATA_PATH, RAG_TUT_INDEX_PATH, RAG_TUT_METADATA_PATH):
+    if not os.path.exists(p):
+        logger.error("RAG asset missing: %s", p)
 
-print(f"Loading FAISS index from: {RAG_DOCS_INDEX_PATH}")
 docs_index = load_faiss_index(RAG_DOCS_INDEX_PATH)
 docs_metadata = load_metadata(RAG_DOCS_METADATA_PATH)
 
 tut_index = load_faiss_index(RAG_TUT_INDEX_PATH)
 tut_metadata = load_metadata(RAG_TUT_METADATA_PATH)
+
+print(f"Loading FAISS docs index from: {RAG_DOCS_INDEX_PATH}")
+
+
+print(f"Loading FAISS index from: {RAG_DOCS_INDEX_PATH}")
+
 
 
 class Question(BaseModel):
@@ -191,6 +214,58 @@ def build_prompt_tut(query, retrieved_chunks, history):
     return prompt
 
 
+
+def generate_answer(prompt: str):
+    """
+    Generate an answer from the LLM and track token usage, with robust error handling.
+    Returns a string. On error, returns a user-facing "Error: ..." string.
+    """
+    if not OPENAI_API_KEY:
+        return "Error: OPENAI_API_KEY is not set on the server."
+
+    try:
+        resp = client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": "You explain code and implementation clearly."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=500,
+            temperature=0.3,
+        )
+    except Exception as e:
+        # Anything from auth errors to timeouts ends up here
+        logger.exception("OpenAI chat error (RAG generate_answer)")
+        return f"Error: OPENAI_API_ERROR: {e}"
+
+    try:
+        response_text = resp.choices[0].message.content
+    except Exception as e:
+        logger.exception("Malformed OpenAI response structure")
+        return f"Error: MALFORMED_OPENAI_RESPONSE: {e}"
+
+    # token accounting (best-effort; don’t crash UI if missing)
+    try:
+        from app.utils import count_tokens
+        prompt_tokens = count_tokens(prompt)
+        response_tokens = count_tokens(response_text)
+        total = prompt_tokens + response_tokens
+        logger.info(f"RAG tokens — prompt:{prompt_tokens} resp:{response_tokens} total:{total}")
+
+        # provider usage (if present)
+        usage = getattr(resp, "usage", None)
+        if usage and getattr(usage, "prompt_tokens", None) is not None:
+            total_reported = usage.prompt_tokens + usage.completion_tokens
+            from app.token_tracker import add_token_usage
+            add_token_usage(total_reported, model_name=OPENAI_MODEL)
+    except Exception:
+        # Don’t let metrics kill the response
+        logger.debug("Token accounting failed; continuing.")
+
+    return response_text
+
+
+'''
 def generate_answer(prompt: str):
     """
         Generate an answer from the LLM and track token usage.
@@ -235,7 +310,7 @@ def generate_answer(prompt: str):
     add_token_usage(total_tokens, model_name="gpt-4o-mini")
 
     return response.choices[0].message.content
-
+'''
 
 def search_and_answer(index, metadata, question, history, build_prompt_fn, context_note=""):
     """
@@ -355,6 +430,8 @@ def summarize_history(history, context_note=""):
         """
     global _last_summary_length
 
+
+
     # Count how many Q&A pairs since the last summary
     non_summary_history = [p for p in history if p["question"] != "__summary__"]
 
@@ -381,22 +458,34 @@ def summarize_history(history, context_note=""):
     for pair in new_pairs:
         summary_prompt += f"User: {pair['question']}\nAI: {pair['answer']}\n\n"
 
-    # Call LLM to generate summary
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are summarizing a technical Q&A exchange."},
-            {"role": "user", "content": summary_prompt}
-        ],
-        max_tokens=300,
-        temperature=0.3,
-    )
+        # Call LLM to generate summary (robust)
+        if not OPENAI_API_KEY:
+            # Skip summarization gracefully if key missing
+            return history
+
+        try:
+            response = client.chat.completions.create(
+                model=OPENAI_MODEL,
+                messages=[
+                    {"role": "system", "content": "You are summarizing a technical Q&A exchange."},
+                    {"role": "user", "content": summary_prompt}
+                ],
+                max_tokens=300,
+                temperature=0.3,
+            )
+            summary = response.choices[0].message.content
+        except Exception as e:
+            logger.exception("OpenAI chat error (RAG summarize_history)")
+            # Don’t break the chat if summarization fails
+            return history
 
     # Add this after response
     prompt_tokens = response.usage.prompt_tokens
     completion_tokens = response.usage.completion_tokens
     total_tokens = prompt_tokens + completion_tokens
     add_token_usage(total_tokens, model_name="gpt-4o-mini")
+
+
 
     summary = response.choices[0].message.content
     print("✅ Summary generated:\n", summary)
