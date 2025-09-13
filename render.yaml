@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: zoundzcope-ai
+    env: docker
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    healthCheckPath: /healthz
+    # plan: starter   # uncomment if you want a paid plan (needed for persistent disks)
+    envVars:
+      - key: PYTHONPATH
+        value: backend
+      - key: TOKENIZERS_PARALLELISM
+        value: "false"
+      - key: DATABASE_URL
+        value: sqlite:////app/backend/zoundzcope.db
+      - key: OPENAI_API_KEY
+        sync: false  # keeps the secret out of Git; set the value in Render UI after first deploy
+    # Only add this block on a paid plan; Free plan can't attach disks
+    # disks:
+    #   - name: uploads
+    #     mountPath: /app/backend/uploads
+    #     sizeGB: 5
