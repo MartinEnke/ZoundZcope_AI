@@ -523,7 +523,7 @@ def build_followup_prompt(
     feedback_text: str,
     user_question: str,
     thread_summary: str = "",
-    ref_analysis_data: dict = None,   # NEW parameter
+    ref_analysis_data: dict = None,
 ) -> str:
     """
     Construct a prompt for AI follow-up feedback.
@@ -552,44 +552,48 @@ def build_followup_prompt(
     ref_section = ""
     if ref_analysis_data and isinstance(ref_analysis_data, dict):
         ref_section = f"""
-        ### Reference Track Analysis (for comparison)
-        - Peak: {ref_analysis_data.get('peak_db', 'N/A')} dB
-        - RMS Peak: {ref_analysis_data.get('rms_db_peak', 'N/A')} dB
-        - LUFS: {ref_analysis_data.get('lufs', 'N/A')}
-        - Transients: {ref_analysis_data.get('transient_description', 'N/A')}
-        - Spectral balance note: {ref_analysis_data.get('spectral_balance_description', 'N/A')}
-        - Dynamic range: {ref_analysis_data.get('dynamic_range', 'N/A')}
-        - Stereo width: {ref_analysis_data.get('stereo_width', 'N/A')}
-        - Bass profile: {ref_analysis_data.get('low_end_description', '')}
-        """
+            ### Reference Track Analysis (for comparison)
+            - Peak: {ref_analysis_data.get('peak_db', 'N/A')} dB
+            - RMS Peak: {ref_analysis_data.get('rms_db_peak', 'N/A')} dB
+            - LUFS: {ref_analysis_data.get('lufs', 'N/A')}
+            - Transients: {ref_analysis_data.get('transient_description', 'N/A')}
+            - Spectral balance note: {ref_analysis_data.get('spectral_balance_description', 'N/A')}
+            - Dynamic range: {ref_analysis_data.get('dynamic_range', 'N/A')}
+            - Stereo width: {ref_analysis_data.get('stereo_width', 'N/A')}
+            - Bass profile: {ref_analysis_data.get('low_end_description', '')}
+            """
     else:
         print("Warning: ref_analysis_data missing or invalid:", ref_analysis_data)
 
+    # ✅ Build this outside the f-string so there are no backslashes inside { ... }
+    summary_block = ""
+    if thread_summary:
+        summary_block = "### Summary of Previous Conversation\n" + thread_summary + "\n"
+
     return f"""
-You are a helpful and professional **audio engineer assistant**.
+    You are a helpful and professional **audio engineer assistant**.
 
-{"### Summary of Previous Conversation\n" + thread_summary + "\n" if thread_summary else ""}
+    {summary_block}
+    ### Track Analysis
+    {analysis_text}
 
-### Track Analysis
-{analysis_text}
+    {ref_section}
 
-{ref_section}
+    ### Prior Feedback
+    {feedback_text}
 
-### Prior Feedback
-{feedback_text}
+    ### User's Follow-Up Question
+    "{user_question}"
 
-### User's Follow-Up Question
-"{user_question}"
+    ### Instructions
+    - Use the analysis, feedback, and summary above as context.
+    - Do **not** repeat the full analysis or feedback.
+    - Answer the follow-up clearly and concisely.
+    - Stay on topic and be technically helpful.
+    - If the question is vague, use the existing context to infer intent.
 
-### Instructions
-- Use the analysis, feedback, and summary above as context.
-- Do **not** repeat the full analysis or feedback.
-- Answer the follow-up clearly and concisely.
-- Stay on topic and be technically helpful.
-- If the question is vague, use the existing context to infer intent.
-
-Respond below:
-"""
+    Respond below:
+    """.strip()
 
 
 def generate_comparison_feedback(comparison_data: List[dict], max_tokens: int = 600) -> str:

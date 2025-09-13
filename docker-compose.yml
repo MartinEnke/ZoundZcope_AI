@@ -1,0 +1,9 @@
+services:
+  zoundzcope:
+    image: zoundzcope-ai
+    build: .
+    ports: ["8000:8000"]
+    env_file: .env
+    volumes:
+      - ./backend/uploads:/app/backend/uploads
+    restart: unless-stopped

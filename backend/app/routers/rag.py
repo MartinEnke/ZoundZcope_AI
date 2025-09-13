@@ -25,14 +25,22 @@ Dependencies:
     - OpenAI Chat Completions API (model: gpt-4o-mini)
     - FastAPI for routing and request models
 """
+
+from rag.rag_utils import (
+    load_faiss_index,
+    load_metadata,
+    embed_query,
+    search_index,
+)
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from backend.rag.rag_utils import load_faiss_index, load_metadata, embed_query, search_index
-from backend.app.utils import count_tokens
-from openai import OpenAI
-import re
-import os
+
+from app.utils import count_tokens
 from app.token_tracker import add_token_usage
+
+from openai import OpenAI
+import os, re
 
 print("Current working directory:", os.getcwd())
 
