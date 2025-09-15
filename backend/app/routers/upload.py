@@ -46,11 +46,14 @@ import shutil, os
 import uuid
 from typing import Optional
 
+import traceback
+
 router = APIRouter()
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+MAX_FILE_MB = int(os.getenv("MAX_FILE_MB", "15"))
 
 @router.post("/")
 def upload_audio(
@@ -93,6 +96,8 @@ def upload_audio(
         Raises:
             JSONResponse: With status 500 if an unexpected error occurs during processing.
         """
+
+
     # Normalize inputs
     session_id = normalize_session_name(session_id)
     session_name = normalize_session_name(session_name)
