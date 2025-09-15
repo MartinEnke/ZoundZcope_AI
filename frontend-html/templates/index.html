@@ -40,18 +40,17 @@
     <!-- Body (scrollable) -->
     <div class="zz-modal-body" style="flex:1 1 auto; overflow-y:auto; padding-right:.25rem;">
       <p class="zz-lead zz-lead-gradient">
-  Receive audio analysis and tailored audio-engineer style feedback.
-</p>
+        Receive audio analysis and tailored audio-engineer style feedback.
+      </p>
 
-<ul class="zz-feature-list zz-feature-fancy">
-  <li>Upload <em>or use provided demo tracks</em></li>
-  <li>Technical analysis: True Peak, LUFS, DR, Transients, Tempo/Key, Spectral balance</li>
-  <li>AI feedback modes: Mixdown Review, Mastering, Master Review</li>
-  <li>Reference comparisons &amp; multi-track comparisons</li>
-  <li>Sessions, history, and PDF exports (feedback + presets)</li>
-  <li>Docs &amp; Tutorials assistant (RAG)</li>
-</ul>
-
+      <ul class="zz-feature-list zz-feature-fancy">
+        <li>Upload <em>or use provided demo tracks</em></li>
+        <li>Technical analysis: True Peak*, LUFS*, DR, Transients, Tempo/Key*, Spectral balance*</li>
+        <li>AI feedback modes: Mixdown Review, Mastering, Master Review</li>
+        <li>Reference comparisons &amp; multi-track comparisons</li>
+        <li>Sessions, history, and PDF exports (feedback + presets)</li>
+        <li>Docs &amp; Tutorials assistant (RAG) <em class="opacity-80">— temporarily disabled in this demo</em></li>
+      </ul>
 
       <p class="text-xs sm:text-sm italic opacity-80 mt-2">
         The upload controls are pre-filled with demos. Use them or click to select your own files.
@@ -60,13 +59,24 @@
       <div class="zz-disclaimer-block text-xs sm:text-sm leading-relaxed mt-4">
         <h3 class="zz-disclaimer-heading">Disclaimer &amp; Use Policy</h3>
 
-        <p><strong>Demo Only.</strong> ZoundZcope AI is a <em>demonstration</em> and <em>educational</em> prototype intended to show how such a tool could work. It is not a production service.</p>
+        <p><strong>Demo Only.</strong> ZoundZcope AI is a <em>demonstration</em> and <em>educational</em> prototype. It is not a production service.</p>
 
-        <p class="mt-2"><strong>Accuracy.</strong> Analyses and recommendations are generated automatically and may be inaccurate, incomplete, or unsuitable for your specific use case. No warranties of any kind are provided.</p>
+        <p class="mt-2"><strong>Accuracy &amp; Preview Limitations.</strong> To fit a free-tier deployment, certain analyses run in a reduced/approximate mode. Examples:
+          <ul class="list-disc ml-6 mt-1 space-y-1">
+            <li><span class="font-medium">True Peak*</span>: lightweight approximation (no heavy oversampling).</li>
+            <li><span class="font-medium">Tempo/Key*</span>: coarse estimates; may be off on complex material.</li>
+            <li><span class="font-medium">Spectral balance*</span>: simplified, mono-based snapshot; stereo width is simplified.</li>
+            <li>Some metrics may be omitted if decoding or computation fails; feedback will still be generated.</li>
+          </ul>
+        </p>
 
-        <p class="mt-2"><strong>Rights.</strong> You may upload your own audio, but only if you own it or have permission to use it. By continuing, you confirm you have the necessary rights to any content you submit. If you do not, please use the built-in demo tracks instead.</p>
+        <p class="mt-2"><strong>RAG Assistant.</strong> The Docs &amp; Tutorials assistant is temporarily disabled here to keep the image small. It’s available in fuller builds (local or higher-tier deploys).</p>
 
-        <p class="mt-2"><strong>Storage &amp; Sharing.</strong> Uploaded audio is used solely to perform the analysis and is <em>not shared</em> or made public. We do <em>not</em> retain your audio; any short-lived working copies created during processing are automatically purged by our cleanup routine. Demo tracks are local assets provided for evaluation and are licensed by the author.</p>
+        <p class="mt-2"><strong>Upload Limits.</strong> Files must be reasonable in size/duration. If an upload fails, try a smaller/shorter file or use the demo tracks.</p>
+
+        <p class="mt-2"><strong>Rights.</strong> Upload only content you own or have permission to use. By continuing, you confirm you have the necessary rights. Otherwise, please use the built-in demos.</p>
+
+        <p class="mt-2"><strong>Storage &amp; Cleanup.</strong> Uploaded audio is used only for analysis and is not shared. Temporary working copies are automatically purged by a periodic cleanup task.</p>
       </div>
     </div>
 
@@ -379,9 +389,13 @@
 
               <!-- The Ask button that toggles visibility -->
           <div class="max-w-6xl mx-auto px-3">
-            <button id="toggle-rag-btn" class="docs-tut-btn block ml-auto text-center">
-              AI-powered<br>Docs & Tutorials
-            </button>
+            <button id="toggle-rag-btn"
+        class="docs-tut-btn block ml-auto text-center"
+        disabled
+        aria-disabled="true"
+        title="Temporarily disabled">
+  AI-powered<br>Docs & Tutorials
+</button>
           </div>
               <!-- RAG Assistants Tabs -->
               <!-- Container that holds your RAG assistants, hidden by default -->
