@@ -152,6 +152,7 @@ def upload_audio(
         BASE_DIR = Path(__file__).resolve().parents[3]
         rms_filename = f"{timestamped_name}_rms.json"
         rms_output_path = BASE_DIR / "frontend-html" / "static" / "analysis" / rms_filename
+        rms_output_path.parent.mkdir(parents=True, exist_ok=True)
         compute_rms_chunks(file_location, json_output_path=str(rms_output_path))
         print("✅ RMS saved to:", rms_output_path)
 

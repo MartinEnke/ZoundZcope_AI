@@ -154,22 +154,25 @@ if (refFileInput && refFileInput.files.length > 0) {
 
     try {
       const response = await fetch("/upload/", {
-        method: "POST",
-        body: formData,
-      });
+  method: "POST",
+  body: formData,
+});
 
-      const raw = await response.text();
-      const result = JSON.parse(raw);
+const result = await response.json().catch(() => null);
 
-      refTrackAnalysisData = result.ref_analysis || null;
+if (!response.ok) {
+  console.error("Upload failed response:", result);
+  showUploadError(result?.detail || "The file is wrong, corrupted, or too big.");
+  return;
+}
 
+// If server returned non-JSON unexpectedly (e.g., HTML error page)
+if (!result) {
+  showUploadError("Upload failed: invalid server response.");
+  return;
+}
 
-
-      if (!response.ok) {
-          console.error("Upload failed response:", result);
-          showUploadError(result?.detail || "The file is wrong, corrupted, or too big.");
-          return;
-        }
+refTrackAnalysisData = result.ref_analysis || null;
         const tracks = await loadSessionTracks(sessionId);
         console.log("Tracks loaded after upload:", tracks);
         console.log("Setting window.lastTrackId to:", tracks[0]?.id);

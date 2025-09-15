@@ -31,7 +31,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # ---------- Copy project ----------
 COPY . .
-RUN chown -R appuser:appuser /app
+RUN mkdir -p /app/frontend-html/static/analysis && chown -R appuser:appuser /app
 USER appuser
 
 # Run from backend/ so your relative paths work
