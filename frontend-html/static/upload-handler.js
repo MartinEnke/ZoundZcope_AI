@@ -14,23 +14,24 @@ import { createSessionInBackend, loadSessionTracks } from "./session-api.js";
 import { renderFeedbackAnalysis } from "./feedback-render.js";
 
 let refTrackAnalysisData = null;
-let followupThread = [];
-let followupGroupIndex = 0;
-let lastManualSummaryGroup = -1;
-
 
 function showUploadError(message) {
   const box = document.getElementById("uploadError");
+  if (!box) {
+    alert(message);
+    return;
+  }
   box.textContent = message;
   box.classList.remove("hidden");
-
-  // Optional: auto-hide after a few seconds
   setTimeout(() => {
     box.classList.add("hidden");
     box.textContent = "";
-  }, 5000);
+  }, 6000);
 }
 
+function baseName(filename) {
+  return filename.replace(/\.[^/.]+$/, "");
+}
 
 export function setupUploadHandler() {
   const form = document.getElementById("uploadForm");
@@ -39,6 +40,7 @@ export function setupUploadHandler() {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // --- Reset UI pieces ---
     hideSummarizeButton();
     resetRMSDisplay();
     resetExportButton();
@@ -51,7 +53,10 @@ export function setupUploadHandler() {
 
     const followupResponseBox = document.getElementById("aiFollowupResponse");
     if (followupResponseBox) followupResponseBox.innerHTML = "";
+    const summaryBox = document.getElementById("aiSummaryResponse");
+    if (summaryBox) summaryBox.innerHTML = "";
 
+    // clear persisted last state
     localStorage.removeItem("zoundzcope_last_analysis");
     localStorage.removeItem("zoundzcope_last_feedback");
     localStorage.removeItem("zoundzcope_last_followup");
@@ -62,158 +67,184 @@ export function setupUploadHandler() {
     if (followupContainer) followupContainer.innerHTML = "";
     if (manualSummaryContainer) manualSummaryContainer.innerHTML = "";
 
-    const analyzeButton = form.querySelector('button[type="submit"]');
-    const formData = new FormData(form);
-
-    const type = document.getElementById("type-input")?.value;
-    console.log("📤 Submitting type:", type);
-
-    const sessionIdInput = document.getElementById("session_id");
-    const newSessionInput = document.getElementById("new-session-input");
-    const isNewSession = !newSessionInput.classList.contains("hidden");
-    const newSessionName = newSessionInput.value.trim();
-
-    let sessionId = sessionIdInput.value;
-
-    if (isNewSession && !newSessionName) {
-      alert("Please enter a session name.");
-      return;
-    }
-
-    analyzeButton.classList.add("analyze-loading");
-    analyzeButton.disabled = true;
-
-    if (isNewSession) {
-      const sessionResult = await createSessionInBackend(newSessionName);
-      if (!sessionResult || !sessionResult.id) {
-        alert("Session creation failed.");
-        analyzeButton.classList.remove("analyze-loading");
-        analyzeButton.disabled = false;
-        return;
-      }
-      sessionId = sessionResult.id;
-    }
-
-    if (!sessionId) {
-      alert("Please choose or create a session.");
-      analyzeButton.classList.remove("analyze-loading");
-      analyzeButton.disabled = false;
-      return;
-    }
-
-    formData.set("session_id", sessionId);
-
-    const feedbackProfile = document.getElementById("profile-input").value;
-    const selectedGenre = document.getElementById("genre-input").value;
-    formData.set("genre", selectedGenre);
-
-    const customSubgenre = document.getElementById("custom-subgenre-input").value.trim();
-    if (customSubgenre) {
-      formData.set("subgenre", customSubgenre.toLowerCase());
-    } else {
-      const selectedSubgenre = document.getElementById("subgenre-input").value;
-      formData.set("subgenre", selectedSubgenre);
-    }
-
-    const fileInput = document.getElementById("file-upload");
-let finalTrackName = "Untitled Track";
-
-if (fileInput && fileInput.files.length > 0) {
-  const fullName = fileInput.files[0].name;
-  finalTrackName = fullName.replace(/\.[^/.]+$/, "");
-
-  const fileDisplayName = fullName;
-  const fileLabel = document.getElementById("file-name");
-
-  if (fileLabel) {
-    fileLabel.textContent = fileDisplayName;
-    fileLabel.className = "text-gray-400"; // ✅ apply color
-    localStorage.setItem("zoundzcope_file_name", fileDisplayName);
-    localStorage.setItem("zoundzcope_file_name_color", fileLabel.className); // ✅ save color
-  }
-}
-
-formData.set("track_name", finalTrackName);
-formData.set("feedback_profile", feedbackProfile);
-
-const refFileInput = document.getElementById("ref-file-upload");
-
-if (refFileInput && refFileInput.files.length > 0) {
-  formData.append("ref_file", refFileInput.files[0]);
-
-  const refDisplayName = refFileInput.files[0].name;
-  const refLabel = document.getElementById("ref-file-name");
-
-  if (refLabel) {
-    refLabel.textContent = refDisplayName;
-    refLabel.className = "text-gray-400"; // ✅ apply color
-    localStorage.setItem("zoundzcope_ref_file_name", refDisplayName);
-    localStorage.setItem("zoundzcope_ref_file_name_color", refLabel.className); // ✅ save color
-  }
-}
+    const analyzeButton = document.getElementById("analyze-button");
+    analyzeButton?.classList.add("analyze-loading");
+    if (analyzeButton) analyzeButton.disabled = true;
 
     try {
-      const response = await fetch("/upload/", {
-  method: "POST",
-  body: formData,
-});
+      // --- Gather inputs ---
+      const fileInput = document.getElementById("file-upload");
+      const refFileInput = document.getElementById("ref-file-upload");
+      const sessionIdInput = document.getElementById("session_id");
+      const newSessionInput = document.getElementById("new-session-input");
+      const isNewSession = newSessionInput && !newSessionInput.classList.contains("hidden");
+      const newSessionName = (newSessionInput?.value || "").trim();
 
-const result = await response.json().catch(() => null);
+      const typeVal = document.getElementById("type-input")?.value?.trim();
+      const genreVal = document.getElementById("genre-input")?.value?.trim();
+      const subgenreSelected = document.getElementById("subgenre-input")?.value?.trim();
+      const customSub = document.getElementById("custom-subgenre-input")?.value?.trim();
+      const profileVal = document.getElementById("profile-input")?.value?.trim();
 
-if (!response.ok) {
-  console.error("Upload failed response:", result);
-  showUploadError(result?.detail || "The file is wrong, corrupted, or too big.");
-  return;
-}
+      // --- Client-side validations ---
+      if (!fileInput || fileInput.files.length === 0) {
+        showUploadError("Please choose a file to upload.");
+        return;
+      }
+      if (!typeVal) {
+        showUploadError("Please choose a track context (Mixdown / Mastering / Master Review).");
+        return;
+      }
+      if (!genreVal) {
+        showUploadError("Please choose a genre.");
+        return;
+      }
+      if (!profileVal) {
+        showUploadError("Please choose a feedback profile.");
+        return;
+      }
+      if (isNewSession && !newSessionName) {
+        showUploadError("Please enter a session name.");
+        return;
+      }
 
-// If server returned non-JSON unexpectedly (e.g., HTML error page)
-if (!result) {
-  showUploadError("Upload failed: invalid server response.");
-  return;
-}
-
-refTrackAnalysisData = result.ref_analysis || null;
-        const tracks = await loadSessionTracks(sessionId);
-        console.log("Tracks loaded after upload:", tracks);
-        console.log("Setting window.lastTrackId to:", tracks[0]?.id);
-
-        window.lastSessionId = sessionId;
-        window.lastTrackId = tracks[0]?.id || "";
-        resetExportButton();
-
-        localStorage.setItem("zoundzcope_last_track_id", window.lastTrackId);
-
-        if (sessionIdInput) {
-          sessionIdInput.value = sessionId;
+      // --- Ensure a session id ---
+      let sessionId = sessionIdInput?.value;
+      if (isNewSession) {
+        const sessionResult = await createSessionInBackend(newSessionName);
+        if (!sessionResult || !sessionResult.id) {
+          showUploadError("Session creation failed.");
+          return;
         }
+        sessionId = sessionResult.id;
+        if (sessionIdInput) sessionIdInput.value = sessionId;
+      }
+      if (!sessionId) {
+        showUploadError("Please choose or create a session.");
+        return;
+      }
 
-        followupThread = [];
-        followupGroupIndex = 0;
-        lastManualSummaryGroup = -1;
+      // --- Build FormData explicitly (avoid relying on DOM names) ---
+      const formData = new FormData();
+      // main file
+      const mainFile = fileInput.files[0];
+      formData.set("file", mainFile);
 
-        renderFeedbackAnalysis(result, refTrackAnalysisData);
+      // optional reference
+      if (refFileInput && refFileInput.files.length > 0) {
+        formData.set("ref_file", refFileInput.files[0]);
+      }
 
-        saveZoundZcopeState({
-  analysisHTML: document.getElementById("analysisOutput").innerHTML,
-  feedbackHTML: document.getElementById("gptResponse").innerHTML,
-  followupHTML: document.getElementById("aiFollowupResponse").innerHTML,
-  summaryHTML: document.getElementById("aiSummaryResponse").innerHTML,
-  trackPath: result.track_path,
-  rmsPath: result.rms_path,
-  genre: document.getElementById("genre-input").value,
-  subgenre: document.getElementById("subgenre-input").value,
-  type: document.getElementById("type-input").value,
-  profile: document.getElementById("profile-input").value,
-  sessionId: sessionId,
-});
+      // session + labels
+      formData.set("session_id", sessionId);
+      if (isNewSession) {
+        formData.set("session_name", newSessionName);
+      }
 
+      // metadata
+      formData.set("type", typeVal);
+      formData.set("genre", genreVal);
+
+      const finalSub = customSub ? customSub.toLowerCase() : (subgenreSelected || "");
+      if (finalSub) formData.set("subgenre", finalSub);
+
+      const fullName = mainFile.name;
+      const trackDisplayName = baseName(fullName) || "Untitled Track";
+      formData.set("track_name", trackDisplayName);
+
+      formData.set("feedback_profile", profileVal);
+
+      // --- Update filename labels (UX nicety) ---
+      const fileLabel = document.getElementById("file-name");
+      if (fileLabel) {
+        fileLabel.textContent = fullName;
+        fileLabel.className = "text-gray-400";
+        localStorage.setItem("zoundzcope_file_name", fullName);
+        localStorage.setItem("zoundzcope_file_name_color", fileLabel.className);
+      }
+      const refLabel = document.getElementById("ref-file-name");
+      if (refLabel && refFileInput?.files?.[0]) {
+        const refDisplayName = refFileInput.files[0].name;
+        refLabel.textContent = refDisplayName;
+        refLabel.className = "text-gray-400";
+        localStorage.setItem("zoundzcope_ref_file_name", refDisplayName);
+        localStorage.setItem("zoundzcope_ref_file_name_color", refLabel.className);
+      }
+
+      // --- Debug: show exactly what we send ---
+      for (const [k, v] of formData.entries()) {
+        console.log("[FormData]", k, v instanceof File ? `(file) ${v.name}` : v);
+      }
+
+      // --- Send request ---
+      const response = await fetch("/upload/", {
+        method: "POST",
+        body: formData,
+      });
+
+      // tolerate non-JSON error pages
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        // Prefer structured detail
+        let msg = "Upload failed.";
+        if (result?.detail) {
+          if (Array.isArray(result.detail)) {
+            // FastAPI 422 (validation error) shape
+            msg = result.detail.map(d => d.msg || d.detail || JSON.stringify(d)).join("; ");
+          } else {
+            msg = result.detail;
+          }
+        } else if (result) {
+          msg = JSON.stringify(result);
+        }
+        console.error("Upload failed response:", result);
+        showUploadError(msg || "The file is wrong, corrupted, or too big.");
+        return;
+      }
+
+      if (!result) {
+        showUploadError("Upload failed: invalid server response.");
+        return;
+      }
+
+      // --- Success path ---
+      refTrackAnalysisData = result.ref_analysis || null;
+
+      // refresh tracks for this session (so we can store lastTrackId)
+      const tracks = await loadSessionTracks(sessionId);
+      console.log("Tracks loaded after upload:", tracks);
+
+      window.lastSessionId = sessionId;
+      window.lastTrackId = tracks?.[0]?.id || "";
+      localStorage.setItem("zoundzcope_last_track_id", window.lastTrackId);
+
+      resetExportButton();
+
+      // render analysis + feedback
+      renderFeedbackAnalysis(result, refTrackAnalysisData);
+
+      // persist UI state for restore
+      saveZoundZcopeState({
+        analysisHTML: document.getElementById("analysisOutput")?.innerHTML || "",
+        feedbackHTML: document.getElementById("gptResponse")?.innerHTML || "",
+        followupHTML: document.getElementById("aiFollowupResponse")?.innerHTML || "",
+        summaryHTML: document.getElementById("aiSummaryResponse")?.innerHTML || "",
+        trackPath: result.track_path,
+        rmsPath: result.rms_path,
+        genre: genreVal,
+        subgenre: finalSub || "",
+        type: typeVal,
+        profile: profileVal,
+        sessionId: sessionId,
+      });
 
     } catch (err) {
       console.error("Fetch error:", err);
-      alert("An error occurred during upload.");
+      showUploadError("An unexpected error occurred during upload.");
     } finally {
-      analyzeButton.classList.remove("analyze-loading");
-      analyzeButton.disabled = false;
+      analyzeButton?.classList.remove("analyze-loading");
+      if (analyzeButton) analyzeButton.disabled = false;
     }
   });
 }
