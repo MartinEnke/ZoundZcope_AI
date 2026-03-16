@@ -5,52 +5,70 @@ This module provides common helper functions for:
     - Sanitizing and normalizing user input.
     - Validating allowed types, profiles, and genres.
     - Safe naming for sessions and tracks.
-    - Token counting for AI prompt cost estimation.
+    - Token counting for Gemini prompt cost estimation.
 
 Dependencies:
     - re, html, os for text cleaning and formatting.
-    - tiktoken for accurate OpenAI token counting.
-
-Constants:
-    ALLOWED_TYPES    : Permitted track types.
-    ALLOWED_PROFILES : Permitted feedback profiles.
-    ALLOWED_GENRES   : Permitted music genres.
+    - google-genai for Gemini token counting.
 """
+
 import re
 import html
 import os
-import tiktoken
+from dotenv import load_dotenv
+from google import genai
 
-# from openai import OpenAI
+load_dotenv()
 
-# import os
-# from dotenv import load_dotenv
-# from google import genai
-#
-# load_dotenv()
-
-# def get_gemini_client() -> genai.Client:
-#     key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-#     if not key:
-#         raise RuntimeError("Set GEMINI_API_KEY (or GOOGLE_API_KEY) first.")
-#     return genai.Client(api_key=key)
-#
-# def count_tokens_gemini(text: str, model: str = "gemini-2.0-flash") -> int:
-#     client = get_gemini_client()
-#     r = client.models.count_tokens(model=model, contents=text)
-#     return int(getattr(r, "total_tokens", 0))
-
-
-
-
-
-# Allowed values (adjust as needed)
+# Allowed values
 ALLOWED_TYPES = {"mixdown", "mastering", "master"}
 ALLOWED_PROFILES = {"simple", "detailed", "pro"}
 ALLOWED_GENRES = {
     "electronic", "pop", "rock", "hiphop", "indie", "punk", "metal", "jazz", "reggae", "funk",
     "rnb", "soul", "country", "folk", "classic"
 }
+
+
+def get_gemini_client() -> genai.Client:
+    """
+    Create and return a Gemini client using GEMINI_API_KEY.
+
+    Returns:
+        genai.Client: Configured Gemini client.
+
+    Raises:
+        RuntimeError: If GEMINI_API_KEY is missing.
+    """
+    key = os.getenv("GEMINI_API_KEY")
+    if not key:
+        raise RuntimeError("GEMINI_API_KEY is not set.")
+    return genai.Client(api_key=key)
+
+
+def count_tokens(text: str, model: str = "gemini-2.5-flash") -> int:
+    """
+    Count tokens in a string using Gemini's token counting API.
+
+    Args:
+        text (str): Input text to measure.
+        model (str, optional): Gemini model name.
+
+    Returns:
+        int: Number of tokens. Returns 0 if text is empty or counting fails.
+    """
+    if not text:
+        return 0
+
+    try:
+        client = get_gemini_client()
+        response = client.models.count_tokens(
+            model=model,
+            contents=text
+        )
+        return int(getattr(response, "total_tokens", 0) or 0)
+    except Exception as e:
+        print(f"⚠️ Token counting failed: {e}")
+        return 0
 
 
 def sanitize_input(input_str: str) -> str:
@@ -74,25 +92,23 @@ def sanitize_input(input_str: str) -> str:
 
 def sanitize_user_question(text: str) -> str:
     """
-        Clean and escape a user-provided question.
+    Clean and escape a user-provided question.
 
-        - Removes disallowed characters, keeping common punctuation.
-        - Limits length to 400 characters.
-        - Escapes HTML entities to prevent injection.
+    - Removes disallowed characters, keeping common punctuation.
+    - Limits length to 400 characters.
+    - Escapes HTML entities to prevent injection.
 
-        Args:
-            text (str): User question.
+    Args:
+        text (str): User question.
 
-        Returns:
-            str: Sanitized and HTML-escaped string.
-        """
+    Returns:
+        str: Sanitized and HTML-escaped string.
+    """
     if not isinstance(text, str):
         return ""
-    # Remove unwanted characters (allow common punctuation)
+
     cleaned = re.sub(r"[^\w\s.,!?@&$()\-+=:;\'\"/]", "", text.strip())
-    # Limit length to 400 chars (adjust as needed)
     cleaned = cleaned[:400]
-    # Escape HTML entities to prevent injection
     return html.escape(cleaned)
 
 
@@ -113,40 +129,40 @@ def normalize_session_name(name: str) -> str:
     """
     if not isinstance(name, str):
         return ""
+
     name = name.strip()
-    name = re.sub(r"[^\w\s\-]", "", name)  # Keep alphanumeric, space, dash, underscore
+    name = re.sub(r"[^\w\s\-]", "", name)
     name = name[:60]
     return html.escape(name)
 
 
 def safe_track_name(name, fallback_filename):
     """
-        Ensure a valid track name, falling back to filename if needed.
+    Ensure a valid track name, falling back to filename if needed.
 
-        Args:
-            name (str): User-provided track name.
-            fallback_filename (str): Filename to use if name is invalid.
+    Args:
+        name (str): User-provided track name.
+        fallback_filename (str): Filename to use if name is invalid.
 
-        Returns:
-            str: Safe track name.
-        """
-    name = name.strip() if name else ""
+    Returns:
+        str: Safe track name.
+    """
+    name = name.strip() if isinstance(name, str) else ""
     return name if name and name.lower() != "string" else os.path.splitext(fallback_filename)[0]
 
 
 def normalize_type(input_str: str) -> str:
     """
-        Sanitize and validate track type.
+    Sanitize and validate track type.
 
-        Falls back to 'mixdown' if type is not allowed.
+    Falls back to 'mixdown' if type is not allowed.
 
-        Args:
-            input_str (str): Track type to validate.
+    Args:
+        input_str (str): Track type to validate.
 
-        Returns:
-            str: Validated track type.
-        """
-    """Sanitize and validate track type."""
+    Returns:
+        str: Validated track type.
+    """
     val = sanitize_input(input_str).lower()
     return val if val in ALLOWED_TYPES else "mixdown"
 
@@ -202,34 +218,8 @@ def normalize_subgenre(sub: str) -> str:
     if not isinstance(sub, str):
         return ""
 
-    # Basic cleanup
     sub = sub.strip()
-
-    # Remove unwanted characters (but allow dashes, ampersands, apostrophes)
     sub = re.sub(r"[^a-zA-Z0-9 &\-']", "", sub)
-
-    # Truncate to prevent abuse or overflow
     sub = sub[:50]
-
-    # Convert to title case
     sub = sub.title()
-
-    # Escape for prompt safety
     return html.escape(sub)
-
-
-def count_tokens(text, model="gpt-4o"):
-    """
-    Count tokens in a string using tiktoken for a given model.
-
-    Args:
-        text (str): Input text to measure.
-        model (str, optional): Model name for encoding rules.
-
-    Returns:
-        int: Number of tokens.
-    """
-    encoding = tiktoken.encoding_for_model(model)
-    return len(encoding.encode(text))
-
-

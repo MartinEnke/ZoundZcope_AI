@@ -9,11 +9,20 @@ This module provides helper functions to:
     - Track token usage for monitoring model performance and cost.
 
 Dependencies:
-    - OpenAI and optional Groq API clients for AI responses.
+    - Gemini API client for AI responses.
     - Token counting and usage tracking utilities.
     - Normalization helpers for genre, subgenre, type, and feedback profile.
 """
-from app.utils import normalize_type, normalize_profile, normalize_genre, ALLOWED_GENRES, normalize_subgenre, count_tokens
+
+from app.utils import (
+    normalize_type,
+    normalize_profile,
+    normalize_genre,
+    ALLOWED_GENRES,
+    normalize_subgenre,
+    count_tokens,
+    get_gemini_client,
+)
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -22,7 +31,12 @@ import re
 from typing import List
 from app.token_tracker import add_token_usage
 import time
-from openai import OpenAI
+from google.genai import types
+
+client = get_gemini_client()
+
+# Optional model override via .env
+DEFAULT_GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 
 # from groq import Groq
@@ -35,7 +49,7 @@ from openai import OpenAI
 # from app.utils import count_tokens_gemini, get_gemini_client  # ⬅️ import the helpers
 
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # client = OpenAI(
 #     base_url="https://api.together.xyz/v1",  # You can still use Together
@@ -324,13 +338,13 @@ def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data
     if ref_analysis_data:
         ref_section = f"""
     ### Reference Track Analysis (for comparison)
-    - Peak: {ref_analysis_data['peak_db']} dB
-    - RMS Peak: {ref_analysis_data['rms_db_peak']} dB
-    - LUFS: {ref_analysis_data['lufs']}
-    - Transients: {ref_analysis_data['transient_description']}
-    - Spectral balance note: {ref_analysis_data['spectral_balance_description']}
-    - Dynamic range: {ref_analysis_data['dynamic_range']}
-    - Stereo width: {ref_analysis_data['stereo_width']}
+    - Peak: {ref_analysis_data.get('peak_db', 'N/A')} dB
+    - RMS Peak: {ref_analysis_data.get('rms_db_peak', 'N/A')} dB
+    - LUFS: {ref_analysis_data.get('lufs', 'N/A')}
+    - Transients: {ref_analysis_data.get('transient_description', 'N/A')}
+    - Spectral balance note: {ref_analysis_data.get('spectral_balance_description', 'N/A')}
+    - Dynamic range: {ref_analysis_data.get('dynamic_range', 'N/A')}
+    - Stereo width: {ref_analysis_data.get('stereo_width', 'N/A')}
     - Bass profile: {ref_analysis_data.get('low_end_description', '')}
     """
 
@@ -355,16 +369,16 @@ def generate_feedback_prompt(genre: str, subgenre: str, type: str, analysis_data
 {communication_style}
 
 ### Track Analysis Data
-- Peak: {analysis_data['peak_db']} dB
-- RMS Peak: {analysis_data['rms_db_peak']} dB
-- LUFS: {analysis_data['lufs']}
-- Avg Transient Strength: {analysis_data['avg_transient_strength']}
-- Max Transient Strength: {analysis_data['max_transient_strength']}
-- Transients: {analysis_data['transient_description']}
+- Peak: {analysis_data.get('peak_db', 'N/A')} dB
+- RMS Peak: {analysis_data.get('rms_db_peak', 'N/A')} dB
+- LUFS: {analysis_data.get('lufs', 'N/A')}
+- Avg Transient Strength: {analysis_data.get('avg_transient_strength', 'N/A')}
+- Max Transient Strength: {analysis_data.get('max_transient_strength', 'N/A')}
+- Transients: {analysis_data.get('transient_description', 'N/A')}
 If low-end is flagged as strong but typical for the genre, do NOT treat it as a problem unless masking, muddiness, or translation concerns are clearly implied.
-- Spectral balance note: {analysis_data['spectral_balance_description']}
-- Dynamic range: {analysis_data['dynamic_range']}
-- Stereo width: {analysis_data['stereo_width']}
+- Spectral balance note: {analysis_data.get('spectral_balance_description', 'N/A')}
+- Dynamic range: {analysis_data.get('dynamic_range', 'N/A')}
+- Stereo width: {analysis_data.get('stereo_width', 'N/A')}
 - Bass profile: {analysis_data.get('low_end_description', '')}
   (Genre: {genre} — please consider if the low-end level suits this genre’s typical sound.)
 
@@ -390,67 +404,83 @@ Now return 3-4 bullet points for adjustments in the most crucial areas.
 """.strip()
 
 
+def _extract_usage_metadata(response) -> tuple[int, int, int]:
+    """
+    Best-effort extraction of Gemini token usage metadata.
+
+    Returns:
+        tuple: (prompt_tokens, completion_tokens, total_tokens)
+    """
+    usage = getattr(response, "usage_metadata", None)
+    if not usage:
+        return 0, 0, 0
+
+    prompt_tokens = int(getattr(usage, "prompt_token_count", 0) or 0)
+    completion_tokens = int(getattr(usage, "candidates_token_count", 0) or 0)
+    total_tokens = int(getattr(usage, "total_token_count", prompt_tokens + completion_tokens) or 0)
+    return prompt_tokens, completion_tokens, total_tokens
+
 
 def generate_feedback_response(prompt: str, max_tokens: int = 500, use_groq: bool = False) -> str:
     """
     Send a feedback prompt to the AI model and return its response (or a clear error string).
 
-    - Uses OPENAI_MODEL env var when set, else defaults to gpt-4o-mini
+    - Uses GEMINI_MODEL env var when set, else defaults to gemini-2.5-flash
     - Fails fast with readable error messages if the key/model is missing or the API call fails
-    - Adds a request timeout so the UI won’t hang forever
     - Logs token usage when available but won’t crash if it’s not
     """
-    import os, time, traceback
+    import os
+    import time
+    import traceback
 
     if not prompt or not prompt.strip():
         return "Error: Empty prompt."
 
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        return "Error: OPENAI_API_KEY is not set on the server."
+        return "Error: GEMINI_API_KEY is not set on the server."
 
-    model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    model = os.getenv("GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
 
     # Optional: short-circuit if someone tries to route to Groq without configuring it
     if use_groq:
         return "Error: Groq provider not configured on this server."
 
     try:
-        # Give the request a sensible timeout so the UI doesn’t spin forever
-        local_client = client
-        try:
-            # OpenAI SDK v1 supports per-client options
-            local_client = client.with_options(timeout=30)
-        except Exception:
-            pass  # Fallback to global client if with_options is unavailable
-
         start_time = time.perf_counter()
-        resp = local_client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=max_tokens,
-            temperature=0.3,
-        )
-        elapsed = time.perf_counter() - start_time
-        print(f"⏱️ Feedback generation time: {elapsed:.2f}s  (model={model}, id={getattr(resp, 'id', 'n/a')})")
 
-        text = (resp.choices[0].message.content or "").strip()
+        resp = client.models.generate_content(
+            model=model,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.3,
+                max_output_tokens=max_tokens,
+            ),
+        )
+
+        elapsed = time.perf_counter() - start_time
+        print(f"⏱️ Feedback generation time: {elapsed:.2f}s  (model={model})")
+
+        text = (getattr(resp, "text", "") or "").strip()
 
         # --- Token accounting (best-effort; never break on errors) ---
         try:
             # Provider-reported usage
-            usage = getattr(resp, "usage", None)
-            if usage and getattr(usage, "prompt_tokens", None) is not None and getattr(usage, "completion_tokens", None) is not None:
-                total_provider_tokens = usage.prompt_tokens + usage.completion_tokens
+            prompt_tokens_meta, completion_tokens_meta, total_provider_tokens = _extract_usage_metadata(resp)
+            if total_provider_tokens > 0:
                 try:
                     add_token_usage(total_provider_tokens, model_name=model)
                 except Exception:
                     pass
+                print(
+                    f"🧾 Gemini usage metadata | prompt={prompt_tokens_meta} | "
+                    f"completion={completion_tokens_meta} | total={total_provider_tokens}"
+                )
 
             # Your local token counters (optional)
             try:
-                prompt_tokens = count_tokens(prompt)
-                response_tokens = count_tokens(text)
+                prompt_tokens = count_tokens(prompt, model=model)
+                response_tokens = count_tokens(text, model=model)
                 print(f"🧮 Prompt tokens: {prompt_tokens} | 📦 Completion tokens: {response_tokens} | 📊 Total: {prompt_tokens + response_tokens}")
             except Exception:
                 pass
@@ -464,7 +494,7 @@ def generate_feedback_response(prompt: str, max_tokens: int = 500, use_groq: boo
         # Produce a concise, UI-friendly error
         err_type = e.__class__.__name__
         err_msg = str(e).strip() or repr(e)
-        print("❌ OpenAI call failed:", err_type, err_msg)
+        print("❌ Gemini call failed:", err_type, err_msg)
         traceback.print_exc()
         return f"Error: AI request failed ({err_type}). {err_msg}"
 
@@ -719,33 +749,52 @@ def generate_comparison_feedback(comparison_data: List[dict], max_tokens: int = 
         "Respect the word caps strictly. Do NOT end any section mid-sentence."
     )
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are an experienced audio mastering engineer evaluating track cohesion and quality."},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=max_tokens,
-        temperature=0.4
-    )
+    model = os.getenv("GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
 
-    # 🔢 Count tokens in the prompt
-    prompt_tokens = count_tokens(prompt)
-    print(f"🧮 Comparison Prompt token count: {prompt_tokens}")
+    try:
+        start_time = time.perf_counter()
 
-    # 🔢 Count tokens in the response
-    response_text = response.choices[0].message.content
-    response_tokens = count_tokens(response_text)
-    print(f"📦 Comparison Response token count: {response_tokens}")
+        response = client.models.generate_content(
+            model=model,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.4,
+                max_output_tokens=max_tokens,
+            ),
+        )
 
-    # 📊 Total token count
-    total = prompt_tokens + response_tokens
-    print(f"📊 Total tokens used: {total}")
+        end_time = time.perf_counter()
+        elapsed_time = end_time - start_time
+        print(f"⏱️ Comparison generation time: {elapsed_time:.2f} seconds")
 
-    # Add this after response
-    prompt_tokens_count = response.usage.prompt_tokens
-    completion_tokens = response.usage.completion_tokens
-    total_tokens = prompt_tokens_count + completion_tokens
-    add_token_usage(total_tokens, model_name="gpt-4o-mini")
+        response_text = (getattr(response, "text", "") or "").strip()
 
-    return response_text.strip()
+        # 🔢 Count tokens in the prompt
+        prompt_tokens = count_tokens(prompt, model=model)
+        print(f"🧮 Comparison Prompt token count: {prompt_tokens}")
+
+        # 🔢 Count tokens in the response
+        response_tokens = count_tokens(response_text, model=model)
+        print(f"📦 Comparison Response token count: {response_tokens}")
+
+        # 📊 Total token count
+        total = prompt_tokens + response_tokens
+        print(f"📊 Total tokens used: {total}")
+
+        # Provider usage if available
+        try:
+            prompt_tokens_count, completion_tokens, total_tokens = _extract_usage_metadata(response)
+            if total_tokens > 0:
+                add_token_usage(total_tokens, model_name=model)
+            else:
+                add_token_usage(total, model_name=model)
+        except Exception:
+            add_token_usage(total, model_name=model)
+
+        return response_text.strip() if response_text else "Error: Model returned an empty comparison response."
+
+    except Exception as e:
+        err_type = e.__class__.__name__
+        err_msg = str(e).strip() or repr(e)
+        print("❌ Gemini comparison call failed:", err_type, err_msg)
+        return f"Error: Comparison request failed ({err_type}). {err_msg}"
