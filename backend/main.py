@@ -26,23 +26,26 @@ Dependencies:
     - Routers: upload, chat, rag, tokens, sessions, tracks, export.
     - Cleanup utility for old uploads.
 """
-from fastapi import FastAPI
-from fastapi.routing import APIRoute
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import upload, chat, sessions, tracks, export
+from app.routers import upload, chat, sessions, tracks, export, tokens
 from app.database import Base, engine
 from app.cleanup import cleanup_old_uploads
-from dotenv import load_dotenv
-load_dotenv()
+
 import os
 import asyncio
 import logging
+from pathlib import Path
 from contextlib import asynccontextmanager
-from app.routers import rag
-from app.routers import tokens
+from fastapi import HTTPException
 
 from dotenv import load_dotenv
 load_dotenv()
+
+logger = logging.getLogger("uvicorn.error")
+
+
+RAG_ENABLED = os.getenv("RAG_ENABLED", "false").lower() == "true"
 
 
 @asynccontextmanager
@@ -69,12 +72,21 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="ZoundZcope API", lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 logger = logging.getLogger("uvicorn.error")
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_DIR = os.path.join(BASE_DIR, "frontend-html", "static")
-
-UPLOAD_DIR = os.path.join(BASE_DIR, "backend", "uploads")
+BASE_DIR = Path(__file__).resolve().parents[1]
+STATIC_DIR = BASE_DIR / "frontend-html" / "static"
+TEMPLATE_DIR = BASE_DIR / "frontend-html" / "templates"
+UPLOAD_DIR = BASE_DIR / "backend" / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
@@ -92,27 +104,25 @@ Base.metadata.create_all(bind=engine)
 # Serve static files like your logo
 
 # Jinja2 template support
-templates = Jinja2Templates(directory="../frontend-html/templates")
+templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
 
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# later, after `app = FastAPI(...)` and other routers:
+if RAG_ENABLED:
+    from app.routers import rag  # import only if enabled
+    app.include_router(rag.router, prefix="/chat", tags=["RAG"])
+
 
 app.include_router(upload.router, prefix="/upload", tags=["Upload"])
 app.include_router(chat.router, prefix="/chat", tags=["Chat"])
-app.include_router(rag.router, prefix="/chat", tags=["RAG"])
+# app.include_router(rag.router,  prefix="/chat", tags=["RAG"])
 app.include_router(tokens.router)
 app.include_router(sessions.router)
 app.include_router(tracks.router, prefix="/tracks", tags=["Tracks"])
 app.include_router(export.router, prefix="/export", tags=["Export"])
 
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -143,10 +153,10 @@ async def serve_frontend(request: Request):
 
     track_path = f"/uploads/{latest_file}" if latest_file else None
 
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "track_path": track_path
-    })
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "track_path": track_path, "rag_enabled": RAG_ENABLED}
+    )
 
 
 @app.get("/info.html", response_class=HTMLResponse)
@@ -194,7 +204,7 @@ async def periodic_cleanup_task():
             cleanup_old_uploads()
         except Exception as e:
             logger.error(f"Periodic cleanup error: {e}")
-        await asyncio.sleep(30)  # Run twice daily
+        await asyncio.sleep(12 * 60 * 60)  # Run twice daily
 
 
 @app.on_event("startup")
@@ -207,3 +217,14 @@ async def startup_event():
     asyncio.create_task(periodic_cleanup_task())
 
 
+@app.get("/healthz")
+async def healthz():
+    return {"status": "ok"}
+
+# (Optional) split health:
+@app.get("/livez", include_in_schema=False)
+async def livez():
+    return {"status": "alive"}
+
+# cd backend
+# uvicorn main:app --reload
