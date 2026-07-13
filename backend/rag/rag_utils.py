@@ -14,15 +14,15 @@ Dependencies:
     - numpy for numerical operations.
     - json/os/re for file and text processing.
 """
+
 import os
 import json
 import re
-import numpy as np
-from openai import OpenAI
-from sentence_transformers import SentenceTransformer
-import numpy as np
 
-# Load the model once globally to avoid reloading every call
+import numpy as np
+from sentence_transformers import SentenceTransformer
+
+
 _model = None
 
 
@@ -135,31 +135,6 @@ def embed_text(text):
     return embedding.tolist()
 
 
-# def embed_text(text):
-#     """
-#     Generate embedding vector for a text using OpenAI.
-#
-#     Returns:
-#         List[float]: Embedding vector.
-#     """
-#     # Import OpenAI client only when needed
-#
-#     from openai import OpenAI
-#     import os
-#
-#     api_key = os.getenv("OPENAI_API_KEY")
-#     if not api_key:
-#         raise ValueError("Set your OPENAI_API_KEY environment variable before calling embed_text()")
-#
-#     client = OpenAI(api_key=api_key)
-#
-#     response = client.embeddings.create(
-#         input=text,
-#         model="text-embedding-ada-002"
-#     )
-#     return response.data[0].embedding
-
-
 def build_faiss_index(chunks, embedding_dim=384):
     """
     Build a FAISS index from chunk embeddings.
@@ -252,18 +227,17 @@ def load_metadata(path):
 
 def embed_query(query):
     """
-        Generate a query embedding for similarity search.
+    Generate a query embedding for similarity search.
 
-        Args:
-            query (str): Search query.
+    Args:
+        query (str): Search query.
 
-        Returns:
-            numpy.ndarray: Embedding vector as float32 array.
-        """
+    Returns:
+        numpy.ndarray: Embedding vector as a float32 array.
+    """
     model = get_embedding_model()
     embedding = model.encode(query)
-    return np.array(embedding).astype('float32')
-    return np.array(response.data[0].embedding).astype('float32')
+    return np.asarray(embedding, dtype="float32")
 
 
 def search_index(index, query_embedding, top_k=3):

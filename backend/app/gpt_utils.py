@@ -22,30 +22,13 @@ import re
 from typing import List
 from app.token_tracker import add_token_usage
 import time
-from openai import OpenAI
+from groq import Groq
 
 
-# from groq import Groq
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
-
-# from google import genai
-# import time
-# from google.genai import types
-# from app.token_tracker import add_token_usage
-# from app.utils import count_tokens_gemini, get_gemini_client  # ⬅️ import the helpers
-
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-# client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-# client = OpenAI(
-#     base_url="https://api.together.xyz/v1",  # You can still use Together
-# )
-
-# client = Groq(
-#     api_key=os.environ.get("GROQ_API_KEY"),
-# )
-
-# client = genai.Client()
+client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
 REFERENCE_TRACK_INSTRUCTION = (
     "If a reference track analysis is provided, use it as a benchmark to compare the submitted track's analysis with the reference track's data."
@@ -390,111 +373,129 @@ Now return 3-4 bullet points for adjustments in the most crucial areas.
 """.strip()
 
 
-def generate_feedback_response(prompt: str, max_tokens: int = 500, use_groq: bool = False) -> str:
+def _extract_usage_metadata(response) -> tuple[int, int, int]:
     """
-    Send a feedback prompt to the AI model and return its response.
+    Extract token usage reported by Groq.
 
-    Uses OpenAI's `gpt-4o-mini` model (or alternative) to process the
-    provided prompt and produce detailed feedback.
+    Returns:
+        tuple[int, int, int]: Prompt, completion, and total token counts.
+    """
+    usage = getattr(response, "usage", None)
+    if not usage:
+        return 0, 0, 0
+
+    prompt_tokens = int(getattr(usage, "prompt_tokens", 0) or 0)
+    completion_tokens = int(getattr(usage, "completion_tokens", 0) or 0)
+    total_tokens = int(
+        getattr(
+            usage,
+            "total_tokens",
+            prompt_tokens + completion_tokens,
+        )
+        or 0
+    )
+
+    return prompt_tokens, completion_tokens, total_tokens
+
+
+def generate_feedback_response(
+    prompt: str,
+    max_tokens: int = 500,
+    use_groq: bool = True,
+) -> str:
+    """
+    Send a feedback prompt to Groq and return its response.
+
+    The ``use_groq`` argument is retained for compatibility with existing
+    callers, but Groq is now the configured provider.
 
     Args:
         prompt (str): The constructed feedback prompt.
-        max_tokens (int, optional): Maximum tokens for the AI response.
-        use_groq (bool, optional): Reserved for Groq API usage.
+        max_tokens (int): Maximum number of output tokens.
+        use_groq (bool): Retained for backward compatibility.
 
     Returns:
         str: AI-generated feedback text, stripped of whitespace.
     """
-    start_time = time.perf_counter()  # Start timer
+    if not prompt or not prompt.strip():
+        return "Error: Empty prompt."
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=max_tokens
-    )
+    if not GROQ_API_KEY or client is None:
+        return "Error: GROQ_API_KEY is not set on the server."
 
-    # Send to Groq API
-    # response = client.chat.completions.create(
-    #     model="llama-3.3-70b-versatile",
-    #     messages=[{"role": "user", "content": prompt}],
-    #     max_tokens=max_tokens
-    #
-    # )
+    try:
+        start_time = time.perf_counter()
 
-    # print(response.choices[0].message.content)
+        response = client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a professional audio engineering assistant. "
+                        "Follow the requested response structure precisely and "
+                        "base your advice on the supplied analysis data."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": prompt,
+                },
+            ],
+            max_tokens=max_tokens,
+            temperature=0.3,
+        )
 
+        elapsed_time = time.perf_counter() - start_time
+        print(
+            f"⏱️ Feedback generation time: "
+            f"{elapsed_time:.2f} seconds (model={GROQ_MODEL})"
+        )
 
-    # response = client.chat.completions.create(
-    #     model="mistralai/Mixtral-8x7B-Instruct-v0.1",
-    #     messages=[{"role": "user", "content": prompt}]
-    # )
+        response_text = (
+            response.choices[0].message.content or ""
+        ).strip()
 
-    end_time = time.perf_counter()  # End timer
-    elapsed_time = end_time - start_time
-    print(f"⏱️ Feedback generation time: {elapsed_time:.2f} seconds")
+        if not response_text:
+            return "Error: Model returned an empty response."
 
-    # 🔢 Count tokens in the prompt for OpenAI
-    prompt_tokens = count_tokens(prompt)
-    print(f"🧮 AI Feedback Prompt token count: {prompt_tokens}")
+        try:
+            prompt_tokens, completion_tokens, total_tokens = (
+                _extract_usage_metadata(response)
+            )
 
-    # 🔢 Count tokens in the response from OpenAI
-    response_text = response.choices[0].message.content
-    response_tokens = count_tokens(response_text)
+            print(
+                f"🧾 Groq usage | prompt={prompt_tokens} | "
+                f"completion={completion_tokens} | total={total_tokens}"
+            )
 
-    print(f"📦 AI Feedback Response token count: {response_tokens}")
+            if total_tokens > 0:
+                add_token_usage(
+                    total_tokens,
+                    model_name=GROQ_MODEL,
+                )
+        except Exception as usage_error:
+            print(
+                "Token accounting failed; continuing:",
+                usage_error,
+            )
 
-    # 📊 Total token count
-    total = prompt_tokens + response_tokens
-    print(f"📊 Total tokens used: {total}")
+        return response_text
 
-    # Add this after response
-    prompt_tokens_count = response.usage.prompt_tokens
-    completion_tokens = response.usage.completion_tokens
-    total_tokens = prompt_tokens_count + completion_tokens
-    add_token_usage(total_tokens, model_name="gpt-4o-mini")
+    except Exception as error:
+        error_type = error.__class__.__name__
+        error_message = str(error).strip() or repr(error)
 
-    return response.choices[0].message.content.strip()
+        print(
+            "❌ Groq feedback call failed:",
+            error_type,
+            error_message,
+        )
 
-
-# Testing for Gemini
-# def generate_feedback_response(prompt: str, max_tokens: int = 500) -> str:
-#     client = get_gemini_client()  # ensures key is loaded and client is valid
-#
-#     start_time = time.perf_counter()
-#
-#     resp = client.models.generate_content(
-#         model="gemini-2.0-flash",
-#         contents=prompt,
-#         config=types.GenerateContentConfig(max_output_tokens=max_tokens),
-#     )
-#
-#     elapsed = time.perf_counter() - start_time
-#     print(f"⏱️ Feedback generation time: {elapsed:.2f} seconds")
-#
-#     text = resp.text or ""
-#
-#     # Prefer provider-reported usage when present
-#     um = getattr(resp, "usage_metadata", None)
-#     if um and (
-#         getattr(um, "prompt_token_count", None) is not None
-#         or getattr(um, "total_token_count", None) is not None
-#     ):
-#         prompt_tokens = getattr(um, "prompt_token_count", 0)
-#         completion_tokens = getattr(um, "candidates_token_count", 0)
-#         total_tokens = getattr(um, "total_token_count", prompt_tokens + completion_tokens)
-#     else:
-#         # Fallback: use your utils wrapper around Gemini's tokenizer endpoint
-#         prompt_tokens = count_tokens_gemini(prompt, model="gemini-2.0-flash")
-#         completion_tokens = count_tokens_gemini(text, model="gemini-2.0-flash")
-#         total_tokens = prompt_tokens + completion_tokens
-#
-#     print(f"🧮 Prompt tokens (Gemini): {prompt_tokens}")
-#     print(f"📦 Completion tokens (Gemini): {completion_tokens}")
-#     print(f"📊 Total tokens (Gemini): {total_tokens}")
-#
-#     add_token_usage(total_tokens, model_name="gemini-2.0-flash")
-#     return text.strip()
-
+        return (
+            f"Error: AI request failed "
+            f"({error_type}). {error_message}"
+        )
 
 
 def generate_followup_response(analysis_text: str, feedback_text: str, user_question: str, thread_summary: str = "") -> str:
@@ -633,33 +634,80 @@ def generate_comparison_feedback(comparison_data: List[dict], max_tokens: int = 
         "Respect the word caps strictly. Do NOT end any section mid-sentence."
     )
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are an experienced audio mastering engineer evaluating track cohesion and quality."},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=max_tokens,
-        temperature=0.4
-    )
+    if not GROQ_API_KEY or client is None:
+        return "Error: GROQ_API_KEY is not set on the server."
 
-    # 🔢 Count tokens in the prompt
-    prompt_tokens = count_tokens(prompt)
-    print(f"🧮 Comparison Prompt token count: {prompt_tokens}")
+    try:
+        start_time = time.perf_counter()
 
-    # 🔢 Count tokens in the response
-    response_text = response.choices[0].message.content
-    response_tokens = count_tokens(response_text)
-    print(f"📦 Comparison Response token count: {response_tokens}")
+        response = client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an experienced audio mastering engineer "
+                        "evaluating track cohesion and quality."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": prompt,
+                },
+            ],
+            max_tokens=max_tokens,
+            temperature=0.4,
+        )
 
-    # 📊 Total token count
-    total = prompt_tokens + response_tokens
-    print(f"📊 Total tokens used: {total}")
+        elapsed_time = time.perf_counter() - start_time
+        print(
+            f"⏱️ Comparison generation time: "
+            f"{elapsed_time:.2f} seconds (model={GROQ_MODEL})"
+        )
 
-    # Add this after response
-    prompt_tokens_count = response.usage.prompt_tokens
-    completion_tokens = response.usage.completion_tokens
-    total_tokens = prompt_tokens_count + completion_tokens
-    add_token_usage(total_tokens, model_name="gpt-4o-mini")
+        response_text = (
+            response.choices[0].message.content or ""
+        ).strip()
 
-    return response_text.strip()
+        if not response_text:
+            return "Error: Model returned an empty comparison response."
+
+        try:
+            prompt_tokens, completion_tokens, total_tokens = (
+                _extract_usage_metadata(response)
+            )
+
+            print(
+                f"🧾 Groq comparison usage | "
+                f"prompt={prompt_tokens} | "
+                f"completion={completion_tokens} | "
+                f"total={total_tokens}"
+            )
+
+            if total_tokens > 0:
+                add_token_usage(
+                    total_tokens,
+                    model_name=GROQ_MODEL,
+                )
+        except Exception as usage_error:
+            print(
+                "Comparison token accounting failed; continuing:",
+                usage_error,
+            )
+
+        return response_text
+
+    except Exception as error:
+        error_type = error.__class__.__name__
+        error_message = str(error).strip() or repr(error)
+
+        print(
+            "❌ Groq comparison call failed:",
+            error_type,
+            error_message,
+        )
+
+        return (
+            f"Error: Comparison request failed "
+            f"({error_type}). {error_message}"
+        )
